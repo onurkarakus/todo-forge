@@ -1,0 +1,9 @@
+node_modules/
+dist/
+out/
+*.vsix
+.todoforge/
+.vscode-test/
+*.tsbuildinfo
+.DS_Store
+test/fixtures/perf-generated/

@@ -1,0 +1,537 @@
+{
+  "name": "todoforge",
+  "displayName": "TodoForge",
+  "description": "Find TODO and FIXME comments in large workspaces, including .NET solutions. Tree, highlights, and local tasks.",
+  "version": "0.1.0",
+  "publisher": "onurkarakus",
+  "license": "MIT",
+  "engines": {
+    "vscode": "^1.85.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "keywords": [
+    "todo",
+    "fixme",
+    "hack",
+    "bug",
+    "comments",
+    "tasks",
+    "ripgrep",
+    "markdown",
+    "dotnet"
+  ],
+  "icon": "media/icon.png",
+  "galleryBanner": {
+    "color": "#1B4F4A",
+    "theme": "dark"
+  },
+  "qna": "marketplace",
+  "activationEvents": [
+    "onStartupFinished"
+  ],
+  "main": "./dist/extension.js",
+  "contributes": {
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "todoforge",
+          "title": "TodoForge",
+          "icon": "media/todoforge.svg"
+        }
+      ]
+    },
+    "views": {
+      "todoforge": [
+        {
+          "id": "todoforge.tree",
+          "name": "TodoForge",
+          "contextualTitle": "TodoForge",
+          "icon": "media/todoforge.svg"
+        }
+      ]
+    },
+    "commands": [
+      {
+        "command": "todoforge.refresh",
+        "title": "Refresh",
+        "category": "TodoForge",
+        "icon": "$(refresh)"
+      },
+      {
+        "command": "todoforge.setScanMode",
+        "title": "Set Scan Mode",
+        "category": "TodoForge",
+        "icon": "$(folder-opened)"
+      },
+      {
+        "command": "todoforge.setGroupBy",
+        "title": "Change View",
+        "category": "TodoForge",
+        "icon": "$(list-tree)"
+      },
+      {
+        "command": "todoforge.filter",
+        "title": "Filter",
+        "category": "TodoForge",
+        "icon": "$(filter)"
+      },
+      {
+        "command": "todoforge.clearFilter",
+        "title": "Clear Filter",
+        "category": "TodoForge"
+      },
+      {
+        "command": "todoforge.goToNext",
+        "title": "Go to Next TODO",
+        "category": "TodoForge"
+      },
+      {
+        "command": "todoforge.goToPrevious",
+        "title": "Go to Previous TODO",
+        "category": "TodoForge"
+      },
+      {
+        "command": "todoforge.revealFile",
+        "title": "Reveal Current File in Tree",
+        "category": "TodoForge"
+      },
+      {
+        "command": "todoforge.quickPick",
+        "title": "Quick Pick TODO",
+        "category": "TodoForge"
+      },
+      {
+        "command": "todoforge.exportMarkdown",
+        "title": "Export Tree to Markdown",
+        "category": "TodoForge"
+      },
+      {
+        "command": "todoforge.exportJson",
+        "title": "Export Tree to JSON",
+        "category": "TodoForge"
+      },
+      {
+        "command": "todoforge.copy",
+        "title": "Copy",
+        "category": "TodoForge"
+      },
+      {
+        "command": "todoforge.hideFolder",
+        "title": "Hide Folder",
+        "category": "TodoForge"
+      },
+      {
+        "command": "todoforge.revealInExplorer",
+        "title": "Reveal in Explorer",
+        "category": "TodoForge"
+      },
+      {
+        "command": "todoforge.trackAsTask",
+        "title": "Track as Task",
+        "category": "TodoForge"
+      },
+      {
+        "command": "todoforge.toggleMarkdown",
+        "title": "Toggle Checkbox",
+        "category": "TodoForge"
+      },
+      {
+        "command": "todoforge.editTask",
+        "title": "Edit Task",
+        "category": "TodoForge"
+      },
+      {
+        "command": "todoforge.toggleTaskDone",
+        "title": "Toggle Task Done",
+        "category": "TodoForge"
+      },
+      {
+        "command": "todoforge.exportTasks",
+        "title": "Export Tasks to Markdown",
+        "category": "TodoForge"
+      },
+      {
+        "command": "todoforge.openMatch",
+        "title": "Open TODO",
+        "category": "TodoForge"
+      },
+      {
+        "command": "todoforge.openSettings",
+        "title": "Open Settings",
+        "category": "TodoForge",
+        "icon": "$(settings-gear)"
+      }
+    ],
+    "menus": {
+      "view/title": [
+        {
+          "command": "todoforge.refresh",
+          "when": "view == todoforge.tree",
+          "group": "navigation@1"
+        },
+        {
+          "command": "todoforge.setGroupBy",
+          "when": "view == todoforge.tree",
+          "group": "navigation@2"
+        },
+        {
+          "command": "todoforge.setScanMode",
+          "when": "view == todoforge.tree",
+          "group": "navigation@3"
+        },
+        {
+          "command": "todoforge.filter",
+          "when": "view == todoforge.tree",
+          "group": "navigation@4"
+        },
+        {
+          "command": "todoforge.openSettings",
+          "when": "view == todoforge.tree",
+          "group": "navigation@5"
+        }
+      ],
+      "view/item/context": [
+        {
+          "command": "todoforge.revealInExplorer",
+          "when": "view == todoforge.tree && viewItem =~ /^(match|markdown|file|folder)$/",
+          "group": "navigation@1"
+        },
+        {
+          "command": "todoforge.copy",
+          "when": "view == todoforge.tree && viewItem =~ /^(match|markdown|task)$/",
+          "group": "navigation@2"
+        },
+        {
+          "command": "todoforge.trackAsTask",
+          "when": "view == todoforge.tree && viewItem == match",
+          "group": "1_actions@1"
+        },
+        {
+          "command": "todoforge.toggleMarkdown",
+          "when": "view == todoforge.tree && viewItem == markdown",
+          "group": "1_actions@1"
+        },
+        {
+          "command": "todoforge.editTask",
+          "when": "view == todoforge.tree && viewItem == task",
+          "group": "1_actions@1"
+        },
+        {
+          "command": "todoforge.toggleTaskDone",
+          "when": "view == todoforge.tree && viewItem =~ /^(task|subtask)$/",
+          "group": "1_actions@2"
+        },
+        {
+          "command": "todoforge.hideFolder",
+          "when": "view == todoforge.tree && viewItem == folder",
+          "group": "2_danger@1"
+        }
+      ]
+    },
+    "configuration": {
+      "title": "TodoForge",
+      "properties": {
+        "todoforge.general.tags": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "default": [
+            "TODO",
+            "FIXME",
+            "HACK",
+            "BUG",
+            "NOTE",
+            "XXX",
+            "REVIEW",
+            "OPTIMIZE"
+          ],
+          "description": "Comment tags to find. Matching is case-insensitive unless Case Sensitive is on."
+        },
+        "todoforge.general.tagGroups": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "name",
+              "tags"
+            ],
+            "properties": {
+              "name": {
+                "type": "string",
+                "description": "Group label shown in the tree."
+              },
+              "tags": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "description": "Tags that belong in this group."
+              }
+            }
+          },
+          "default": [],
+          "description": "Optional groups of tags. When Group By is Tag, grouped tags nest under these names."
+        },
+        "todoforge.general.caseSensitive": {
+          "type": "boolean",
+          "default": false,
+          "description": "Match tags with exact case."
+        },
+        "todoforge.general.subTagRegex": {
+          "type": "string",
+          "default": "(?:#(\\d+)|@([\\w-]+))",
+          "description": "Regex run against the text after a tag. The first non-empty capture group becomes the sub-tag. Examples: #123 and @urgent."
+        },
+        "todoforge.general.labelFormat": {
+          "type": "string",
+          "default": "${tag}: ${text}",
+          "description": "Tree label for a match. Tokens: ${tag}, ${text}, ${file}, ${line}, ${subtag}."
+        },
+        "todoforge.regex.custom": {
+          "type": "string",
+          "default": "",
+          "description": "Custom regex that replaces the built-in comment matcher. Use $TAGS for the tag alternation. Leave empty to use the built-in matcher. An invalid pattern is rejected and the built-in matcher stays in use."
+        },
+        "todoforge.regex.multiline": {
+          "type": "boolean",
+          "default": false,
+          "description": "Append following comment lines to a match, up to Multiline Max Lines."
+        },
+        "todoforge.regex.multilineMaxLines": {
+          "type": "number",
+          "default": 3,
+          "minimum": 1,
+          "maximum": 10,
+          "description": "Maximum extra lines attached to a match when multiline is on."
+        },
+        "todoforge.scanning.mode": {
+          "type": "string",
+          "enum": [
+            "workspace",
+            "openFiles",
+            "currentFile",
+            "workspaceAndOpen"
+          ],
+          "default": "workspace",
+          "description": "What to scan. Workspace walks folders. Open Files scans editor tabs. Current File scans the active editor. Workspace + Open Files adds unsaved editor buffers on top of the workspace scan."
+        },
+        "todoforge.scanning.includeGlobs": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "default": [],
+          "description": "Globs to include. Empty means every text file that is not excluded."
+        },
+        "todoforge.scanning.excludeGlobs": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "default": [
+            "**/bin/**",
+            "**/obj/**",
+            "**/.vs/**",
+            "**/packages/**",
+            "**/node_modules/**",
+            "**/*.g.cs",
+            "**/*.designer.cs"
+          ],
+          "description": "Globs to skip. Defaults skip .NET build output, NuGet packages, node_modules, and generated C# files."
+        },
+        "todoforge.scanning.useGitignore": {
+          "type": "boolean",
+          "default": true,
+          "description": "Honor .gitignore and .ignore files while scanning."
+        },
+        "todoforge.scanning.useVsCodeExcludes": {
+          "type": "boolean",
+          "default": true,
+          "description": "Also honor files.exclude and search.exclude."
+        },
+        "todoforge.scanning.maxFileSizeKb": {
+          "type": "number",
+          "default": 1024,
+          "minimum": 1,
+          "description": "Skip files larger than this size, in kilobytes."
+        },
+        "todoforge.scanning.debounceMs": {
+          "type": "number",
+          "default": 400,
+          "minimum": 50,
+          "description": "Wait this long after file changes before an incremental scan."
+        },
+        "todoforge.scanning.autoRefreshIntervalSec": {
+          "type": "number",
+          "default": 0,
+          "minimum": 0,
+          "description": "Full rescan interval in seconds. 0 turns periodic refresh off."
+        },
+        "todoforge.scanning.refreshOnGitHeadChange": {
+          "type": "boolean",
+          "default": true,
+          "description": "Rescan when .git/HEAD changes."
+        },
+        "todoforge.highlighting.enabled": {
+          "type": "boolean",
+          "default": true,
+          "description": "Highlight tags in open editors."
+        },
+        "todoforge.highlighting.style": {
+          "type": "string",
+          "enum": [
+            "tag",
+            "comment",
+            "line"
+          ],
+          "default": "tag",
+          "description": "How much of the line to highlight: the tag, the comment from its introducer, or the whole line."
+        },
+        "todoforge.highlighting.tags": {
+          "type": "object",
+          "default": {},
+          "additionalProperties": {
+            "type": "object",
+            "properties": {
+              "foreground": {
+                "type": "string",
+                "description": "Text color."
+              },
+              "background": {
+                "type": "string",
+                "description": "Background color."
+              },
+              "icon": {
+                "type": "string",
+                "description": "Codicon-style name: checklist, flame, tools, bug, note, warning, eye, zap, circle."
+              },
+              "ruler": {
+                "type": "string",
+                "enum": [
+                  "off",
+                  "right",
+                  "center",
+                  "left",
+                  "full"
+                ],
+                "description": "Overview ruler lane."
+              },
+              "fontStyle": {
+                "type": "string",
+                "enum": [
+                  "normal",
+                  "italic",
+                  "bold",
+                  "underline"
+                ],
+                "description": "Font style of the highlighted range."
+              }
+            }
+          },
+          "description": "Per-tag highlight overrides. Tags without an entry use the built-in palette."
+        },
+        "todoforge.tree.groupBy": {
+          "type": "string",
+          "enum": [
+            "file",
+            "tag",
+            "subtag",
+            "flat"
+          ],
+          "default": "tag",
+          "description": "How Found in Code is grouped."
+        },
+        "todoforge.tree.showActivityBadge": {
+          "type": "boolean",
+          "default": true,
+          "description": "Show the match count on the TodoForge activity bar icon."
+        },
+        "todoforge.tasks.enabled": {
+          "type": "boolean",
+          "default": true,
+          "description": "Show My Tasks and allow tracking a scanned TODO."
+        },
+        "todoforge.tasks.storage": {
+          "type": "string",
+          "enum": [
+            "workspaceState",
+            "workspaceFile"
+          ],
+          "default": "workspaceState",
+          "description": "workspaceState keeps tasks in VS Code workspace storage. workspaceFile writes .vscode/todoforge.tasks.json so the tasks can be shared."
+        },
+        "todoforge.tasks.updateSourceOnDone": {
+          "type": "boolean",
+          "default": false,
+          "description": "When a tracked task is marked done, replace its linked comment tag with DONE. The scan does not look for DONE."
+        },
+        "todoforge.markdown.enabled": {
+          "type": "boolean",
+          "default": true,
+          "description": "Detect Markdown checklists such as - [ ] and - [x]."
+        },
+        "todoforge.markdown.groupSeparately": {
+          "type": "boolean",
+          "default": true,
+          "description": "Place Markdown checklists under their own tree group."
+        },
+        "todoforge.codelens.enabled": {
+          "type": "boolean",
+          "default": false,
+          "description": "Show CodeLens actions above TODO comments. Off by default to keep large files quiet."
+        },
+        "todoforge.statusbar.enabled": {
+          "type": "boolean",
+          "default": true,
+          "description": "Show TODO counts in the status bar."
+        },
+        "todoforge.statusbar.format": {
+          "type": "string",
+          "enum": [
+            "perTag",
+            "total"
+          ],
+          "default": "perTag",
+          "description": "Status bar text. perTag lists counts such as TODO:12 FIXME:5. total shows one number."
+        },
+        "todoforge.migrateFromTodoTree": {
+          "type": "boolean",
+          "default": true,
+          "description": "On first activation, offer to copy supported Todo Tree settings when TodoForge has not been configured yet."
+        }
+      }
+    }
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run package && node scripts/fetch-ripgrep.mjs",
+    "compile": "npm run check-types && npm run lint && node esbuild.js",
+    "watch": "npm-run-all -p watch:*",
+    "watch:esbuild": "node esbuild.js --watch",
+    "watch:tsc": "tsc --noEmit --watch --project tsconfig.json",
+    "package": "npm run check-types && npm run lint && node esbuild.js --production",
+    "package:vsix": "vsce package --allow-missing-repository",
+    "check-types": "tsc --noEmit",
+    "lint": "eslint src",
+    "test": "mocha --require tsx --timeout 20000 \"src/**/*.test.ts\"",
+    "perf": "tsx scripts/perf.ts"
+  },
+  "devDependencies": {
+    "@types/mocha": "^10.0.10",
+    "@types/node": "^20.17.24",
+    "@types/vscode": "1.85.0",
+    "@vscode/vsce": "^3.6.0",
+    "esbuild": "^0.25.0",
+    "eslint": "^9.21.0",
+    "mocha": "^11.1.0",
+    "npm-run-all": "^4.1.5",
+    "tsx": "^4.19.3",
+    "typescript": "^5.8.2",
+    "typescript-eslint": "^8.26.0"
+  },
+  "dependencies": {
+    "@vscode/ripgrep": "^1.15.9"
+  }
+}
