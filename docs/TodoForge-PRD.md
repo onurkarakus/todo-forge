@@ -1,3 +1,5 @@
+> **Status (2026-11-03):** historical document. Version 1.0 narrowed the scope to an editor-only extension for individual developers (offline, no telemetry, no account, no team/CI/CLI features), and replaced My Tasks with Pins. The current design is in [architecture.md](architecture.md); user-facing behavior is in the [README](../README.md) and [CHANGELOG](../CHANGELOG.md).
+
 # PRD: TodoForge – Modern, High-Performance TODO Management Extension for VS Code
 
 **Version:** 1.0  

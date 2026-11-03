@@ -6,6 +6,17 @@ VS Code extension for high-performance TODO/FIXME scanning and management.
 TypeScript, VS Code Extension API, ripgrep-based scanning.  
 Target: Large codebases including .NET solutions.
 
+## Product scope
+
+TodoForge is **editor-only, for individual developers**:
+
+- Offline. No network requests, no telemetry, no account, no sign-in.
+- Local, read-only git only (`diff`, `ls-files`, `merge-base`, `blame`, `check-ignore`). Never fetch or push.
+- No team, CI, CLI, SARIF or issue-tracker features. Say no to them in reviews.
+- AI features stay opt-in (`todoforge.ai.enabled`, default `false`) and only use `vscode.lm`.
+
+See [docs/architecture.md](docs/architecture.md) before larger changes.
+
 ## Commands
 
 Build: `npm run compile`  
@@ -13,7 +24,11 @@ Watch: `npm run watch`
 Package: `npm run package`  
 Lint: `npm run lint`  
 Test: `npm test`  
-Single test: `npm test -- --grep "describe name"`
+Single test: `npm test -- --grep "describe name"`  
+Integration tests: `npm run test:integration` (real VS Code; on Linux run under `xvfb-run -a`; set `VSCODE_EXECUTABLE` to reuse a local build)  
+Performance: `npm run perf`  
+Localization: `npm run l10n` after changing any `vscode.l10n.t` string, then update `l10n/bundle.l10n.tr.json`  
+VSIX: `node scripts/package.mjs linux-x64` (one target) or `npm run package:platforms` (all). Publishing is a manual maintainer step (see [docs/release.md](docs/release.md)).
 
 ## Code Style
 
@@ -45,18 +60,26 @@ export const scanWorkspace = async (
 
 ```
 /src
-  /scanning       -> Ripgrep integration, file watching, incremental updates
-  /tree           -> TreeDataProvider, view models, grouping logic
-  /highlighting   -> Editor decorations, gutter icons, ruler marks
-  /tasks          -> Optional task management features
-  /config         -> Settings reading, defaults, migration from Todo Tree
-  /utils          -> Pure helpers (regex, path, debounce)
-  extension.ts    -> Activation, command registration, disposables
+  /scanning       -> ripgrep runner, line parser, path filter, index, line shifting
+  /syntax         -> comment syntax per language, inline metadata, TODO removal
+  /git            -> local git (diff/blame parsing, service, context with caches)
+  /core           -> engine (scan, watch, live edits), state (pins, mute, views)
+  /tree           -> TODO tree and Changes tree providers, grouping, query language
+  /highlighting   -> palette (theme colors), decorations, inline hints, icons
+  /features       -> hover, quick fixes, completion, diagnostics, status bar, insights panel, AI, import
+  /pins           -> pin fingerprints and resolution
+  /insights       -> insights model and HTML rendering (pure)
+  /config         -> settings, defaults, migration, importers (Todo Tree, Rider, Visual Studio)
+  /commands       -> navigation helpers
+  /utils          -> pure helpers (regex, paths, debounce, ids)
+  controller.ts   -> composition root: commands, views, context keys
+  extension.ts    -> activate/deactivate; returns a small test API
 ```
 
-- Data flows one way: scanning → tree/highlighting.
-- Never import from `tree` or `highlighting` into `scanning`.
-- Keep VS Code API calls at the edges. Core logic should be testable without VS Code.
+- Data flows one way: scanning → engine → tree/highlighting/features.
+- Never import from `tree`, `highlighting` or `features` into `scanning`, `syntax` or `git` parsers.
+- Keep VS Code API calls at the edges. Pure modules (`scanning/parseLine`, `syntax/*`, `tree/query`, `tree/grouping`, `git/*Parse`, `insights/*`, `pins/*`, `config/importers`) must not import `vscode`.
+- `package.json`, `package.nls.json` and `package.nls.tr.json` must stay in sync; `src/manifest.test.ts` checks keys, commands, menus and walkthrough media.
 
 ## Performance Rules
 
@@ -73,7 +96,7 @@ export const scanWorkspace = async (
 - Never commit `.vsix`, `node_modules`, or any secrets.
 - Do not use global prototype modifications (especially `RegExp`).
 - Do not introduce heavy dependencies without justification.
-- Telemetry is off by default and must be opt-in if ever added.
+- No telemetry and no network calls. Do not add either.
 
 ## Testing
 
@@ -81,6 +104,8 @@ export const scanWorkspace = async (
 - Integration tests for scanning behavior using fixture projects.
 - Always test large-file and multi-root scenarios.
 - Mock VS Code APIs; do not require a full VS Code instance for unit tests.
+- Integration tests in `test/integration/` run in a real VS Code against a temporary git workspace made by `scripts/run-integration.mjs`.
+- Marketplace screenshots come from `scripts/screenshots/` (demo workspace + Playwright driver). Re-run them when the UI changes.
 
 ## Git
 

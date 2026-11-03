@@ -108,7 +108,6 @@ Todo Tree is the extension most people know. TodoForge covers the same daily job
 | Pins, mute, saved views, live filter query | ✓ | filter text only |
 | Theme colors with light-theme contrast | ✓ | custom colors |
 | Insights panel | ✓ | – |
-| English and Turkish UI | ✓ | – |
 | Import Todo Tree settings | ✓ | – |
 
 Todo Tree still has more highlight knobs (per-tag regex, line styles, icons from many sets). If you rely on one TodoForge does not have, tell us in an issue.

@@ -1,33 +1,35 @@
-# Migrating from Todo Tree
+# Migrating from Todo Tree, Rider or Visual Studio
 
-TodoForge reads a few Todo Tree settings on first launch. It asks before writing anything. If you already changed a TodoForge setting, it leaves your settings alone.
+Run **TodoForge: Import Settings (Todo Tree, Rider, Visual Studio)…** from the Command Palette or the TODO view's `…` menu. TodoForge shows what it will write and asks before changing anything. Settings are written to your user settings.
 
-## Copied
+On the first start after install, if Todo Tree settings exist, TodoForge offers this once. Turn the offer off with `todoforge.migrateFromTodoTree: false`.
+
+## From Todo Tree
 
 | Todo Tree | TodoForge |
 | --- | --- |
 | `todo-tree.general.tags` | `todoforge.general.tags` |
-| `todo-tree.general.tagGroups` | `todoforge.general.tagGroups` |
+| `todo-tree.general.tagGroups` | `todoforge.general.tagGroups` (converted to `[{ name, tags }]`) |
 | `todo-tree.filtering.excludeGlobs` | `todoforge.scanning.excludeGlobs` |
 | `todo-tree.filtering.includeGlobs` | `todoforge.scanning.includeGlobs` |
 | `todo-tree.regex.regex` | `todoforge.regex.custom` |
 | `todo-tree.regex.regexCaseSensitive` | `todoforge.general.caseSensitive` |
 | `todo-tree.highlights.customHighlight` | `todoforge.highlighting.tags` |
 
-Unknown icon names in a copied highlight fall back to the built-in icon for that tag.
+Unknown icon names in a copied highlight fall back to the built-in icon for that tag. Keys TodoForge does not copy are listed in the **TodoForge** Output channel.
 
-## Not copied
+Tip: Todo Tree's default regex is close to TodoForge's built-in matcher. If you never changed it, leave `todoforge.regex.custom` empty to get comment-aware matching and inline metadata.
 
-TodoForge does not import these. Set the TodoForge equivalent yourself if you used them.
+## From JetBrains Rider / ReSharper
 
-- `todo-tree.regex.regexMatches`
-- `todo-tree.general.statusBar`
-- `todo-tree.tree.*`
-- `todo-tree.highlights.defaultHighlight`
-- Any other Todo Tree key
+Choose **JetBrains Rider / ReSharper** and pick a `.DotSettings` file (for example `YourSolution.sln.DotSettings`). TodoForge reads the TODO patterns and adds their tag names to `todoforge.general.tags`. Or choose **Rider defaults** to add `TODO, BUG`.
 
-Those keys are listed in the TodoForge output channel when a migration runs.
+## From Visual Studio
 
-## Turn the prompt off
+Export your settings in Visual Studio (**Tools → Import and Export Settings → Export**, include **Environment → Task List**) and pick the `.vssettings` file. TodoForge adds the Task List tokens. Or choose **Visual Studio defaults** to add `TODO, HACK, UNDONE`.
 
-Set `todoforge.migrateFromTodoTree` to `false`. The prompt is also skipped after you choose Copy Settings or Not Now.
+## What has no equivalent
+
+- Todo Tree's per-tag `regex`, line styles and icon sets beyond Codicons.
+- Todo Tree's `tree.*` layout keys: use **Group By** and **Sort By** in the TODO view.
+- Visual Studio Task List priorities per token: use `!high` in the TODO instead.

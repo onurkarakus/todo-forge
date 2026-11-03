@@ -1,22 +1,24 @@
 # Performance notes
 
-Measured on 2026-10-26 with `npm run perf` on this machine. The script writes a gitignored fixture at `test/fixtures/perf-generated`, scans it with the same ripgrep runner the extension uses, then scans one changed file.
+Measured on 2026-11-03 with `npm run perf` and the integration tests on a Linux x64 box (Node 22, VS Code 1.144).
 
-Fixture:
+Fixture (`test/fixtures/perf-generated`, written by the script and gitignored):
 
 - 20,000 small `.cs` files under `src/`
-- One 10,000-line `Large.cs` with a single TODO
-- `bin/` and `obj/` files that contain TODOs and must be excluded
+- one 10,000-line `Large.cs` with a single TODO
+- `bin/` and `obj/` files with TODOs that must be excluded
 
-Results:
+| Check | Target | 0.1.0 (2026-10-26) | 1.0.0 (2026-11-03) |
+| --- | --- | --- | --- |
+| Activation (`activate()` returns) | < 100 ms | – | 48–54 ms |
+| Full scan, 20k files | < 30 s | 165 ms, 1201 matches | ~51 ms, 1201 matches |
+| One-file rescan | < 200 ms | 5 ms | 7 ms |
+| Watcher path filter, 100k paths | – | – | ~285 ms (2.8 µs per path) |
+| Group by file + filter, 1201 matches | < 50 ms | – | 15 ms |
 
-| Check | Target | Measured |
-| --- | --- | --- |
-| Full scan | under 30s | 165ms, 1201 matches, 0 ripgrep errors |
-| One-file rescan | under 200ms | 5ms, 1 match |
+Notes:
 
-The fixture write itself took 959ms and is not part of the scan time.
-
-`npm test` does not build this fixture. Run `npm run perf` when you want to repeat the check. The generated tree is deleted after a local run if it is still on disk; the script creates it again.
-
-Activation does not scan. `activate()` registers commands, the tree, and listeners, then schedules the scan with `setTimeout(..., 0)`.
+- Activation does not scan. The first scan is scheduled after activation and shows progress on the TODO view only.
+- Scan time includes comment-context checks and metadata parsing. The 0.1.0 number used a different machine run; treat the comparison as "same order of magnitude", not a speed-up claim.
+- Live edits are parsed in the extension host per changed document with a debounce (`todoforge.scanning.debounceMs`, 400 ms).
+- Only scan-related settings trigger a rescan.
