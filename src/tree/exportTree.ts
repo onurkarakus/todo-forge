@@ -1,40 +1,46 @@
-import type { TodoMatch, TrackedTask } from "../types";
+import type { TodoMatch } from "../types";
 import type { ViewNode } from "./grouping";
-import { tasksToMarkdown } from "../tasks/markdownExport";
 
 const walk = (node: ViewNode, depth: number, lines: string[]): void => {
-  if (node.kind === "empty") {
-    lines.push("No TODOs found.");
-    return;
-  }
   if (node.kind === "match" && node.match) {
     const match = node.match;
-    const box = match.kind === "markdown" ? (match.markdownChecked ? "x" : " ") : " ";
-    lines.push(
-      `${"  ".repeat(depth)}- [${box}] ${match.relativePath}:${match.line + 1} ${node.label}`,
-    );
+    const box = match.kind === "markdown" && match.markdownChecked ? "x" : " ";
+    lines.push(`${"  ".repeat(Math.max(0, depth - 1))}- [${box}] ${node.label} (${match.relativePath}:${match.line + 1})`);
     return;
   }
-  const suffix = node.count > 0 ? ` (${node.count})` : "";
-  const heading = depth === 0 ? `# ${node.label}${suffix}` : `${"#".repeat(Math.min(depth + 1, 6))} ${node.label}${suffix}`;
-  lines.push(heading, "");
+  if (depth > 0) {
+    lines.push("", `${"#".repeat(Math.min(depth + 1, 6))} ${node.label} (${node.count})`, "");
+  }
   for (const child of node.children) {
-    walk(child, depth + 1, lines);
+    walk(child, node.kind === "match" ? depth : depth + 1, lines);
   }
 };
 
-export const treeToMarkdown = (root: ViewNode, tasks: readonly TrackedTask[]): string => {
-  const lines: string[] = [];
-  walk(root, 0, lines);
-  if (tasks.length > 0) {
-    lines.push("", tasksToMarkdown(tasks));
+/** Markdown of the current view, for pasting into notes. Written only where the user saves it. */
+export const treeToMarkdown = (root: ViewNode, title = "TODOs"): string => {
+  const lines: string[] = [`# ${title} (${root.count})`];
+  if (root.children.length === 0) {
+    lines.push("", "No TODOs found.");
   }
-  return `${lines.join("\n").trim()}\n`;
+  for (const child of root.children) {
+    walk(child, 1, lines);
+  }
+  return `${lines.join("\n").replace(/\n{3,}/g, "\n\n").trim()}\n`;
 };
 
-export const treeToJson = (
-  matches: readonly TodoMatch[],
-  tasks: readonly TrackedTask[],
-): string => {
-  return `${JSON.stringify({ matches, tasks }, null, 2)}\n`;
+export const treeToJson = (matches: readonly TodoMatch[]): string => {
+  const rows = matches.map((match) => ({
+    tag: match.tag,
+    text: match.text,
+    file: match.relativePath,
+    line: match.line + 1,
+    column: match.column + 1,
+    kind: match.kind,
+    ...(match.meta?.owner ? { owner: match.meta.owner } : {}),
+    ...(match.meta?.due ? { due: match.meta.due } : {}),
+    ...(match.meta?.priority ? { priority: match.meta.priority } : {}),
+    ...(match.meta && match.meta.labels.length > 0 ? { labels: match.meta.labels } : {}),
+    ...(match.subTag ? { subTag: match.subTag } : {}),
+  }));
+  return `${JSON.stringify(rows, null, 2)}\n`;
 };

@@ -1,3 +1,6 @@
+import { ensureTagGroup } from "../utils/regexBuilder";
+
+/** Only values the user set. Built-in Todo Tree defaults are never copied. */
 export interface TodoTreeSnapshot {
   tags?: unknown;
   tagGroups?: unknown;
@@ -20,6 +23,22 @@ const stringArray = (value: unknown): string[] | undefined => {
   return value;
 };
 
+const tagGroupsOf = (value: unknown): { name: string; tags: string[] }[] | undefined => {
+  if (!value || typeof value !== "object") {
+    return undefined;
+  }
+  if (Array.isArray(value)) {
+    return value.filter(
+      (entry): entry is { name: string; tags: string[] } =>
+        Boolean(entry) && typeof entry === "object" && typeof (entry as { name?: unknown }).name === "string",
+    );
+  }
+  // Todo Tree stores tag groups as { "Group name": ["TAG", ...] }.
+  return Object.entries(value as Record<string, unknown>)
+    .map(([name, tags]) => ({ name, tags: stringArray(tags) ?? [] }))
+    .filter((group) => group.tags.length > 0);
+};
+
 export const mapTodoTreeSettings = (input: TodoTreeSnapshot): MigrationPatch => {
   const values: Record<string, unknown> = {};
   const ignored: string[] = [];
@@ -27,8 +46,9 @@ export const mapTodoTreeSettings = (input: TodoTreeSnapshot): MigrationPatch => 
   if (tags && tags.length > 0) {
     values["general.tags"] = tags;
   }
-  if (Array.isArray(input.tagGroups)) {
-    values["general.tagGroups"] = input.tagGroups;
+  const groups = tagGroupsOf(input.tagGroups);
+  if (groups && groups.length > 0) {
+    values["general.tagGroups"] = groups;
   }
   const excludeGlobs = stringArray(input.excludeGlobs);
   if (excludeGlobs) {
@@ -39,7 +59,7 @@ export const mapTodoTreeSettings = (input: TodoTreeSnapshot): MigrationPatch => 
     values["scanning.includeGlobs"] = includeGlobs;
   }
   if (typeof input.regex === "string" && input.regex.trim().length > 0) {
-    values["regex.custom"] = input.regex;
+    values["regex.custom"] = ensureTagGroup(input.regex);
   }
   if (typeof input.caseSensitive === "boolean") {
     values["general.caseSensitive"] = input.caseSensitive;

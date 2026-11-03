@@ -10,30 +10,37 @@ export const tagAlternation = (tags: readonly string[]): string => {
 
 export interface CompiledMatcher {
   regex: RegExp;
+  /** Finds a tag inside a custom-regex match that has no `tag` group. */
+  tagFinder: RegExp;
   custom: boolean;
   error?: string;
 }
 
-const COMMENT_LEAD =
-  /(?:\/\/\/?|\/\*|<!--|--|#|;|%|@\*|\(\*|(?:^|\s)'|(?:^|\s)\*)\s*$/;
+/** Patterns for .NET code that marks unfinished work without a comment tag. */
+export const DOTNET_RG_PATTERN = "NotImplementedException|\\[Obsolete|<Obsolete|#warning";
 
-export const isCommentContext = (prefix: string): boolean => {
-  if (/^\s*$/.test(prefix)) {
-    return true;
+export const buildRgPattern = (
+  tags: readonly string[],
+  markdownEnabled: boolean,
+  dotnetPatterns = false,
+): string => {
+  const alt = tagAlternation(tags);
+  const parts = [alt.length > 0 ? `\\b(?:${alt})\\b` : "\\bTODO\\b"];
+  if (markdownEnabled) {
+    parts.push("^\\s*(?:[-*+]|\\d+[.)])\\s+\\[[ xX]\\]");
   }
-  if (/["`]/.test(prefix.slice(-1))) {
-    return false;
+  if (dotnetPatterns) {
+    parts.push(DOTNET_RG_PATTERN);
   }
-  return COMMENT_LEAD.test(prefix);
+  return parts.length === 1 ? parts[0] ?? "" : `(?:${parts.join("|")})`;
 };
 
-export const buildRgPattern = (tags: readonly string[], markdownEnabled: boolean): string => {
-  const alt = tagAlternation(tags);
-  const tagPart = alt.length > 0 ? `\\b(?:${alt})\\b` : "\\bTODO\\b";
-  if (!markdownEnabled) {
-    return tagPart;
+/** Adds a named `tag` group around `$TAGS` so a migrated Todo Tree regex keeps its tag. */
+export const ensureTagGroup = (pattern: string): string => {
+  if (pattern.includes("(?<tag>") || !pattern.includes("$TAGS")) {
+    return pattern;
   }
-  return `(?:${tagPart}|^\\s*(?:[-*+]|\\d+[.)])\\s+\\[[ xX]\\])`;
+  return pattern.replace(/\(\$TAGS\)/g, "$TAGS").replaceAll("$TAGS", "(?<tag>$TAGS)");
 };
 
 export const compileMatcher = (
@@ -43,19 +50,22 @@ export const compileMatcher = (
 ): CompiledMatcher => {
   const flags = caseSensitive ? "g" : "gi";
   const alt = tagAlternation(tags);
-  const fallbackSource = `(?<![\\w])(?<tag>${alt.length > 0 ? alt : "TODO"})\\b`;
+  const body = alt.length > 0 ? alt : "TODO";
+  const fallbackSource = `(?<![\\w])(?<tag>${body})\\b`;
+  const tagFinder = new RegExp(`(?<![\\w])(?:${body})\\b`, caseSensitive ? "" : "i");
   const trimmed = custom.trim();
   if (!trimmed) {
-    return { regex: new RegExp(fallbackSource, flags), custom: false };
+    return { regex: new RegExp(fallbackSource, flags), tagFinder, custom: false };
   }
 
-  const source = trimmed.replaceAll("$TAGS", alt.length > 0 ? alt : "TODO");
+  const source = trimmed.replaceAll("$TAGS", body);
   try {
-    return { regex: new RegExp(source, flags), custom: true };
+    return { regex: new RegExp(source, flags), tagFinder, custom: true };
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
     return {
       regex: new RegExp(fallbackSource, flags),
+      tagFinder,
       custom: false,
       error: `Custom regex was rejected: ${message}`,
     };

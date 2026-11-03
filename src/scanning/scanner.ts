@@ -3,7 +3,7 @@ import path from "node:path";
 import type { TodoMatch } from "../types";
 import { relativePosix } from "../utils/paths";
 import { buildRgPattern } from "../utils/regexBuilder";
-import { compileParseOptions, extendMultiline, parseLine, type ParseOptions } from "./parseLine";
+import { compileParseOptions, extendMultiline, parseLine, parseLines, type ParseOptions } from "./parseLine";
 import { runRipgrep } from "./ripgrep";
 
 export interface ScanRoot {
@@ -43,7 +43,11 @@ export const scanRoots = async (request: ScanRequest): Promise<ScanOutput> => {
   if (compiled.matcher.error) {
     errors.push(compiled.matcher.error);
   }
-  const pattern = buildRgPattern(request.options.tags, request.options.markdownEnabled);
+  const pattern = buildRgPattern(
+    request.options.tags,
+    request.options.markdownEnabled,
+    request.options.dotnetPatterns === true,
+  );
   let seen = 0;
 
   for (const root of request.roots) {
@@ -103,13 +107,7 @@ export const scanText = (
   options: ParseOptions,
 ): TodoMatch[] => {
   const compiled = compileParseOptions(options);
-  const lines = text.split(/\r?\n/);
-  const matches: TodoMatch[] = [];
-  for (let index = 0; index < lines.length; index += 1) {
-    const parsed = parseLine(lines[index] ?? "", index, location, compiled.matcher, options);
-    matches.push(...parsed);
-  }
-  return matches;
+  return parseLines(text.split(/\r?\n/), 0, location, compiled.matcher, options);
 };
 
 export const scanLineSlice = (
@@ -119,13 +117,7 @@ export const scanLineSlice = (
   options: ParseOptions,
 ): TodoMatch[] => {
   const compiled = compileParseOptions(options);
-  const matches: TodoMatch[] = [];
-  for (let offset = 0; offset < lines.length; offset += 1) {
-    matches.push(
-      ...parseLine(lines[offset] ?? "", startLine + offset, location, compiled.matcher, options),
-    );
-  }
-  return matches;
+  return parseLines(lines, startLine, location, compiled.matcher, options);
 };
 
 export const fileOutsideRoot = (folder: string, file: string): boolean => {

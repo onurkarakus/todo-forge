@@ -5,6 +5,7 @@ import { settingsFromValues } from "./defaults";
 
 export const SETTING_KEYS = [
   "general.tags",
+  "general.strictTags",
   "general.tagGroups",
   "general.caseSensitive",
   "general.subTagRegex",
@@ -12,6 +13,7 @@ export const SETTING_KEYS = [
   "regex.custom",
   "regex.multiline",
   "regex.multilineMaxLines",
+  "dotnet.codePatterns",
   "scanning.mode",
   "scanning.includeGlobs",
   "scanning.excludeGlobs",
@@ -23,17 +25,25 @@ export const SETTING_KEYS = [
   "scanning.refreshOnGitHeadChange",
   "highlighting.enabled",
   "highlighting.style",
+  "highlighting.inlineHints",
   "highlighting.tags",
   "tree.groupBy",
+  "tree.sortBy",
   "tree.showActivityBadge",
-  "tasks.enabled",
-  "tasks.storage",
-  "tasks.updateSourceOnDone",
   "markdown.enabled",
   "markdown.groupSeparately",
   "codelens.enabled",
   "statusbar.enabled",
   "statusbar.format",
+  "problems.enabled",
+  "problems.scope",
+  "problems.severity",
+  "syntax.owner",
+  "stale.afterDays",
+  "git.enabled",
+  "git.baseBranch",
+  "git.blame",
+  "ai.enabled",
   "migrateFromTodoTree",
 ] as const;
 
@@ -58,15 +68,17 @@ export const userHasConfiguredTodoForge = (): boolean => {
   });
 };
 
-export const updateSetting = async (key: string, value: unknown): Promise<void> => {
-  const target = vscode.workspace.workspaceFolders?.length
-    ? vscode.ConfigurationTarget.Workspace
-    : vscode.ConfigurationTarget.Global;
+/** View preferences (group, sort, scan mode) are personal, so they go to user settings. */
+export const updateSetting = async (
+  key: string,
+  value: unknown,
+  target: vscode.ConfigurationTarget = vscode.ConfigurationTarget.Global,
+): Promise<void> => {
   await vscode.workspace.getConfiguration("todoforge").update(key, value, target);
 };
 
-export const configurationTarget = (): vscode.ConfigurationTarget => {
-  return vscode.workspace.workspaceFolders?.length
-    ? vscode.ConfigurationTarget.Workspace
-    : vscode.ConfigurationTarget.Global;
+/** Reads only values a user set for `section.key`, never extension defaults. */
+export const userValue = (section: string, key: string): unknown => {
+  const inspected = vscode.workspace.getConfiguration(section).inspect(key);
+  return inspected?.workspaceFolderValue ?? inspected?.workspaceValue ?? inspected?.globalValue;
 };

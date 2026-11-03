@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { describe, it } from "mocha";
 
 import type { TodoMatch } from "../types";
-import { cycleMatch, formatStatusText } from "./navigation";
+import { cycleMatch } from "./navigation";
 import { treeToJson, treeToMarkdown } from "../tree/exportTree";
 import { groupMatches } from "../tree/grouping";
 
@@ -20,6 +20,7 @@ const match = (line: number, column: number): TodoMatch => {
     text: `item ${line}`,
     raw: "// TODO",
     kind: "tag",
+    meta: { owner: "onur", due: "2026-12-01", labels: [] },
   };
 };
 
@@ -31,16 +32,31 @@ describe("navigation and export", () => {
     assert.equal(cycleMatch(matches, 9, 0, 1)?.line, 2);
     assert.equal(cycleMatch(matches, 5, 0, -1)?.line, 2);
     assert.equal(cycleMatch(matches, 0, 0, -1)?.line, 9);
+    assert.equal(cycleMatch([], 0, 0, 1), undefined);
   });
 
-  it("formats the status bar and export", () => {
-    assert.equal(formatStatusText(new Map([["TODO", 2], ["FIXME", 1]]), "perTag", false), "TODO:2 FIXME:1");
-    assert.equal(formatStatusText(new Map([["TODO", 2]]), "total", true), "TodoForge: Scanning…");
-    const root = groupMatches([match(1, 0)], "flat", "${tag}: ${text}", [], false);
-    const markdown = treeToMarkdown(root, []);
-    assert.match(markdown, /Found in Code/);
-    assert.match(markdown, /src\/A\.cs:2/);
-    const json = treeToJson([match(1, 0)], []);
-    assert.match(json, /"tag": "TODO"/);
+  it("exports the view as Markdown and JSON", () => {
+    const root = groupMatches([match(1, 0)], {
+      groupBy: "tag",
+      labelFormat: "${text}",
+      tagGroups: [],
+      markdownSeparate: true,
+      workspaceFolders: [],
+    });
+    const markdown = treeToMarkdown(root);
+    assert.match(markdown, /^# TODOs \(1\)/);
+    assert.match(markdown, /## TODO \(1\)/);
+    assert.match(markdown, /- \[ \] item 1 \(src\/A\.cs:2\)/);
+    const json = JSON.parse(treeToJson([match(1, 0)])) as Record<string, unknown>[];
+    assert.deepEqual(json[0], {
+      tag: "TODO",
+      text: "item 1",
+      file: "src/A.cs",
+      line: 2,
+      column: 1,
+      kind: "tag",
+      owner: "onur",
+      due: "2026-12-01",
+    });
   });
 });

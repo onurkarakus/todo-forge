@@ -3,13 +3,33 @@ import { formatMatchLabel } from "./label";
 
 export interface ViewNode {
   id: string;
-  kind: "root" | "group" | "folder" | "file" | "match" | "empty";
+  kind: "root" | "group" | "workspace" | "folder" | "file" | "match" | "empty";
   label: string;
   count: number;
   parentId?: string;
   match?: TodoMatch;
+  /** File URI for file nodes, folder path relative to its workspace folder for folder nodes. */
   resourcePath?: string;
+  /** Absolute workspace folder path for workspace and folder nodes. */
+  workspaceFolder?: string;
   children: ViewNode[];
+}
+
+export interface GroupOptions {
+  groupBy: GroupBy;
+  labelFormat: string;
+  tagGroups: readonly TagGroup[];
+  markdownSeparate: boolean;
+  /** Workspace folders in display order. More than one adds a level per folder when grouping by file. */
+  workspaceFolders: readonly { path: string; name: string }[];
+  /** Matches arrive pre-sorted; keep that order inside groups instead of sorting by location. */
+  keepOrder?: boolean;
+  /** Label for the Markdown group. */
+  markdownLabel?: string;
+  /** Label for owner-less TODOs when grouping by owner. */
+  noOwnerLabel?: string;
+  /** Configured tag order; tag groups follow it, unknown tags come last alphabetically. */
+  tagOrder?: readonly string[];
 }
 
 const byLocation = (left: TodoMatch, right: TodoMatch): number => {
@@ -19,9 +39,9 @@ const byLocation = (left: TodoMatch, right: TodoMatch): number => {
   return left.line - right.line || left.column - right.column;
 };
 
-const matchNode = (match: TodoMatch, labelFormat: string): ViewNode => {
+export const matchNode = (match: TodoMatch, labelFormat: string, idPrefix = ""): ViewNode => {
   return {
-    id: match.id,
+    id: `${idPrefix}${match.id}`,
     kind: "match",
     label: formatMatchLabel(labelFormat, match),
     count: 1,
@@ -45,11 +65,25 @@ const withCounts = (node: ViewNode): ViewNode => {
   return next;
 };
 
+const ordered = (matches: readonly TodoMatch[], keepOrder: boolean): TodoMatch[] => {
+  return keepOrder ? [...matches] : [...matches].sort(byLocation);
+};
+
+const tagComparator = (order: readonly string[] | undefined) => {
+  const rank = new Map((order ?? []).map((tag, index) => [tag.toLowerCase(), index]));
+  return (left: string, right: string): number => {
+    const a = rank.get(left.toLowerCase()) ?? Number.MAX_SAFE_INTEGER;
+    const b = rank.get(right.toLowerCase()) ?? Number.MAX_SAFE_INTEGER;
+    return a - b || left.localeCompare(right);
+  };
+};
+
 const groupByKey = (
   matches: readonly TodoMatch[],
   keyOf: (match: TodoMatch) => string,
-  labelFormat: string,
+  options: GroupOptions,
   idPrefix: string,
+  compare: (left: string, right: string) => number = (left, right) => left.localeCompare(right),
 ): ViewNode[] => {
   const buckets = new Map<string, TodoMatch[]>();
   for (const match of matches) {
@@ -58,7 +92,7 @@ const groupByKey = (
     list.push(match);
     buckets.set(key, list);
   }
-  const keys = [...buckets.keys()].sort((left, right) => left.localeCompare(right));
+  const keys = [...buckets.keys()].sort(compare);
   return keys.map((key) => {
     const list = buckets.get(key) ?? [];
     return {
@@ -66,27 +100,24 @@ const groupByKey = (
       kind: "group" as const,
       label: key,
       count: list.length,
-      children: [...list].sort(byLocation).map((match) => matchNode(match, labelFormat)),
+      children: ordered(list, options.keepOrder === true).map((match) => matchNode(match, options.labelFormat)),
     };
   });
 };
 
-const groupByTag = (
-  matches: readonly TodoMatch[],
-  labelFormat: string,
-  tagGroups: readonly TagGroup[],
-): ViewNode[] => {
-  if (tagGroups.length === 0) {
-    return groupByKey(matches, (match) => match.tag, labelFormat, "tag");
+const groupByTag = (matches: readonly TodoMatch[], options: GroupOptions): ViewNode[] => {
+  const byTagOrder = tagComparator(options.tagOrder);
+  if (options.tagGroups.length === 0) {
+    return groupByKey(matches, (match) => match.tag, options, "tag", byTagOrder);
   }
   const claimed = new Set<string>();
-  for (const group of tagGroups) {
+  for (const group of options.tagGroups) {
     for (const tag of group.tags) {
       claimed.add(tag.toLowerCase());
     }
   }
   const nodes: ViewNode[] = [];
-  for (const group of tagGroups) {
+  for (const group of options.tagGroups) {
     const wanted = new Set(group.tags.map((tag) => tag.toLowerCase()));
     const inner = matches.filter((match) => wanted.has(match.tag.toLowerCase()));
     if (inner.length === 0) {
@@ -97,24 +128,29 @@ const groupByTag = (
       kind: "group",
       label: group.name,
       count: inner.length,
-      children: groupByKey(inner, (match) => match.tag, labelFormat, `tag:${group.name}`),
+      children: groupByKey(inner, (match) => match.tag, options, `tag:${group.name}`, byTagOrder),
     });
   }
   const rest = matches.filter((match) => !claimed.has(match.tag.toLowerCase()));
-  nodes.push(...groupByKey(rest, (match) => match.tag, labelFormat, "tag"));
+  nodes.push(...groupByKey(rest, (match) => match.tag, options, "tag", byTagOrder));
   return nodes;
 };
 
 interface FolderBuilder {
   id: string;
   name: string;
+  relative: string;
   folders: Map<string, FolderBuilder>;
   files: Map<string, TodoMatch[]>;
 }
 
-const addFile = (root: FolderBuilder, match: TodoMatch): void => {
+const newFolder = (id: string, name: string, relative: string): FolderBuilder => {
+  return { id, name, relative, folders: new Map(), files: new Map() };
+};
+
+const addFile = (root: FolderBuilder, match: TodoMatch, idRoot: string): void => {
   const parts = match.relativePath.split("/");
-  const file = parts.pop() ?? match.relativePath;
+  parts.pop();
   let cursor = root;
   let walked = "";
   for (const part of parts) {
@@ -124,105 +160,132 @@ const addFile = (root: FolderBuilder, match: TodoMatch): void => {
       cursor = existing;
       continue;
     }
-    const created: FolderBuilder = {
-      id: `folder:${walked}`,
-      name: part,
-      folders: new Map(),
-      files: new Map(),
-    };
+    const created = newFolder(`folder:${idRoot}:${walked}`, part, walked);
     cursor.folders.set(part, created);
     cursor = created;
   }
-  const list = cursor.files.get(file) ?? [];
+  // Key files by URI so equal relative paths in different roots never merge.
+  const list = cursor.files.get(match.uri) ?? [];
   list.push(match);
-  cursor.files.set(file, list);
+  cursor.files.set(match.uri, list);
 };
 
-const folderNode = (builder: FolderBuilder, labelFormat: string): ViewNode => {
+/** Collapses single-child folder chains such as src/app/api into one node. */
+const compact = (node: ViewNode): ViewNode => {
+  let current = node;
+  while (
+    current.kind === "folder" &&
+    current.children.length === 1 &&
+    current.children[0]?.kind === "folder"
+  ) {
+    const child = current.children[0];
+    current = { ...child, label: `${current.label}/${child.label}` };
+  }
+  return { ...current, children: current.children.map(compact) };
+};
+
+const folderNode = (builder: FolderBuilder, options: GroupOptions, workspaceFolder: string | undefined): ViewNode => {
   const folders = [...builder.folders.values()]
     .sort((left, right) => left.name.localeCompare(right.name))
-    .map((child) => folderNode(child, labelFormat));
+    .map((child) => folderNode(child, options, workspaceFolder));
   const files = [...builder.files.entries()]
-    .sort((left, right) => left[0].localeCompare(right[0]))
-    .map(([name, matches]) => {
-      const sorted = [...matches].sort(byLocation);
+    .map(([uri, matches]) => {
+      const sorted = ordered(matches, options.keepOrder === true);
       const first = sorted[0];
+      const name = first ? first.relativePath.split("/").pop() ?? first.relativePath : uri;
       return {
-        id: `file:${first?.uri ?? name}`,
+        id: `file:${uri}`,
         kind: "file" as const,
         label: name,
         count: sorted.length,
-        resourcePath: first?.uri,
-        children: sorted.map((match) => matchNode(match, labelFormat)),
+        resourcePath: uri,
+        children: sorted.map((match) => matchNode(match, options.labelFormat)),
       };
-    });
+    })
+    .sort((left, right) => left.label.localeCompare(right.label));
   return {
     id: builder.id,
-    kind: builder.id === "folder-root" ? "group" : "folder",
+    kind: "folder",
     label: builder.name,
     count: 0,
-    resourcePath: builder.id === "folder-root" ? undefined : builder.id.slice("folder:".length),
+    resourcePath: builder.relative,
+    workspaceFolder,
     children: [...folders, ...files],
   };
 };
 
-const groupByFile = (matches: readonly TodoMatch[], labelFormat: string): ViewNode[] => {
-  const root: FolderBuilder = {
-    id: "folder-root",
-    name: "",
-    folders: new Map(),
-    files: new Map(),
-  };
+const groupByFile = (matches: readonly TodoMatch[], options: GroupOptions): ViewNode[] => {
+  const multiRoot = options.workspaceFolders.length > 1;
+  const byRoot = new Map<string, TodoMatch[]>();
   for (const match of matches) {
-    addFile(root, match);
+    const key = multiRoot ? match.workspaceFolder ?? "" : "";
+    const list = byRoot.get(key) ?? [];
+    list.push(match);
+    byRoot.set(key, list);
   }
-  const node = folderNode(root, labelFormat);
-  return node.children;
+  const buildRoot = (key: string, list: readonly TodoMatch[]): ViewNode[] => {
+    const root = newFolder(`folder-root:${key}`, "", "");
+    for (const match of list) {
+      addFile(root, match, key);
+    }
+    const workspaceFolder = key || options.workspaceFolders[0]?.path;
+    return folderNode(root, options, workspaceFolder).children.map(compact);
+  };
+  if (!multiRoot) {
+    return buildRoot("", matches);
+  }
+  const nodes: ViewNode[] = [];
+  const known = new Set(options.workspaceFolders.map((folder) => folder.path));
+  for (const folder of options.workspaceFolders) {
+    const list = byRoot.get(folder.path);
+    if (!list || list.length === 0) {
+      continue;
+    }
+    nodes.push({
+      id: `workspace:${folder.path}`,
+      kind: "workspace",
+      label: folder.name,
+      count: list.length,
+      workspaceFolder: folder.path,
+      children: buildRoot(folder.path, list),
+    });
+  }
+  for (const [key, list] of byRoot) {
+    if (!known.has(key) && list.length > 0) {
+      nodes.push(...buildRoot(key, list));
+    }
+  }
+  return nodes;
 };
 
-export const groupMatches = (
-  matches: readonly TodoMatch[],
-  groupBy: GroupBy,
-  labelFormat: string,
-  tagGroups: readonly TagGroup[],
-  markdownSeparate: boolean,
-): ViewNode => {
-  const markdown = markdownSeparate ? matches.filter((match) => match.kind === "markdown") : [];
-  const code = markdownSeparate ? matches.filter((match) => match.kind !== "markdown") : [...matches];
+export const groupMatches = (matches: readonly TodoMatch[], options: GroupOptions): ViewNode => {
+  const markdown = options.markdownSeparate ? matches.filter((match) => match.kind === "markdown") : [];
+  const code = options.markdownSeparate ? matches.filter((match) => match.kind !== "markdown") : [...matches];
   let children: ViewNode[];
-  if (groupBy === "file") {
-    children = groupByFile(code, labelFormat);
-  } else if (groupBy === "subtag") {
-    children = groupByKey(code, (match) => match.subTag || "(none)", labelFormat, "subtag");
-  } else if (groupBy === "flat") {
-    children = [...code].sort(byLocation).map((match) => matchNode(match, labelFormat));
+  if (options.groupBy === "file") {
+    children = groupByFile(code, options);
+  } else if (options.groupBy === "subtag") {
+    children = groupByKey(code, (match) => match.subTag || match.meta?.labels[0] || "(none)", options, "subtag");
+  } else if (options.groupBy === "owner") {
+    children = groupByKey(code, (match) => match.meta?.owner || options.noOwnerLabel || "(no owner)", options, "owner");
+  } else if (options.groupBy === "flat") {
+    children = ordered(code, options.keepOrder === true).map((match) => matchNode(match, options.labelFormat));
   } else {
-    children = groupByTag(code, labelFormat, tagGroups);
+    children = groupByTag(code, options);
   }
   if (markdown.length > 0) {
     children.push({
       id: "group:markdown",
       kind: "group",
-      label: "Markdown Checklists",
+      label: options.markdownLabel ?? "Markdown Checklists",
       count: markdown.length,
-      children: [...markdown].sort(byLocation).map((match) => matchNode(match, "${text}")),
+      children: ordered(markdown, options.keepOrder === true).map((match) => matchNode(match, "${text}")),
     });
-  }
-  if (children.length === 0) {
-    children = [
-      {
-        id: "empty:found",
-        kind: "empty",
-        label: "No TODOs found",
-        count: 0,
-        children: [],
-      },
-    ];
   }
   return withCounts({
     id: "root:found",
     kind: "root",
-    label: "Found in Code",
+    label: "TODOs",
     count: 0,
     children,
   });

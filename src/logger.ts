@@ -1,17 +1,17 @@
-import * as vscode from "vscode";
+import type * as vscode from "vscode";
 
-let channel: vscode.OutputChannel | undefined;
+let channel: vscode.LogOutputChannel | undefined;
 
-export const initLogger = (output: vscode.OutputChannel): void => {
+export const initLogger = (output: vscode.LogOutputChannel): void => {
   channel = output;
 };
 
 export const logInfo = (message: string): void => {
-  channel?.appendLine(`[info] ${message}`);
+  channel?.info(message);
 };
 
 export const logError = (message: string, error?: unknown): void => {
   const detail =
     error instanceof Error ? (error.stack ?? error.message) : error === undefined ? "" : String(error);
-  channel?.appendLine(`[error] ${message}${detail ? ` ${detail}` : ""}`);
+  channel?.error(`${message}${detail ? ` ${detail}` : ""}`);
 };

@@ -1,13 +1,15 @@
 import type {
+  BlameMode,
   FontStyleName,
   GroupBy,
   HighlightStyle,
+  ProblemsScope,
   RulerLane,
   ScanMode,
+  SortBy,
   StatusBarFormat,
   TagGroup,
   TagStyle,
-  TaskStorage,
   TodoForgeSettings,
 } from "../types";
 
@@ -16,20 +18,29 @@ export const DEFAULT_TAGS: readonly string[] = [
   "FIXME",
   "HACK",
   "BUG",
-  "NOTE",
   "XXX",
+  "UNDONE",
+  "NOTE",
   "REVIEW",
   "OPTIMIZE",
 ];
+
+/** Words common in ordinary prose; they only count with a colon or parentheses. */
+export const DEFAULT_STRICT_TAGS: readonly string[] = ["NOTE", "BUG", "REVIEW", "OPTIMIZE"];
+
+/** Tags produced by the .NET code patterns. */
+export const DOTNET_TAGS: readonly string[] = ["NotImplemented", "Obsolete", "Warning"];
 
 export const DEFAULT_EXCLUDE_GLOBS: readonly string[] = [
   "**/bin/**",
   "**/obj/**",
   "**/.vs/**",
-  "**/packages/**",
   "**/node_modules/**",
+  "**/packages/*.*.*/**",
   "**/*.g.cs",
+  "**/*.g.i.cs",
   "**/*.designer.cs",
+  "**/*.min.*",
 ];
 
 export const DEFAULT_SUBTAG_REGEX = "(?:#(\\d+)|@([\\w-]+))";
@@ -42,16 +53,27 @@ export const VISIBLE_RANGE_PADDING = 200;
 
 export const DOCUMENT_CHUNK_LINES = 1000;
 
+export const LIVE_EDIT_DEBOUNCE_MS = 300;
+
+export const DEFAULT_PROBLEMS_SEVERITY: Readonly<Record<string, string>> = {
+  FIXME: "warning",
+  BUG: "warning",
+  XXX: "warning",
+  NotImplemented: "warning",
+};
+
 export const defaultSettings = (): TodoForgeSettings => {
   return {
     tags: [...DEFAULT_TAGS],
+    strictTags: [...DEFAULT_STRICT_TAGS],
     tagGroups: [],
-    caseSensitive: false,
+    caseSensitive: true,
     subTagRegex: DEFAULT_SUBTAG_REGEX,
     labelFormat: DEFAULT_LABEL_FORMAT,
     regexCustom: "",
     multiline: false,
     multilineMaxLines: 3,
+    dotnetPatterns: true,
     scanMode: "workspace",
     includeGlobs: [],
     excludeGlobs: [...DEFAULT_EXCLUDE_GLOBS],
@@ -63,17 +85,25 @@ export const defaultSettings = (): TodoForgeSettings => {
     refreshOnGitHeadChange: true,
     highlightingEnabled: true,
     highlightStyle: "tag",
+    inlineHints: true,
     tagStyles: {},
     groupBy: "tag",
+    sortBy: "location",
     showActivityBadge: true,
-    tasksEnabled: true,
-    tasksStorage: "workspaceState",
-    updateSourceOnDone: false,
     markdownEnabled: true,
     markdownGroupSeparately: true,
     codelensEnabled: false,
     statusbarEnabled: true,
-    statusbarFormat: "perTag",
+    statusbarFormat: "compact",
+    problemsEnabled: false,
+    problemsScope: "openFiles",
+    problemsSeverity: { ...DEFAULT_PROBLEMS_SEVERITY },
+    owner: "",
+    staleAfterDays: 180,
+    gitEnabled: true,
+    gitBaseBranch: "",
+    blameMode: "onDemand",
+    aiEnabled: false,
     migrateFromTodoTree: true,
   };
 };
@@ -126,25 +156,32 @@ const readTagStyles = (value: unknown): Record<string, TagStyle> => {
     if (typeof record.icon === "string") {
       style.icon = record.icon;
     }
-    const ruler = oneOf<RulerLane>(
-      record.ruler,
-      ["off", "right", "center", "left", "full"],
-      "right",
-    );
     if (typeof record.ruler === "string") {
-      style.ruler = ruler;
+      style.ruler = oneOf<RulerLane>(record.ruler, ["off", "right", "center", "left", "full"], "right");
     }
-    const fontStyle = oneOf<FontStyleName>(
-      record.fontStyle,
-      ["normal", "italic", "bold", "underline"],
-      "normal",
-    );
     if (typeof record.fontStyle === "string") {
-      style.fontStyle = fontStyle;
+      style.fontStyle = oneOf<FontStyleName>(record.fontStyle, ["normal", "italic", "bold", "underline"], "normal");
     }
     styles[tag] = style;
   }
   return styles;
+};
+
+const readSeverity = (value: unknown): Record<string, string> => {
+  if (!value || typeof value !== "object" || Array.isArray(value)) {
+    return { ...DEFAULT_PROBLEMS_SEVERITY };
+  }
+  const result: Record<string, string> = {};
+  for (const [tag, severity] of Object.entries(value as Record<string, unknown>)) {
+    if (typeof severity === "string" && ["error", "warning", "information", "hint"].includes(severity)) {
+      result[tag] = severity;
+    }
+  }
+  return result;
+};
+
+const positiveInt = (value: unknown, min: number, fallback: number): number => {
+  return typeof value === "number" && Number.isFinite(value) && value >= min ? Math.floor(value) : fallback;
 };
 
 export const settingsFromValues = (
@@ -165,14 +202,11 @@ export const settingsFromValues = (
       ? Math.floor(maxLines)
       : defaults.multilineMaxLines;
 
-  const maxFile = values["scanning.maxFileSizeKb"];
-  const debounce = values["scanning.debounceMs"];
-  const interval = values["scanning.autoRefreshIntervalSec"];
-
   const settings: TodoForgeSettings = {
     tags: tags.length > 0 ? tags : defaults.tags,
+    strictTags: isStringArray(values["general.strictTags"]) ? values["general.strictTags"] : defaults.strictTags,
     tagGroups: readTagGroups(values["general.tagGroups"]),
-    caseSensitive: values["general.caseSensitive"] === true,
+    caseSensitive: values["general.caseSensitive"] !== false,
     subTagRegex:
       typeof values["general.subTagRegex"] === "string"
         ? values["general.subTagRegex"]
@@ -184,6 +218,7 @@ export const settingsFromValues = (
     regexCustom: typeof values["regex.custom"] === "string" ? values["regex.custom"] : "",
     multiline: values["regex.multiline"] === true,
     multilineMaxLines,
+    dotnetPatterns: values["dotnet.codePatterns"] !== false,
     scanMode: oneOf<ScanMode>(
       values["scanning.mode"],
       ["workspace", "openFiles", "currentFile", "workspaceAndOpen"],
@@ -197,14 +232,9 @@ export const settingsFromValues = (
       : defaults.excludeGlobs,
     useGitignore: values["scanning.useGitignore"] !== false,
     useVsCodeExcludes: values["scanning.useVsCodeExcludes"] !== false,
-    maxFileSizeKb:
-      typeof maxFile === "number" && maxFile >= 1 ? Math.floor(maxFile) : defaults.maxFileSizeKb,
-    debounceMs:
-      typeof debounce === "number" && debounce >= 50 ? Math.floor(debounce) : defaults.debounceMs,
-    autoRefreshIntervalSec:
-      typeof interval === "number" && interval >= 0
-        ? Math.floor(interval)
-        : defaults.autoRefreshIntervalSec,
+    maxFileSizeKb: positiveInt(values["scanning.maxFileSizeKb"], 1, defaults.maxFileSizeKb),
+    debounceMs: positiveInt(values["scanning.debounceMs"], 50, defaults.debounceMs),
+    autoRefreshIntervalSec: positiveInt(values["scanning.autoRefreshIntervalSec"], 0, defaults.autoRefreshIntervalSec),
     refreshOnGitHeadChange: values["scanning.refreshOnGitHeadChange"] !== false,
     highlightingEnabled: values["highlighting.enabled"] !== false,
     highlightStyle: oneOf<HighlightStyle>(
@@ -212,29 +242,25 @@ export const settingsFromValues = (
       ["tag", "comment", "line"],
       defaults.highlightStyle,
     ),
+    inlineHints: values["highlighting.inlineHints"] !== false,
     tagStyles: readTagStyles(values["highlighting.tags"]),
-    groupBy: oneOf<GroupBy>(
-      values["tree.groupBy"],
-      ["file", "tag", "subtag", "flat"],
-      defaults.groupBy,
-    ),
+    groupBy: oneOf<GroupBy>(values["tree.groupBy"], ["file", "tag", "subtag", "owner", "flat"], defaults.groupBy),
+    sortBy: oneOf<SortBy>(values["tree.sortBy"], ["location", "age", "due", "priority"], defaults.sortBy),
     showActivityBadge: values["tree.showActivityBadge"] !== false,
-    tasksEnabled: values["tasks.enabled"] !== false,
-    tasksStorage: oneOf<TaskStorage>(
-      values["tasks.storage"],
-      ["workspaceState", "workspaceFile"],
-      defaults.tasksStorage,
-    ),
-    updateSourceOnDone: values["tasks.updateSourceOnDone"] === true,
     markdownEnabled: values["markdown.enabled"] !== false,
     markdownGroupSeparately: values["markdown.groupSeparately"] !== false,
     codelensEnabled: values["codelens.enabled"] === true,
     statusbarEnabled: values["statusbar.enabled"] !== false,
-    statusbarFormat: oneOf<StatusBarFormat>(
-      values["statusbar.format"],
-      ["perTag", "total"],
-      defaults.statusbarFormat,
-    ),
+    statusbarFormat: oneOf<StatusBarFormat>(values["statusbar.format"], ["compact", "perTag"], defaults.statusbarFormat),
+    problemsEnabled: values["problems.enabled"] === true,
+    problemsScope: oneOf<ProblemsScope>(values["problems.scope"], ["openFiles", "workspace"], defaults.problemsScope),
+    problemsSeverity: values["problems.severity"] === undefined ? defaults.problemsSeverity : readSeverity(values["problems.severity"]),
+    owner: typeof values["syntax.owner"] === "string" ? values["syntax.owner"].trim() : "",
+    staleAfterDays: positiveInt(values["stale.afterDays"], 1, defaults.staleAfterDays),
+    gitEnabled: values["git.enabled"] !== false,
+    gitBaseBranch: typeof values["git.baseBranch"] === "string" ? values["git.baseBranch"] : "",
+    blameMode: oneOf<BlameMode>(values["git.blame"], ["onDemand", "off"], defaults.blameMode),
+    aiEnabled: values["ai.enabled"] === true,
     migrateFromTodoTree: values["migrateFromTodoTree"] !== false,
   };
 

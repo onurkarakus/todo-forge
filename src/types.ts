@@ -1,20 +1,25 @@
 export type ScanMode = "workspace" | "openFiles" | "currentFile" | "workspaceAndOpen";
 
-export type GroupBy = "file" | "tag" | "subtag" | "flat";
+export type GroupBy = "file" | "tag" | "subtag" | "owner" | "flat";
+
+export type SortBy = "location" | "age" | "due" | "priority";
 
 export type HighlightStyle = "tag" | "comment" | "line";
 
-export type MatchKind = "tag" | "markdown";
+/** `tag` is a comment tag, `markdown` a checklist item, `code` a .NET code pattern. */
+export type MatchKind = "tag" | "markdown" | "code";
 
-export type TaskPriority = "high" | "medium" | "low";
+export type Priority = "high" | "medium" | "low";
 
-export type TaskStorage = "workspaceState" | "workspaceFile";
-
-export type StatusBarFormat = "perTag" | "total";
+export type StatusBarFormat = "compact" | "perTag";
 
 export type RulerLane = "off" | "right" | "center" | "left" | "full";
 
 export type FontStyleName = "normal" | "italic" | "bold" | "underline";
+
+export type ProblemsScope = "openFiles" | "workspace";
+
+export type BlameMode = "onDemand" | "off";
 
 export interface TagStyle {
   foreground?: string;
@@ -27,6 +32,14 @@ export interface TagStyle {
 export interface TagGroup {
   name: string;
   tags: string[];
+}
+
+/** Metadata written inline: `TODO(owner, 2026-12-01, !high, #tag): text`. */
+export interface TodoMeta {
+  owner?: string;
+  due?: string;
+  priority?: Priority;
+  labels: string[];
 }
 
 export interface TodoMatch {
@@ -45,36 +58,31 @@ export interface TodoMatch {
   raw: string;
   kind: MatchKind;
   markdownChecked?: boolean;
+  meta?: TodoMeta;
 }
 
-export interface Subtask {
+export interface BlameInfo {
+  sha: string;
+  author: string;
+  email: string;
+  /** Unix seconds. */
+  time: number;
+  summary: string;
+  uncommitted: boolean;
+}
+
+export interface PinnedTodo {
   id: string;
-  title: string;
-  done: boolean;
-  order: number;
-}
-
-export interface TaskSource {
   uri: string;
-  line: number;
   tag: string;
   text: string;
-}
-
-export interface TrackedTask {
-  id: string;
-  title: string;
-  priority: TaskPriority;
-  dueDate?: string;
-  note: string;
-  done: boolean;
-  order: number;
-  subtasks: Subtask[];
-  sources: TaskSource[];
+  line: number;
+  relativePath: string;
 }
 
 export interface TodoForgeSettings {
   tags: string[];
+  strictTags: string[];
   tagGroups: TagGroup[];
   caseSensitive: boolean;
   subTagRegex: string;
@@ -82,6 +90,7 @@ export interface TodoForgeSettings {
   regexCustom: string;
   multiline: boolean;
   multilineMaxLines: number;
+  dotnetPatterns: boolean;
   scanMode: ScanMode;
   includeGlobs: string[];
   excludeGlobs: string[];
@@ -93,17 +102,25 @@ export interface TodoForgeSettings {
   refreshOnGitHeadChange: boolean;
   highlightingEnabled: boolean;
   highlightStyle: HighlightStyle;
+  inlineHints: boolean;
   tagStyles: Record<string, TagStyle>;
   groupBy: GroupBy;
+  sortBy: SortBy;
   showActivityBadge: boolean;
-  tasksEnabled: boolean;
-  tasksStorage: TaskStorage;
-  updateSourceOnDone: boolean;
   markdownEnabled: boolean;
   markdownGroupSeparately: boolean;
   codelensEnabled: boolean;
   statusbarEnabled: boolean;
   statusbarFormat: StatusBarFormat;
+  problemsEnabled: boolean;
+  problemsScope: ProblemsScope;
+  problemsSeverity: Record<string, string>;
+  owner: string;
+  staleAfterDays: number;
+  gitEnabled: boolean;
+  gitBaseBranch: string;
+  blameMode: BlameMode;
+  aiEnabled: boolean;
   migrateFromTodoTree: boolean;
 }
 

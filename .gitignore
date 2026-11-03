@@ -7,3 +7,5 @@ out/
 *.tsbuildinfo
 .DS_Store
 test/fixtures/perf-generated/
+vsix/
+bin/

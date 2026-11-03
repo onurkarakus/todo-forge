@@ -1,33 +1,82 @@
 {
   "name": "todoforge",
-  "displayName": "TodoForge",
-  "description": "Find TODO and FIXME comments in large workspaces, including .NET solutions. Tree, highlights, and local tasks.",
-  "version": "0.1.0",
+  "displayName": "%ext.displayName%",
+  "description": "%ext.description%",
+  "version": "1.0.0",
   "publisher": "onurkarakus",
+  "author": {
+    "name": "Onur Karakuş"
+  },
   "license": "MIT",
+  "pricing": "Free",
+  "icon": "media/icon.png",
+  "galleryBanner": {
+    "color": "#14232E",
+    "theme": "dark"
+  },
+  "homepage": "https://github.com/onurkarakus/todo-forge#readme",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/onurkarakus/todo-forge.git"
+  },
+  "bugs": {
+    "url": "https://github.com/onurkarakus/todo-forge/issues"
+  },
+  "qna": "marketplace",
   "engines": {
-    "vscode": "^1.85.0"
+    "vscode": "^1.90.0"
   },
   "categories": [
-    "Other"
+    "Other",
+    "Visualization"
   ],
   "keywords": [
     "todo",
     "fixme",
+    "todo tree",
+    "todo-tree",
+    "todo highlight",
     "hack",
     "bug",
+    "xxx",
     "comments",
+    "highlight",
+    "task list",
     "tasks",
+    "due date",
+    "deadline",
+    "owner",
+    "dotnet",
+    "csharp",
+    "c#",
+    "rider",
+    "visual studio",
     "ripgrep",
     "markdown",
-    "dotnet"
+    "checklist",
+    "git",
+    "branch",
+    "blame",
+    "offline",
+    "privacy",
+    "productivity",
+    "notes"
   ],
-  "icon": "media/icon.png",
-  "galleryBanner": {
-    "color": "#1B4F4A",
-    "theme": "dark"
+  "l10n": "./l10n",
+  "capabilities": {
+    "untrustedWorkspaces": {
+      "supported": "limited",
+      "description": "%ext.untrusted%",
+      "restrictedConfigurations": [
+        "todoforge.regex.custom",
+        "todoforge.git.baseBranch"
+      ]
+    },
+    "virtualWorkspaces": {
+      "supported": false,
+      "description": "%ext.virtual%"
+    }
   },
-  "qna": "marketplace",
   "activationEvents": [
     "onStartupFinished"
   ],
@@ -46,190 +95,967 @@
       "todoforge": [
         {
           "id": "todoforge.tree",
-          "name": "TodoForge",
+          "name": "%view.tree%",
           "contextualTitle": "TodoForge",
           "icon": "media/todoforge.svg"
+        },
+        {
+          "id": "todoforge.changes",
+          "name": "%view.changes%",
+          "contextualTitle": "TodoForge",
+          "icon": "media/todoforge.svg",
+          "visibility": "visible"
         }
       ]
     },
+    "viewsWelcome": [
+      {
+        "view": "todoforge.tree",
+        "when": "workspaceFolderCount == 0 && config.todoforge.scanning.mode == workspace",
+        "contents": "%welcome.noFolder%"
+      },
+      {
+        "view": "todoforge.tree",
+        "when": "todoforge.scanned && !todoforge.filtered && !todoforge.mine && workspaceFolderCount > 0",
+        "contents": "%welcome.empty%"
+      },
+      {
+        "view": "todoforge.tree",
+        "when": "todoforge.filtered || todoforge.mine",
+        "contents": "%welcome.filtered%"
+      },
+      {
+        "view": "todoforge.changes",
+        "when": "!todoforge.gitAvailable",
+        "contents": "%welcome.changesNoGit%"
+      },
+      {
+        "view": "todoforge.changes",
+        "when": "todoforge.gitAvailable",
+        "contents": "%welcome.changesEmpty%"
+      }
+    ],
     "commands": [
       {
         "command": "todoforge.refresh",
-        "title": "Refresh",
+        "title": "%command.refresh%",
         "category": "TodoForge",
         "icon": "$(refresh)"
       },
       {
-        "command": "todoforge.setScanMode",
-        "title": "Set Scan Mode",
-        "category": "TodoForge",
-        "icon": "$(folder-opened)"
-      },
-      {
-        "command": "todoforge.setGroupBy",
-        "title": "Change View",
-        "category": "TodoForge",
-        "icon": "$(list-tree)"
-      },
-      {
         "command": "todoforge.filter",
-        "title": "Filter",
+        "title": "%command.filter%",
         "category": "TodoForge",
         "icon": "$(filter)"
       },
       {
         "command": "todoforge.clearFilter",
-        "title": "Clear Filter",
+        "title": "%command.clearFilter%",
+        "category": "TodoForge",
+        "icon": "$(clear-all)"
+      },
+      {
+        "command": "todoforge.showMine",
+        "title": "%command.showMine%",
+        "category": "TodoForge",
+        "icon": "$(person)"
+      },
+      {
+        "command": "todoforge.showAll",
+        "title": "%command.showAll%",
+        "category": "TodoForge",
+        "icon": "$(organization)"
+      },
+      {
+        "command": "todoforge.setGroupBy",
+        "title": "%command.setGroupBy%",
+        "category": "TodoForge",
+        "icon": "$(list-tree)"
+      },
+      {
+        "command": "todoforge.setSortBy",
+        "title": "%command.setSortBy%",
+        "category": "TodoForge",
+        "icon": "$(list-ordered)"
+      },
+      {
+        "command": "todoforge.setScanMode",
+        "title": "%command.setScanMode%",
+        "category": "TodoForge",
+        "icon": "$(folder-opened)"
+      },
+      {
+        "command": "todoforge.openMatch",
+        "title": "%command.openMatch%",
         "category": "TodoForge"
       },
       {
         "command": "todoforge.goToNext",
-        "title": "Go to Next TODO",
-        "category": "TodoForge"
+        "title": "%command.goToNext%",
+        "category": "TodoForge",
+        "icon": "$(arrow-down)"
       },
       {
         "command": "todoforge.goToPrevious",
-        "title": "Go to Previous TODO",
-        "category": "TodoForge"
+        "title": "%command.goToPrevious%",
+        "category": "TodoForge",
+        "icon": "$(arrow-up)"
       },
       {
         "command": "todoforge.revealFile",
-        "title": "Reveal Current File in Tree",
-        "category": "TodoForge"
+        "title": "%command.revealFile%",
+        "category": "TodoForge",
+        "icon": "$(target)"
+      },
+      {
+        "command": "todoforge.revealInTree",
+        "title": "%command.revealInTree%",
+        "category": "TodoForge",
+        "icon": "$(list-tree)"
       },
       {
         "command": "todoforge.quickPick",
-        "title": "Quick Pick TODO",
-        "category": "TodoForge"
+        "title": "%command.quickPick%",
+        "category": "TodoForge",
+        "icon": "$(search)"
       },
       {
-        "command": "todoforge.exportMarkdown",
-        "title": "Export Tree to Markdown",
-        "category": "TodoForge"
-      },
-      {
-        "command": "todoforge.exportJson",
-        "title": "Export Tree to JSON",
+        "command": "todoforge.statusBarClick",
+        "title": "%command.statusBarClick%",
         "category": "TodoForge"
       },
       {
         "command": "todoforge.copy",
-        "title": "Copy",
+        "title": "%command.copy%",
+        "category": "TodoForge",
+        "icon": "$(copy)"
+      },
+      {
+        "command": "todoforge.revealInExplorer",
+        "title": "%command.revealInExplorer%",
         "category": "TodoForge"
       },
       {
         "command": "todoforge.hideFolder",
-        "title": "Hide Folder",
-        "category": "TodoForge"
-      },
-      {
-        "command": "todoforge.revealInExplorer",
-        "title": "Reveal in Explorer",
-        "category": "TodoForge"
-      },
-      {
-        "command": "todoforge.trackAsTask",
-        "title": "Track as Task",
-        "category": "TodoForge"
+        "title": "%command.hideFolder%",
+        "category": "TodoForge",
+        "icon": "$(eye-closed)"
       },
       {
         "command": "todoforge.toggleMarkdown",
-        "title": "Toggle Checkbox",
-        "category": "TodoForge"
+        "title": "%command.toggleMarkdown%",
+        "category": "TodoForge",
+        "icon": "$(check)"
       },
       {
-        "command": "todoforge.editTask",
-        "title": "Edit Task",
-        "category": "TodoForge"
+        "command": "todoforge.pin",
+        "title": "%command.pin%",
+        "category": "TodoForge",
+        "icon": "$(pin)"
       },
       {
-        "command": "todoforge.toggleTaskDone",
-        "title": "Toggle Task Done",
-        "category": "TodoForge"
+        "command": "todoforge.unpin",
+        "title": "%command.unpin%",
+        "category": "TodoForge",
+        "icon": "$(pinned)"
       },
       {
-        "command": "todoforge.exportTasks",
-        "title": "Export Tasks to Markdown",
-        "category": "TodoForge"
+        "command": "todoforge.clearMissingPins",
+        "title": "%command.clearMissingPins%",
+        "category": "TodoForge",
+        "icon": "$(clear-all)"
       },
       {
-        "command": "todoforge.openMatch",
-        "title": "Open TODO",
-        "category": "TodoForge"
+        "command": "todoforge.mute",
+        "title": "%command.mute%",
+        "category": "TodoForge",
+        "icon": "$(mute)"
+      },
+      {
+        "command": "todoforge.manageMuted",
+        "title": "%command.manageMuted%",
+        "category": "TodoForge",
+        "icon": "$(unmute)"
+      },
+      {
+        "command": "todoforge.snooze",
+        "title": "%command.snooze%",
+        "category": "TodoForge",
+        "icon": "$(clock)"
+      },
+      {
+        "command": "todoforge.setDueDate",
+        "title": "%command.setDueDate%",
+        "category": "TodoForge",
+        "icon": "$(calendar)"
+      },
+      {
+        "command": "todoforge.setPriority",
+        "title": "%command.setPriority%",
+        "category": "TodoForge",
+        "icon": "$(flame)"
+      },
+      {
+        "command": "todoforge.assignToMe",
+        "title": "%command.assignToMe%",
+        "category": "TodoForge",
+        "icon": "$(person-add)"
+      },
+      {
+        "command": "todoforge.removeTodo",
+        "title": "%command.removeTodo%",
+        "category": "TodoForge",
+        "icon": "$(trash)"
+      },
+      {
+        "command": "todoforge.addTodo",
+        "title": "%command.addTodo%",
+        "category": "TodoForge",
+        "icon": "$(add)"
+      },
+      {
+        "command": "todoforge.saveView",
+        "title": "%command.saveView%",
+        "category": "TodoForge",
+        "icon": "$(save)"
+      },
+      {
+        "command": "todoforge.openView",
+        "title": "%command.openView%",
+        "category": "TodoForge",
+        "icon": "$(bookmark)"
+      },
+      {
+        "command": "todoforge.deleteView",
+        "title": "%command.deleteView%",
+        "category": "TodoForge",
+        "icon": "$(trash)"
+      },
+      {
+        "command": "todoforge.showInsights",
+        "title": "%command.showInsights%",
+        "category": "TodoForge",
+        "icon": "$(graph)"
+      },
+      {
+        "command": "todoforge.importSettings",
+        "title": "%command.importSettings%",
+        "category": "TodoForge",
+        "icon": "$(arrow-swap)"
+      },
+      {
+        "command": "todoforge.exportMarkdown",
+        "title": "%command.exportMarkdown%",
+        "category": "TodoForge",
+        "icon": "$(markdown)"
+      },
+      {
+        "command": "todoforge.exportJson",
+        "title": "%command.exportJson%",
+        "category": "TodoForge",
+        "icon": "$(json)"
+      },
+      {
+        "command": "todoforge.ai.explain",
+        "title": "%command.ai.explain%",
+        "category": "TodoForge",
+        "icon": "$(sparkle)",
+        "enablement": "config.todoforge.ai.enabled && isWorkspaceTrusted"
       },
       {
         "command": "todoforge.openSettings",
-        "title": "Open Settings",
+        "title": "%command.openSettings%",
         "category": "TodoForge",
-        "icon": "$(settings-gear)"
+        "icon": "$(gear)"
+      },
+      {
+        "command": "todoforge.openWalkthrough",
+        "title": "%command.openWalkthrough%",
+        "category": "TodoForge",
+        "icon": "$(book)"
+      },
+      {
+        "command": "todoforge.refreshChanges",
+        "title": "%command.refreshChanges%",
+        "category": "TodoForge",
+        "icon": "$(refresh)"
+      }
+    ],
+    "submenus": [
+      {
+        "id": "todoforge.editor",
+        "label": "%submenu.editor%"
       }
     ],
     "menus": {
       "view/title": [
         {
-          "command": "todoforge.refresh",
+          "command": "todoforge.filter",
           "when": "view == todoforge.tree",
           "group": "navigation@1"
+        },
+        {
+          "command": "todoforge.clearFilter",
+          "when": "view == todoforge.tree && (todoforge.filtered || todoforge.mine)",
+          "group": "navigation@2"
+        },
+        {
+          "command": "todoforge.showMine",
+          "when": "view == todoforge.tree && !todoforge.mine",
+          "group": "navigation@3"
+        },
+        {
+          "command": "todoforge.showAll",
+          "when": "view == todoforge.tree && todoforge.mine",
+          "group": "navigation@3"
         },
         {
           "command": "todoforge.setGroupBy",
           "when": "view == todoforge.tree",
-          "group": "navigation@2"
+          "group": "navigation@4"
+        },
+        {
+          "command": "todoforge.setSortBy",
+          "when": "view == todoforge.tree",
+          "group": "navigation@5"
+        },
+        {
+          "command": "todoforge.refresh",
+          "when": "view == todoforge.tree",
+          "group": "navigation@6"
+        },
+        {
+          "command": "todoforge.openView",
+          "when": "view == todoforge.tree",
+          "group": "1_views@1"
+        },
+        {
+          "command": "todoforge.saveView",
+          "when": "view == todoforge.tree",
+          "group": "1_views@2"
+        },
+        {
+          "command": "todoforge.deleteView",
+          "when": "view == todoforge.tree",
+          "group": "1_views@3"
+        },
+        {
+          "command": "todoforge.showInsights",
+          "when": "view == todoforge.tree",
+          "group": "2_tools@1"
         },
         {
           "command": "todoforge.setScanMode",
           "when": "view == todoforge.tree",
-          "group": "navigation@3"
+          "group": "2_tools@2"
         },
         {
-          "command": "todoforge.filter",
+          "command": "todoforge.manageMuted",
+          "when": "view == todoforge.tree && todoforge.hasMuted",
+          "group": "2_tools@3"
+        },
+        {
+          "command": "todoforge.exportMarkdown",
           "when": "view == todoforge.tree",
-          "group": "navigation@4"
+          "group": "3_export@1"
+        },
+        {
+          "command": "todoforge.exportJson",
+          "when": "view == todoforge.tree",
+          "group": "3_export@2"
+        },
+        {
+          "command": "todoforge.importSettings",
+          "when": "view == todoforge.tree",
+          "group": "4_setup@1"
         },
         {
           "command": "todoforge.openSettings",
           "when": "view == todoforge.tree",
-          "group": "navigation@5"
+          "group": "4_setup@2"
+        },
+        {
+          "command": "todoforge.openWalkthrough",
+          "when": "view == todoforge.tree",
+          "group": "4_setup@3"
+        },
+        {
+          "command": "todoforge.refreshChanges",
+          "when": "view == todoforge.changes",
+          "group": "navigation@1"
         }
       ],
       "view/item/context": [
         {
-          "command": "todoforge.revealInExplorer",
-          "when": "view == todoforge.tree && viewItem =~ /^(match|markdown|file|folder)$/",
-          "group": "navigation@1"
+          "command": "todoforge.pin",
+          "when": "view == todoforge.tree && viewItem =~ /^(match|markdown|code)$/",
+          "group": "inline@1"
         },
         {
-          "command": "todoforge.copy",
-          "when": "view == todoforge.tree && viewItem =~ /^(match|markdown|task)$/",
-          "group": "navigation@2"
+          "command": "todoforge.unpin",
+          "when": "view == todoforge.tree && viewItem =~ /^(pin|pin-missing)$|-pinned$/",
+          "group": "inline@1"
         },
         {
-          "command": "todoforge.trackAsTask",
-          "when": "view == todoforge.tree && viewItem == match",
-          "group": "1_actions@1"
+          "command": "todoforge.snooze",
+          "when": "viewItem =~ /^match(-pinned)?$/",
+          "group": "1_edit@1"
+        },
+        {
+          "command": "todoforge.setDueDate",
+          "when": "viewItem =~ /^match(-pinned)?$/",
+          "group": "1_edit@2"
+        },
+        {
+          "command": "todoforge.setPriority",
+          "when": "viewItem =~ /^match(-pinned)?$/",
+          "group": "1_edit@3"
+        },
+        {
+          "command": "todoforge.assignToMe",
+          "when": "viewItem =~ /^match(-pinned)?$/",
+          "group": "1_edit@4"
         },
         {
           "command": "todoforge.toggleMarkdown",
-          "when": "view == todoforge.tree && viewItem == markdown",
-          "group": "1_actions@1"
+          "when": "viewItem =~ /^markdown/",
+          "group": "1_edit@5"
         },
         {
-          "command": "todoforge.editTask",
-          "when": "view == todoforge.tree && viewItem == task",
-          "group": "1_actions@1"
+          "command": "todoforge.ai.explain",
+          "when": "config.todoforge.ai.enabled && viewItem =~ /^match(-pinned)?$/",
+          "group": "2_ai@1"
         },
         {
-          "command": "todoforge.toggleTaskDone",
-          "when": "view == todoforge.tree && viewItem =~ /^(task|subtask)$/",
-          "group": "1_actions@2"
+          "command": "todoforge.pin",
+          "when": "view == todoforge.changes && viewItem == match",
+          "group": "3_state@1"
+        },
+        {
+          "command": "todoforge.mute",
+          "when": "viewItem =~ /^(match|markdown|code)(-pinned)?$/",
+          "group": "3_state@2"
+        },
+        {
+          "command": "todoforge.copy",
+          "when": "viewItem =~ /^(match|markdown|code)(-pinned)?$/",
+          "group": "4_copy@1"
+        },
+        {
+          "command": "todoforge.revealInExplorer",
+          "when": "viewItem =~ /^(match|markdown|code|file)/",
+          "group": "4_copy@2"
+        },
+        {
+          "command": "todoforge.removeTodo",
+          "when": "viewItem =~ /^(match|markdown)(-pinned)?$/",
+          "group": "9_remove@1"
         },
         {
           "command": "todoforge.hideFolder",
           "when": "view == todoforge.tree && viewItem == folder",
-          "group": "2_danger@1"
+          "group": "9_remove@2"
+        },
+        {
+          "command": "todoforge.clearMissingPins",
+          "when": "view == todoforge.tree && viewItem =~ /^(pins-root|pin-missing)$/",
+          "group": "9_remove@3"
+        }
+      ],
+      "editor/context": [
+        {
+          "submenu": "todoforge.editor",
+          "group": "1_modification@90",
+          "when": "todoforge.cursorOnTodo"
+        }
+      ],
+      "todoforge.editor": [
+        {
+          "command": "todoforge.snooze",
+          "group": "1_edit@1"
+        },
+        {
+          "command": "todoforge.setDueDate",
+          "group": "1_edit@2"
+        },
+        {
+          "command": "todoforge.setPriority",
+          "group": "1_edit@3"
+        },
+        {
+          "command": "todoforge.assignToMe",
+          "group": "1_edit@4"
+        },
+        {
+          "command": "todoforge.pin",
+          "group": "2_state@1"
+        },
+        {
+          "command": "todoforge.revealInTree",
+          "group": "2_state@2"
+        },
+        {
+          "command": "todoforge.ai.explain",
+          "group": "3_ai@1",
+          "when": "config.todoforge.ai.enabled"
+        },
+        {
+          "command": "todoforge.removeTodo",
+          "group": "9_remove@1"
+        }
+      ],
+      "commandPalette": [
+        {
+          "command": "todoforge.openMatch",
+          "when": "false"
+        },
+        {
+          "command": "todoforge.statusBarClick",
+          "when": "false"
+        },
+        {
+          "command": "todoforge.hideFolder",
+          "when": "false"
+        },
+        {
+          "command": "todoforge.toggleMarkdown",
+          "when": "false"
+        },
+        {
+          "command": "todoforge.refreshChanges",
+          "when": "false"
+        },
+        {
+          "command": "todoforge.ai.explain",
+          "when": "config.todoforge.ai.enabled"
+        },
+        {
+          "command": "todoforge.unpin",
+          "when": "todoforge.hasPins"
+        },
+        {
+          "command": "todoforge.clearMissingPins",
+          "when": "todoforge.hasPins"
+        },
+        {
+          "command": "todoforge.manageMuted",
+          "when": "todoforge.hasMuted"
+        },
+        {
+          "command": "todoforge.clearFilter",
+          "when": "todoforge.filtered"
+        },
+        {
+          "command": "todoforge.showAll",
+          "when": "todoforge.mine"
+        },
+        {
+          "command": "todoforge.showMine",
+          "when": "!todoforge.mine"
         }
       ]
     },
+    "keybindings": [
+      {
+        "command": "todoforge.goToNext",
+        "key": "ctrl+alt+pagedown",
+        "mac": "cmd+alt+pagedown",
+        "when": "editorTextFocus"
+      },
+      {
+        "command": "todoforge.goToPrevious",
+        "key": "ctrl+alt+pageup",
+        "mac": "cmd+alt+pageup",
+        "when": "editorTextFocus"
+      },
+      {
+        "command": "todoforge.filter",
+        "key": "ctrl+alt+f",
+        "mac": "cmd+alt+f",
+        "when": "focusedView == todoforge.tree"
+      }
+    ],
+    "walkthroughs": [
+      {
+        "id": "todoforge.start",
+        "title": "%walkthrough.title%",
+        "description": "%walkthrough.description%",
+        "steps": [
+          {
+            "id": "todoforge.tree",
+            "title": "%walkthrough.tree.title%",
+            "description": "%walkthrough.tree.description%",
+            "media": {
+              "image": "media/walkthrough/tree.png",
+              "altText": "The TodoForge tree"
+            },
+            "completionEvents": [
+              "onView:todoforge.tree"
+            ]
+          },
+          {
+            "id": "todoforge.syntax",
+            "title": "%walkthrough.syntax.title%",
+            "description": "%walkthrough.syntax.description%",
+            "media": {
+              "markdown": "media/walkthrough/syntax.md"
+            },
+            "completionEvents": [
+              "onCommand:todoforge.addTodo"
+            ]
+          },
+          {
+            "id": "todoforge.changes",
+            "title": "%walkthrough.changes.title%",
+            "description": "%walkthrough.changes.description%",
+            "media": {
+              "image": "media/walkthrough/changes.png",
+              "altText": "The Changes view"
+            },
+            "completionEvents": [
+              "onView:todoforge.changes"
+            ]
+          },
+          {
+            "id": "todoforge.filter",
+            "title": "%walkthrough.filter.title%",
+            "description": "%walkthrough.filter.description%",
+            "media": {
+              "image": "media/walkthrough/filter.png",
+              "altText": "Live filter"
+            },
+            "completionEvents": [
+              "onCommand:todoforge.filter"
+            ]
+          },
+          {
+            "id": "todoforge.import",
+            "title": "%walkthrough.import.title%",
+            "description": "%walkthrough.import.description%",
+            "media": {
+              "markdown": "media/walkthrough/import.md"
+            },
+            "completionEvents": [
+              "onCommand:todoforge.importSettings"
+            ]
+          },
+          {
+            "id": "todoforge.insights",
+            "title": "%walkthrough.insights.title%",
+            "description": "%walkthrough.insights.description%",
+            "media": {
+              "image": "media/walkthrough/insights.png",
+              "altText": "Insights"
+            },
+            "completionEvents": [
+              "onCommand:todoforge.showInsights"
+            ]
+          }
+        ]
+      }
+    ],
+    "colors": [
+      {
+        "id": "todoforge.todoForeground",
+        "description": "Text and icon color for TODO tags.",
+        "defaults": {
+          "dark": "#E6B325",
+          "light": "#8A5A00",
+          "highContrast": "#E6B325",
+          "highContrastLight": "#8A5A00"
+        }
+      },
+      {
+        "id": "todoforge.todoBackground",
+        "description": "Background for TODO tags.",
+        "defaults": {
+          "dark": "#E6B32524",
+          "light": "#8A5A001A",
+          "highContrast": "#00000000",
+          "highContrastLight": "#00000000"
+        }
+      },
+      {
+        "id": "todoforge.fixmeForeground",
+        "description": "Text and icon color for FIXME tags.",
+        "defaults": {
+          "dark": "#FF6B6B",
+          "light": "#C62828",
+          "highContrast": "#FF6B6B",
+          "highContrastLight": "#C62828"
+        }
+      },
+      {
+        "id": "todoforge.fixmeBackground",
+        "description": "Background for FIXME tags.",
+        "defaults": {
+          "dark": "#FF6B6B24",
+          "light": "#C628281A",
+          "highContrast": "#00000000",
+          "highContrastLight": "#00000000"
+        }
+      },
+      {
+        "id": "todoforge.hackForeground",
+        "description": "Text and icon color for HACK tags.",
+        "defaults": {
+          "dark": "#C792EA",
+          "light": "#7B3FB0",
+          "highContrast": "#C792EA",
+          "highContrastLight": "#7B3FB0"
+        }
+      },
+      {
+        "id": "todoforge.hackBackground",
+        "description": "Background for HACK tags.",
+        "defaults": {
+          "dark": "#C792EA24",
+          "light": "#7B3FB01A",
+          "highContrast": "#00000000",
+          "highContrastLight": "#00000000"
+        }
+      },
+      {
+        "id": "todoforge.bugForeground",
+        "description": "Text and icon color for BUG tags.",
+        "defaults": {
+          "dark": "#F07178",
+          "light": "#B3261E",
+          "highContrast": "#F07178",
+          "highContrastLight": "#B3261E"
+        }
+      },
+      {
+        "id": "todoforge.bugBackground",
+        "description": "Background for BUG tags.",
+        "defaults": {
+          "dark": "#F0717824",
+          "light": "#B3261E1A",
+          "highContrast": "#00000000",
+          "highContrastLight": "#00000000"
+        }
+      },
+      {
+        "id": "todoforge.xxxForeground",
+        "description": "Text and icon color for XXX tags.",
+        "defaults": {
+          "dark": "#FF9E64",
+          "light": "#A84B0C",
+          "highContrast": "#FF9E64",
+          "highContrastLight": "#A84B0C"
+        }
+      },
+      {
+        "id": "todoforge.xxxBackground",
+        "description": "Background for XXX tags.",
+        "defaults": {
+          "dark": "#FF9E6424",
+          "light": "#A84B0C1A",
+          "highContrast": "#00000000",
+          "highContrastLight": "#00000000"
+        }
+      },
+      {
+        "id": "todoforge.undoneForeground",
+        "description": "Text and icon color for UNDONE tags.",
+        "defaults": {
+          "dark": "#82AAFF",
+          "light": "#1F5BB8",
+          "highContrast": "#82AAFF",
+          "highContrastLight": "#1F5BB8"
+        }
+      },
+      {
+        "id": "todoforge.undoneBackground",
+        "description": "Background for UNDONE tags.",
+        "defaults": {
+          "dark": "#82AAFF24",
+          "light": "#1F5BB81A",
+          "highContrast": "#00000000",
+          "highContrastLight": "#00000000"
+        }
+      },
+      {
+        "id": "todoforge.noteForeground",
+        "description": "Text and icon color for NOTE tags.",
+        "defaults": {
+          "dark": "#89DDFF",
+          "light": "#0A6E80",
+          "highContrast": "#89DDFF",
+          "highContrastLight": "#0A6E80"
+        }
+      },
+      {
+        "id": "todoforge.noteBackground",
+        "description": "Background for NOTE tags.",
+        "defaults": {
+          "dark": "#89DDFF24",
+          "light": "#0A6E801A",
+          "highContrast": "#00000000",
+          "highContrastLight": "#00000000"
+        }
+      },
+      {
+        "id": "todoforge.reviewForeground",
+        "description": "Text and icon color for REVIEW tags.",
+        "defaults": {
+          "dark": "#C3E88D",
+          "light": "#3B6E12",
+          "highContrast": "#C3E88D",
+          "highContrastLight": "#3B6E12"
+        }
+      },
+      {
+        "id": "todoforge.reviewBackground",
+        "description": "Background for REVIEW tags.",
+        "defaults": {
+          "dark": "#C3E88D24",
+          "light": "#3B6E121A",
+          "highContrast": "#00000000",
+          "highContrastLight": "#00000000"
+        }
+      },
+      {
+        "id": "todoforge.optimizeForeground",
+        "description": "Text and icon color for OPTIMIZE tags.",
+        "defaults": {
+          "dark": "#7FDBCA",
+          "light": "#0B6E5B",
+          "highContrast": "#7FDBCA",
+          "highContrastLight": "#0B6E5B"
+        }
+      },
+      {
+        "id": "todoforge.optimizeBackground",
+        "description": "Background for OPTIMIZE tags.",
+        "defaults": {
+          "dark": "#7FDBCA24",
+          "light": "#0B6E5B1A",
+          "highContrast": "#00000000",
+          "highContrastLight": "#00000000"
+        }
+      },
+      {
+        "id": "todoforge.notImplementedForeground",
+        "description": "Text and icon color for NotImplemented tags.",
+        "defaults": {
+          "dark": "#FF7AB2",
+          "light": "#B0216A",
+          "highContrast": "#FF7AB2",
+          "highContrastLight": "#B0216A"
+        }
+      },
+      {
+        "id": "todoforge.notImplementedBackground",
+        "description": "Background for NotImplemented tags.",
+        "defaults": {
+          "dark": "#FF7AB224",
+          "light": "#B0216A1A",
+          "highContrast": "#00000000",
+          "highContrastLight": "#00000000"
+        }
+      },
+      {
+        "id": "todoforge.obsoleteForeground",
+        "description": "Text and icon color for Obsolete tags.",
+        "defaults": {
+          "dark": "#A0A8B7",
+          "light": "#5A6170",
+          "highContrast": "#A0A8B7",
+          "highContrastLight": "#5A6170"
+        }
+      },
+      {
+        "id": "todoforge.obsoleteBackground",
+        "description": "Background for Obsolete tags.",
+        "defaults": {
+          "dark": "#A0A8B724",
+          "light": "#5A61701A",
+          "highContrast": "#00000000",
+          "highContrastLight": "#00000000"
+        }
+      },
+      {
+        "id": "todoforge.warningForeground",
+        "description": "Text and icon color for Warning tags.",
+        "defaults": {
+          "dark": "#FFCB6B",
+          "light": "#7A5200",
+          "highContrast": "#FFCB6B",
+          "highContrastLight": "#7A5200"
+        }
+      },
+      {
+        "id": "todoforge.warningBackground",
+        "description": "Background for Warning tags.",
+        "defaults": {
+          "dark": "#FFCB6B24",
+          "light": "#7A52001A",
+          "highContrast": "#00000000",
+          "highContrastLight": "#00000000"
+        }
+      },
+      {
+        "id": "todoforge.markdownForeground",
+        "description": "Text and icon color for Markdown checklist items.",
+        "defaults": {
+          "dark": "#9CDCFE",
+          "light": "#0B5C99",
+          "highContrast": "#9CDCFE",
+          "highContrastLight": "#0B5C99"
+        }
+      },
+      {
+        "id": "todoforge.markdownBackground",
+        "description": "Background for Markdown checklist items.",
+        "defaults": {
+          "dark": "#9CDCFE24",
+          "light": "#0B5C991A",
+          "highContrast": "#00000000",
+          "highContrastLight": "#00000000"
+        }
+      },
+      {
+        "id": "todoforge.overdueForeground",
+        "description": "Overdue TODO hints and icons.",
+        "defaults": {
+          "dark": "#FF6B6B",
+          "light": "#C62828",
+          "highContrast": "#FF6B6B",
+          "highContrastLight": "#C62828"
+        }
+      },
+      {
+        "id": "todoforge.dueSoonForeground",
+        "description": "Hints for TODOs due within seven days.",
+        "defaults": {
+          "dark": "#E6B325",
+          "light": "#8A5A00",
+          "highContrast": "#E6B325",
+          "highContrastLight": "#8A5A00"
+        }
+      },
+      {
+        "id": "todoforge.staleForeground",
+        "description": "Hints for stale TODOs.",
+        "defaults": {
+          "dark": "#8B949E",
+          "light": "#6E7781",
+          "highContrast": "#8B949E",
+          "highContrastLight": "#6E7781"
+        }
+      },
+      {
+        "id": "todoforge.hintForeground",
+        "description": "Inline TODO hints such as due dates.",
+        "defaults": {
+          "dark": "#8B949E",
+          "light": "#6E7781",
+          "highContrast": "#8B949E",
+          "highContrastLight": "#6E7781"
+        }
+      }
+    ],
     "configuration": {
       "title": "TodoForge",
       "properties": {
@@ -243,12 +1069,28 @@
             "FIXME",
             "HACK",
             "BUG",
-            "NOTE",
             "XXX",
+            "UNDONE",
+            "NOTE",
             "REVIEW",
             "OPTIMIZE"
           ],
-          "description": "Comment tags to find. Matching is case-insensitive unless Case Sensitive is on."
+          "markdownDescription": "%config.general.tags%",
+          "order": 1
+        },
+        "todoforge.general.strictTags": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "default": [
+            "NOTE",
+            "BUG",
+            "REVIEW",
+            "OPTIMIZE"
+          ],
+          "markdownDescription": "%config.general.strictTags%",
+          "order": 2
         },
         "todoforge.general.tagGroups": {
           "type": "array",
@@ -260,52 +1102,63 @@
             ],
             "properties": {
               "name": {
-                "type": "string",
-                "description": "Group label shown in the tree."
+                "type": "string"
               },
               "tags": {
                 "type": "array",
                 "items": {
                   "type": "string"
-                },
-                "description": "Tags that belong in this group."
+                }
               }
             }
           },
           "default": [],
-          "description": "Optional groups of tags. When Group By is Tag, grouped tags nest under these names."
+          "markdownDescription": "%config.general.tagGroups%",
+          "order": 3
         },
         "todoforge.general.caseSensitive": {
           "type": "boolean",
-          "default": false,
-          "description": "Match tags with exact case."
+          "default": true,
+          "markdownDescription": "%config.general.caseSensitive%",
+          "order": 4
         },
         "todoforge.general.subTagRegex": {
           "type": "string",
           "default": "(?:#(\\d+)|@([\\w-]+))",
-          "description": "Regex run against the text after a tag. The first non-empty capture group becomes the sub-tag. Examples: #123 and @urgent."
+          "markdownDescription": "%config.general.subTagRegex%",
+          "order": 5
         },
         "todoforge.general.labelFormat": {
           "type": "string",
           "default": "${tag}: ${text}",
-          "description": "Tree label for a match. Tokens: ${tag}, ${text}, ${file}, ${line}, ${subtag}."
+          "markdownDescription": "%config.general.labelFormat%",
+          "order": 6
         },
         "todoforge.regex.custom": {
           "type": "string",
           "default": "",
-          "description": "Custom regex that replaces the built-in comment matcher. Use $TAGS for the tag alternation. Leave empty to use the built-in matcher. An invalid pattern is rejected and the built-in matcher stays in use."
+          "markdownDescription": "%config.regex.custom%",
+          "order": 7
         },
         "todoforge.regex.multiline": {
           "type": "boolean",
           "default": false,
-          "description": "Append following comment lines to a match, up to Multiline Max Lines."
+          "markdownDescription": "%config.regex.multiline%",
+          "order": 8
         },
         "todoforge.regex.multilineMaxLines": {
           "type": "number",
           "default": 3,
           "minimum": 1,
           "maximum": 10,
-          "description": "Maximum extra lines attached to a match when multiline is on."
+          "markdownDescription": "%config.regex.multilineMaxLines%",
+          "order": 9
+        },
+        "todoforge.dotnet.codePatterns": {
+          "type": "boolean",
+          "default": true,
+          "markdownDescription": "%config.dotnet.codePatterns%",
+          "order": 10
         },
         "todoforge.scanning.mode": {
           "type": "string",
@@ -315,8 +1168,15 @@
             "currentFile",
             "workspaceAndOpen"
           ],
+          "enumDescriptions": [
+            "%config.scanning.mode.workspace%",
+            "%config.scanning.mode.openFiles%",
+            "%config.scanning.mode.currentFile%",
+            "%config.scanning.mode.workspaceAndOpen%"
+          ],
           "default": "workspace",
-          "description": "What to scan. Workspace walks folders. Open Files scans editor tabs. Current File scans the active editor. Workspace + Open Files adds unsaved editor buffers on top of the workspace scan."
+          "markdownDescription": "%config.scanning.mode%",
+          "order": 11
         },
         "todoforge.scanning.includeGlobs": {
           "type": "array",
@@ -324,7 +1184,8 @@
             "type": "string"
           },
           "default": [],
-          "description": "Globs to include. Empty means every text file that is not excluded."
+          "markdownDescription": "%config.scanning.includeGlobs%",
+          "order": 12
         },
         "todoforge.scanning.excludeGlobs": {
           "type": "array",
@@ -335,50 +1196,60 @@
             "**/bin/**",
             "**/obj/**",
             "**/.vs/**",
-            "**/packages/**",
             "**/node_modules/**",
+            "**/packages/*.*.*/**",
             "**/*.g.cs",
-            "**/*.designer.cs"
+            "**/*.g.i.cs",
+            "**/*.designer.cs",
+            "**/*.min.*"
           ],
-          "description": "Globs to skip. Defaults skip .NET build output, NuGet packages, node_modules, and generated C# files."
+          "markdownDescription": "%config.scanning.excludeGlobs%",
+          "order": 13
         },
         "todoforge.scanning.useGitignore": {
           "type": "boolean",
           "default": true,
-          "description": "Honor .gitignore and .ignore files while scanning."
+          "markdownDescription": "%config.scanning.useGitignore%",
+          "order": 14
         },
         "todoforge.scanning.useVsCodeExcludes": {
           "type": "boolean",
           "default": true,
-          "description": "Also honor files.exclude and search.exclude."
+          "markdownDescription": "%config.scanning.useVsCodeExcludes%",
+          "order": 15
         },
         "todoforge.scanning.maxFileSizeKb": {
           "type": "number",
           "default": 1024,
           "minimum": 1,
-          "description": "Skip files larger than this size, in kilobytes."
+          "markdownDescription": "%config.scanning.maxFileSizeKb%",
+          "order": 16
         },
         "todoforge.scanning.debounceMs": {
           "type": "number",
           "default": 400,
           "minimum": 50,
-          "description": "Wait this long after file changes before an incremental scan."
+          "markdownDescription": "%config.scanning.debounceMs%",
+          "order": 17
         },
         "todoforge.scanning.autoRefreshIntervalSec": {
           "type": "number",
           "default": 0,
           "minimum": 0,
-          "description": "Full rescan interval in seconds. 0 turns periodic refresh off."
+          "markdownDescription": "%config.scanning.autoRefreshIntervalSec%",
+          "order": 18
         },
         "todoforge.scanning.refreshOnGitHeadChange": {
           "type": "boolean",
           "default": true,
-          "description": "Rescan when .git/HEAD changes."
+          "markdownDescription": "%config.scanning.refreshOnGitHeadChange%",
+          "order": 19
         },
         "todoforge.highlighting.enabled": {
           "type": "boolean",
           "default": true,
-          "description": "Highlight tags in open editors."
+          "markdownDescription": "%config.highlighting.enabled%",
+          "order": 20
         },
         "todoforge.highlighting.style": {
           "type": "string",
@@ -387,8 +1258,20 @@
             "comment",
             "line"
           ],
+          "enumDescriptions": [
+            "%config.highlighting.style.tag%",
+            "%config.highlighting.style.comment%",
+            "%config.highlighting.style.line%"
+          ],
           "default": "tag",
-          "description": "How much of the line to highlight: the tag, the comment from its introducer, or the whole line."
+          "markdownDescription": "%config.highlighting.style%",
+          "order": 21
+        },
+        "todoforge.highlighting.inlineHints": {
+          "type": "boolean",
+          "default": true,
+          "markdownDescription": "%config.highlighting.inlineHints%",
+          "order": 22
         },
         "todoforge.highlighting.tags": {
           "type": "object",
@@ -397,16 +1280,29 @@
             "type": "object",
             "properties": {
               "foreground": {
-                "type": "string",
-                "description": "Text color."
+                "type": "string"
               },
               "background": {
-                "type": "string",
-                "description": "Background color."
+                "type": "string"
               },
               "icon": {
                 "type": "string",
-                "description": "Codicon-style name: checklist, flame, tools, bug, note, warning, eye, zap, circle."
+                "enum": [
+                  "checklist",
+                  "flame",
+                  "tools",
+                  "bug",
+                  "note",
+                  "warning",
+                  "eye",
+                  "zap",
+                  "circle",
+                  "history",
+                  "circle-slash",
+                  "archive",
+                  "pin",
+                  "star"
+                ]
               },
               "ruler": {
                 "type": "string",
@@ -416,8 +1312,7 @@
                   "center",
                   "left",
                   "full"
-                ],
-                "description": "Overview ruler lane."
+                ]
               },
               "fontStyle": {
                 "type": "string",
@@ -426,102 +1321,205 @@
                   "italic",
                   "bold",
                   "underline"
-                ],
-                "description": "Font style of the highlighted range."
+                ]
               }
             }
           },
-          "description": "Per-tag highlight overrides. Tags without an entry use the built-in palette."
+          "markdownDescription": "%config.highlighting.tags%",
+          "order": 23
         },
         "todoforge.tree.groupBy": {
           "type": "string",
           "enum": [
-            "file",
             "tag",
+            "file",
+            "owner",
             "subtag",
             "flat"
           ],
           "default": "tag",
-          "description": "How Found in Code is grouped."
+          "markdownDescription": "%config.tree.groupBy%",
+          "order": 24
+        },
+        "todoforge.tree.sortBy": {
+          "type": "string",
+          "enum": [
+            "location",
+            "priority",
+            "due",
+            "age"
+          ],
+          "enumDescriptions": [
+            "%config.tree.sortBy.location%",
+            "%config.tree.sortBy.priority%",
+            "%config.tree.sortBy.due%",
+            "%config.tree.sortBy.age%"
+          ],
+          "default": "location",
+          "markdownDescription": "%config.tree.sortBy%",
+          "order": 25
         },
         "todoforge.tree.showActivityBadge": {
           "type": "boolean",
           "default": true,
-          "description": "Show the match count on the TodoForge activity bar icon."
-        },
-        "todoforge.tasks.enabled": {
-          "type": "boolean",
-          "default": true,
-          "description": "Show My Tasks and allow tracking a scanned TODO."
-        },
-        "todoforge.tasks.storage": {
-          "type": "string",
-          "enum": [
-            "workspaceState",
-            "workspaceFile"
-          ],
-          "default": "workspaceState",
-          "description": "workspaceState keeps tasks in VS Code workspace storage. workspaceFile writes .vscode/todoforge.tasks.json so the tasks can be shared."
-        },
-        "todoforge.tasks.updateSourceOnDone": {
-          "type": "boolean",
-          "default": false,
-          "description": "When a tracked task is marked done, replace its linked comment tag with DONE. The scan does not look for DONE."
+          "markdownDescription": "%config.tree.showActivityBadge%",
+          "order": 26
         },
         "todoforge.markdown.enabled": {
           "type": "boolean",
           "default": true,
-          "description": "Detect Markdown checklists such as - [ ] and - [x]."
+          "markdownDescription": "%config.markdown.enabled%",
+          "order": 27
         },
         "todoforge.markdown.groupSeparately": {
           "type": "boolean",
           "default": true,
-          "description": "Place Markdown checklists under their own tree group."
+          "markdownDescription": "%config.markdown.groupSeparately%",
+          "order": 28
         },
         "todoforge.codelens.enabled": {
           "type": "boolean",
           "default": false,
-          "description": "Show CodeLens actions above TODO comments. Off by default to keep large files quiet."
+          "markdownDescription": "%config.codelens.enabled%",
+          "order": 29
         },
         "todoforge.statusbar.enabled": {
           "type": "boolean",
           "default": true,
-          "description": "Show TODO counts in the status bar."
+          "markdownDescription": "%config.statusbar.enabled%",
+          "order": 30
         },
         "todoforge.statusbar.format": {
           "type": "string",
           "enum": [
-            "perTag",
-            "total"
+            "compact",
+            "perTag"
           ],
-          "default": "perTag",
-          "description": "Status bar text. perTag lists counts such as TODO:12 FIXME:5. total shows one number."
+          "enumDescriptions": [
+            "%config.statusbar.format.compact%",
+            "%config.statusbar.format.perTag%"
+          ],
+          "default": "compact",
+          "markdownDescription": "%config.statusbar.format%",
+          "order": 31
+        },
+        "todoforge.problems.enabled": {
+          "type": "boolean",
+          "default": false,
+          "markdownDescription": "%config.problems.enabled%",
+          "order": 32
+        },
+        "todoforge.problems.scope": {
+          "type": "string",
+          "enum": [
+            "openFiles",
+            "workspace"
+          ],
+          "default": "openFiles",
+          "markdownDescription": "%config.problems.scope%",
+          "order": 33
+        },
+        "todoforge.problems.severity": {
+          "type": "object",
+          "default": {
+            "FIXME": "warning",
+            "BUG": "warning",
+            "XXX": "warning",
+            "NotImplemented": "warning"
+          },
+          "additionalProperties": {
+            "type": "string",
+            "enum": [
+              "error",
+              "warning",
+              "information",
+              "hint"
+            ]
+          },
+          "markdownDescription": "%config.problems.severity%",
+          "order": 34
+        },
+        "todoforge.syntax.owner": {
+          "type": "string",
+          "default": "",
+          "markdownDescription": "%config.syntax.owner%",
+          "order": 35,
+          "scope": "machine-overridable"
+        },
+        "todoforge.stale.afterDays": {
+          "type": "number",
+          "default": 180,
+          "minimum": 1,
+          "markdownDescription": "%config.stale.afterDays%",
+          "order": 36
+        },
+        "todoforge.git.enabled": {
+          "type": "boolean",
+          "default": true,
+          "markdownDescription": "%config.git.enabled%",
+          "order": 37
+        },
+        "todoforge.git.baseBranch": {
+          "type": "string",
+          "default": "",
+          "markdownDescription": "%config.git.baseBranch%",
+          "order": 38
+        },
+        "todoforge.git.blame": {
+          "type": "string",
+          "enum": [
+            "onDemand",
+            "off"
+          ],
+          "enumDescriptions": [
+            "%config.git.blame.onDemand%",
+            "%config.git.blame.off%"
+          ],
+          "default": "onDemand",
+          "markdownDescription": "%config.git.blame%",
+          "order": 39
+        },
+        "todoforge.ai.enabled": {
+          "type": "boolean",
+          "default": false,
+          "markdownDescription": "%config.ai.enabled%",
+          "order": 40,
+          "scope": "application"
         },
         "todoforge.migrateFromTodoTree": {
           "type": "boolean",
           "default": true,
-          "description": "On first activation, offer to copy supported Todo Tree settings when TodoForge has not been configured yet."
+          "markdownDescription": "%config.migrateFromTodoTree%",
+          "order": 41,
+          "scope": "application"
         }
       }
     }
   },
   "scripts": {
-    "vscode:prepublish": "npm run package && node scripts/fetch-ripgrep.mjs",
+    "vscode:prepublish": "npm run package",
     "compile": "npm run check-types && npm run lint && node esbuild.js",
     "watch": "npm-run-all -p watch:*",
     "watch:esbuild": "node esbuild.js --watch",
     "watch:tsc": "tsc --noEmit --watch --project tsconfig.json",
     "package": "npm run check-types && npm run lint && node esbuild.js --production",
-    "package:vsix": "vsce package --allow-missing-repository",
+    "package:vsix": "node ./scripts/package.mjs universal",
     "check-types": "tsc --noEmit",
     "lint": "eslint src",
     "test": "mocha --require tsx --timeout 20000 \"src/**/*.test.ts\"",
-    "perf": "tsx scripts/perf.ts"
+    "perf": "tsx scripts/perf.ts",
+    "test:integration": "node ./scripts/run-integration.mjs",
+    "l10n": "npx @vscode/l10n-dev export -o l10n src",
+    "package:platforms": "node ./scripts/package.mjs",
+    "fetch-ripgrep": "node ./scripts/fetch-ripgrep.mjs"
   },
   "devDependencies": {
     "@types/mocha": "^10.0.10",
     "@types/node": "^20.17.24",
-    "@types/vscode": "1.85.0",
+    "@types/picomatch": "^4.0.3",
+    "@types/vscode": "1.90.0",
+    "@vscode/l10n-dev": "^0.0.35",
+    "@vscode/test-electron": "^2.5.2",
     "@vscode/vsce": "^3.6.0",
     "esbuild": "^0.25.0",
     "eslint": "^9.21.0",
@@ -532,6 +1530,7 @@
     "typescript-eslint": "^8.26.0"
   },
   "dependencies": {
-    "@vscode/ripgrep": "^1.15.9"
+    "@vscode/ripgrep": "^1.15.9",
+    "picomatch": "^4.0.7"
   }
 }

@@ -1,35 +1,33 @@
 import * as vscode from "vscode";
 
-import type { IndexStore } from "../scanning/indexStore";
-import type { TodoForgeSettings } from "../types";
+import type { TodoMatch } from "../types";
 
+/** Optional CodeLens above each TODO (off by default): Pin and Snooze. */
 export const createCodeLensProvider = (
-  index: IndexStore,
-  getSettings: () => TodoForgeSettings,
+  matchesFor: (uri: string) => readonly TodoMatch[],
+  isPinned: (match: TodoMatch) => boolean,
   onDidChangeCodeLenses: vscode.Event<void>,
 ): vscode.CodeLensProvider => {
   return {
     onDidChangeCodeLenses,
     provideCodeLenses: (document: vscode.TextDocument): vscode.CodeLens[] => {
-      if (!getSettings().codelensEnabled) {
-        return [];
-      }
       const lenses: vscode.CodeLens[] = [];
-      for (const match of index.getFile(document.uri.toString())) {
+      for (const match of matchesFor(document.uri.toString())) {
         if (match.kind !== "tag") {
           continue;
         }
         const range = new vscode.Range(match.line, match.column, match.line, match.endColumn);
+        const pinned = isPinned(match);
         lenses.push(
           new vscode.CodeLens(range, {
-            title: "Track as Task",
-            command: "todoforge.trackAsTask",
+            title: pinned ? `$(pinned) ${vscode.l10n.t("Unpin")}` : `$(pin) ${vscode.l10n.t("Pin")}`,
+            command: pinned ? "todoforge.unpin" : "todoforge.pin",
             arguments: [match.id],
           }),
           new vscode.CodeLens(range, {
-            title: "Copy",
-            command: "todoforge.copy",
-            arguments: [match.id],
+            title: `$(clock) ${vscode.l10n.t("Snooze 1 week")}`,
+            command: "todoforge.snooze",
+            arguments: [match.id, 7],
           }),
         );
       }
