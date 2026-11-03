@@ -1,7 +1,10 @@
 import fs from "node:fs/promises";
 import path from "node:path";
 
-import { DEFAULT_EXCLUDE_GLOBS, DEFAULT_SUBTAG_REGEX, DEFAULT_TAGS } from "../src/config/defaults";
+import { DEFAULT_EXCLUDE_GLOBS, DEFAULT_STRICT_TAGS, DEFAULT_SUBTAG_REGEX, DEFAULT_TAGS } from "../src/config/defaults";
+import { createPathFilter } from "../src/scanning/pathFilter";
+import { groupMatches } from "../src/tree/grouping";
+import { filterByQuery } from "../src/tree/query";
 import { resolveRgPath } from "../src/scanning/rgPath";
 import { scanRoots } from "../src/scanning/scanner";
 
@@ -37,7 +40,9 @@ const writeFixture = async (): Promise<void> => {
 
 const options = {
   tags: DEFAULT_TAGS,
-  caseSensitive: false,
+  strictTags: DEFAULT_STRICT_TAGS,
+  dotnetPatterns: true,
+  caseSensitive: true,
   customRegex: "",
   subTagRegex: DEFAULT_SUBTAG_REGEX,
   markdownEnabled: true,
@@ -80,6 +85,33 @@ const main = async (): Promise<void> => {
   });
   const incrementalMs = performance.now() - incrementalStarted;
   console.log(`Incremental file: ${Math.round(incrementalMs)}ms, matches: ${incremental.matches.length}`);
+  const filter = createPathFilter(DEFAULT_EXCLUDE_GLOBS, []);
+  const filterStarted = performance.now();
+  let accepted = 0;
+  for (let index = 0; index < 100000; index += 1) {
+    if (filter.accepts(index % 2 === 0 ? `src/d${index % 200}/obj/Debug/F${index}.cs` : `src/d${index % 200}/F${index}.cs`)) {
+      accepted += 1;
+    }
+  }
+  console.log(`Watcher path filter: 100000 paths in ${Math.round(performance.now() - filterStarted)}ms (${accepted} kept)`);
+
+  const groupStarted = performance.now();
+  const grouped = groupMatches(output.matches, {
+    groupBy: "file",
+    labelFormat: "${tag}: ${text}",
+    tagGroups: [],
+    markdownSeparate: true,
+    workspaceFolders: [{ path: root, name: "perf" }],
+  });
+  const filtered = filterByQuery(output.matches, "tag:TODO item -middle", {
+    today: "2026-11-03",
+    staleAfterDays: 180,
+    nowSeconds: Date.now() / 1000,
+    me: { names: [], emails: [] },
+    blameOf: () => undefined,
+    isNew: () => false,
+  });
+  console.log(`Group by file + filter ${output.matches.length} matches: ${Math.round(performance.now() - groupStarted)}ms (${grouped.count} grouped, ${filtered.length} filtered)`);
   console.log(`Targets: full < 30000ms (${fullMs < 30000 ? "met" : "missed"}), incremental < 200ms (${incrementalMs < 200 ? "met" : "missed"})`);
 };
 
