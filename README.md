@@ -1,150 +1,189 @@
-# TodoForge
+<p align="center">
+  <img src="media/icon.png" width="96" alt="TodoForge icon">
+</p>
 
-**Find TODO and FIXME comments inside the editor.** TodoForge scans the workspace, lists every tag in one tree, and highlights the matches in open files.
+<h1 align="center">TodoForge</h1>
 
-You do not have to search the repo by hand. Open the folder, let the scan finish, and the tree shows what is still open. A comment stays in the file until you edit it.
+<p align="center">
+  <b>Every TODO in your code, in one tree, with owners, due dates and a Changes view for your branch.</b><br>
+  Fast on big .NET and web repos. Offline. No account. No telemetry.
+</p>
 
-## What you can do
+![TodoForge: type a TODO with an owner, a date and a priority, see it in the tree, snooze it with a quick fix](media/screenshots/demo.gif)
 
-- **See every tag in one tree.** TODO, FIXME, HACK, BUG, NOTE, XXX, REVIEW, and OPTIMIZE are included. Add your own tags in settings.
-- **Jump to the line.** Click a row, or use next and previous inside the current file.
-- **Keep highlights in the editor.** The tag is marked in open files, and the overview ruler shows the rest of the file.
-- **Track the ones that matter.** Send a comment to My Tasks. Priority, a due date, a note, and subtasks stay on this machine.
-- **Tick Markdown checklists.** `- [ ]` and `- [x]` are their own group. Toggling one writes the file.
-- **Stay fast on large solutions.** Build folders such as `bin/`, `obj/`, and `node_modules/` are skipped. `.gitignore` is honored.
+## Why TodoForge
 
-## How a scan works
+- **Works on install.** Open a folder and the TODO tree fills in. `bin/`, `obj/`, `node_modules/`, generated C# and minified files are skipped out of the box, and `.gitignore` is honored.
+- **TODOs that carry meaning.** Write `TODO(onur, 2026-12-01, !high, #perf): …` and get an owner, a due date that turns red when overdue, a priority and labels. Every part is optional.
+- **See what you are adding.** The **Changes** view lists TODOs you have not committed and TODOs added on your branch, from local git. Check it before you open a pull request.
+- **Act from the line.** Hover a TODO for who wrote it and when, then Snooze, set a date, set a priority, pin or remove it with one click or **Ctrl+.**
+- **Private by design.** Nothing leaves your machine. No sign-in, no telemetry, no network calls. AI help is off unless you turn it on.
 
-TodoForge reads comments. A tag inside a string or inside a name such as `todoList` is left out. These comment styles are recognized: `//`, `///`, `/* */`, `#`, `--`, `<!-- -->`, `'`, `@*`, and a block-continuation `*`.
+## Features
 
-The scan runs across the workspace. Saving a file updates that file. Unsaved editor text is included too. The status bar shows the counts, for example `TODO:12 FIXME:5`.
+### A tree of every TODO
 
-A sub-tag after the word is picked up. `#123` and `@urgent` can group on their own.
+![The TODO tree grouped by tag next to a C# file with highlighted TODOs, an inline due-date hint and the status bar counter](media/screenshots/01-overview-dark.png)
 
-## The tree
+- Group by **tag**, **file**, **owner**, **label** or a flat list. Sort by location, priority, due date or age.
+- Finds `TODO FIXME HACK BUG XXX UNDONE NOTE REVIEW OPTIMIZE` and your own tags. `NOTE`, `BUG`, `REVIEW` and `OPTIMIZE` only count with a `:` or `(`, so “// Note that…” is not a TODO.
+- Reads real comments in 70+ file types, including Vue, Svelte, JSX/TSX, Astro, Razor, LaTeX and INI files. A `todoList` variable or a `"TODO"` string is not a TODO.
+- In C#, also lists `throw new NotImplementedException()`, `[Obsolete]` and `#warning`.
+- Markdown checklists (`- [ ]`) get their own group; tick them from the tree.
+- **Pins** keep the TODOs you care about at the top, and follow the line when the file changes. Drag to reorder.
+- **Mute** a TODO you never want to see again in this workspace.
 
-The TodoForge icon on the Activity Bar opens the list. The badge is the match count.
+### Highlights that follow your theme
 
-The default grouping is by tag. Switch the view to file, sub-tag, or a flat list from the toolbar. Filter narrows the rows. Hide Folder asks before it adds that folder to the exclude list.
+Tags are colored in the editor, the gutter and the overview ruler, with separate light and dark colors that pass WCAG AA contrast on the light theme. Recolor built-in tags from your theme with `workbench.colorCustomizations` (`todoforge.todoForeground`, `todoforge.fixmeForeground`, …).
 
-With the default label, a tag group shows `file:line` and the comment text. Grouping by file shows the tag and the text.
+![The light theme: a HACK comment with an "overdue 6d" hint, a BUG and a NotImplementedException](media/screenshots/07-overview-light.png)
 
-Copy, Reveal in Explorer, and Track as Task are on the row’s right-click menu. Drag a comment onto My Tasks to track it. If that comment is already tracked, TodoForge leaves the list as it is and tells you.
+### Owners, due dates and priorities
 
-## Highlights
+```csharp
+// TODO(onur, 2026-12-01, !high, #perf): cache the price lookup
+// FIXME(@ayse): null check before Save()
+// HACK(2026-11-15): remove after the API fix ships
+```
 
-Highlighting is on by default and colors the tag. You can color the comment or the whole line instead, and you can set a color, a gutter icon, and a ruler lane per tag. Tags without a color use the built-in palette.
+- Overdue and due-soon TODOs show a hint at the end of the line (`overdue 6d`, `due in 3d · !high`).
+- Type `todo` in a comment and pick **TODO(owner, date)** to get the snippet.
+- Your name comes from `todoforge.syntax.owner` or your local `git config user.name`.
 
-## My Tasks
-
-My Tasks sits under the scanned comments. Tracking a comment records the file, the line, and the tag. Marking the task done does not change the comment. Turn on **Update Source On Done** when you want the tag replaced with `DONE`. The scan does not look for `DONE`.
-
-Tasks are stored in VS Code workspace storage, so they are not written into the repo. Choose **Workspace File** to write `.vscode/todoforge.tasks.json` and share that file.
-
-Export writes the current tree, or My Tasks, as Markdown. The tree can also be exported as JSON.
-
-## Markdown checklists
-
-Lines such as `- [ ]`, `- [x]`, `* [ ]`, and `1. [ ]` are listed apart from code tags. Toggle Checkbox updates that line in the file.
-
-## CodeLens
-
-CodeLens is off, so large files stay quiet. Turn it on to show **Track as Task** and **Copy** above a tag.
-
-## Coming from Todo Tree
-
-On first launch, if Todo Tree settings are present and TodoForge is still on its defaults, TodoForge offers to copy the tags, tag groups, include and exclude globs, the custom regex, case sensitivity, and tag colors. Your existing TodoForge settings are left as they are.
-
-## Commands you will use
-
-| Command | What it does |
+| Hover card | Quick fixes |
 | --- | --- |
-| `TodoForge: Refresh` | Scans again |
-| `TodoForge: Set Scan Mode` | Workspace, open files, the current file, or the workspace plus unsaved editors |
-| `TodoForge: Change View` | Groups by tag, file, sub-tag, or a flat list |
-| `TodoForge: Filter` | Narrows the tree |
-| `TodoForge: Clear Filter` | Shows the full tree again |
-| `TodoForge: Go to Next TODO` | Moves to the next tag in the current file |
-| `TodoForge: Go to Previous TODO` | Moves to the previous tag in the current file |
-| `TodoForge: Reveal Current File in Tree` | Shows the active file |
-| `TodoForge: Quick Pick TODO` | Jumps to any match |
-| `TodoForge: Track as Task` | Adds the comment to My Tasks |
-| `TodoForge: Edit Task` | Edits priority, due date, note, and subtasks |
-| `TodoForge: Toggle Task Done` | Marks a task or a subtask done |
-| `TodoForge: Toggle Checkbox` | Flips a Markdown checklist in the file |
-| `TodoForge: Copy` | Copies the row |
-| `TodoForge: Reveal in Explorer` | Shows the file in the Explorer |
-| `TodoForge: Hide Folder` | Excludes that folder after you confirm |
-| `TodoForge: Export Tree to Markdown` | Saves the current tree as Markdown |
-| `TodoForge: Export Tree to JSON` | Saves the current tree as JSON |
-| `TodoForge: Export Tasks to Markdown` | Saves My Tasks as Markdown |
-| `TodoForge: Open Settings` | Opens TodoForge settings |
+| ![Hover card with owner, due date, priority, label, git blame and action links](media/screenshots/02-hover-dark.png) | ![Quick fix menu: Snooze 1 day, 1 week, 1 month, set due date, set priority, remove, pin, mute](media/screenshots/03-quick-fix-dark.png) |
+
+### Changes: TODOs on your branch
+
+![The Changes view: one uncommitted FIXME and two TODOs added on feature/checkout since main](media/screenshots/04-changes-dark.png)
+
+TodoForge runs read-only local git commands (`git diff`, `git ls-files`, `git merge-base`, `git blame`) to split TODOs into **Uncommitted** and **This branch**. The base branch is detected (`origin/HEAD`, `main`, `master`, `develop`) or set with `todoforge.git.baseBranch`. Nothing is fetched.
+
+### Filter as you type
+
+![Live filter with is:mine applied: 5 of 18 TODOs](media/screenshots/05-live-filter-dark.png)
+
+| Query | Shows |
+| --- | --- |
+| `is:mine` | yours, by inline owner or git blame |
+| `is:overdue`, `is:due` | past due, has a due date |
+| `is:new` | uncommitted or added on this branch |
+| `is:stale` | older than `todoforge.stale.afterDays` (git blame) |
+| `tag:FIXME,BUG` | these tags |
+| `@ayse`, `#perf`, `path:src/api` | owner, label, path |
+| `-word`, `-tag:NOTE` | exclude |
+
+Save any filter as a **view**. Built-in views: My TODOs, Overdue, Due dates, New on this branch, Stale, FIXME and BUG, .NET code markers.
+
+### Insights
+
+![Insights: totals, overdue, stale, new on this branch, counts by tag, folder and owner, age from git blame, overdue and oldest lists](media/screenshots/06-insights-dark.png)
+
+Counts by tag, folder and owner, age from git blame, and the overdue and oldest TODOs. It is a local webview with a strict content security policy: no scripts or styles from the network.
+
+### Get started in a minute
+
+![The Get Started walkthrough in the light theme](media/screenshots/09-walkthrough-light.png)
+
+The walkthrough opens from **TodoForge: Get Started**. Coming from Todo Tree, JetBrains Rider/ReSharper or Visual Studio? **TodoForge: Import Settings** brings your tags and excludes in one step.
+
+![Completion inside a comment offering TODO and TODO(owner, date)](media/screenshots/08-snippet-light.png)
+
+## TodoForge and Todo Tree
+
+Todo Tree is the extension most people know. TodoForge covers the same daily job and adds what individual developers kept asking for. Comparison with Todo Tree 0.0.226 (April 2023, its latest release as of November 2026).
+
+| | TodoForge | Todo Tree |
+| --- | --- | --- |
+| Tree of TODOs, editor highlights, custom tags | ✓ | ✓ |
+| Works without extra setup on .NET (`bin/`, `obj/`, generated files) | ✓ | needs exclude globs |
+| Ships its own ripgrep | ✓ per-platform build | uses the one inside VS Code |
+| Comment-aware matching (not in strings or names) | ✓ per language | one regex for all files |
+| Owner, due date, priority, labels in the comment | ✓ | – |
+| Hover card, quick fixes, snippet | ✓ | – |
+| Changes view (uncommitted / this branch) | ✓ | – |
+| Git blame age and author, `is:mine`, stale | ✓ | – |
+| Pins, mute, saved views, live filter query | ✓ | filter text only |
+| Theme colors with light-theme contrast | ✓ | custom colors |
+| Insights panel | ✓ | – |
+| English and Turkish UI | ✓ | – |
+| Import Todo Tree settings | ✓ | – |
+
+Todo Tree still has more highlight knobs (per-tag regex, line styles, icons from many sets). If you rely on one TodoForge does not have, tell us in an issue.
+
+## Commands and keys
+
+| Command | Key |
+| --- | --- |
+| Go to Next TODO in File | `Ctrl+Alt+PageDown` (`Cmd+Alt+PageDown`) |
+| Go to Previous TODO in File | `Ctrl+Alt+PageUp` (`Cmd+Alt+PageUp`) |
+| Filter… (when the tree has focus) | `Ctrl+Alt+F` (`Cmd+Alt+F`) |
+| Quick fixes on a TODO | `Ctrl+.` (`Cmd+.`) |
+| Go to TODO… | Command Palette |
+| Show My TODOs / Show All TODOs | Command Palette, tree toolbar |
+| Open Saved View… / Save Current View… | Command Palette, tree menu |
+| Show Insights | Command Palette, tree menu |
+| Import Settings (Todo Tree, Rider, Visual Studio)… | Command Palette |
+| Export View as Markdown… / JSON… | tree menu |
+| Explain TODO with AI… | Command Palette, after you opt in |
 
 ## Settings
 
-### General
+The defaults are meant to be left alone. The ones people change most:
 
-| Setting | What it does | Default |
+| Setting | Default | What it does |
 | --- | --- | --- |
-| `todoforge.general.tags` | Comment tags to find | `TODO`, `FIXME`, `HACK`, `BUG`, `NOTE`, `XXX`, `REVIEW`, `OPTIMIZE` |
-| `todoforge.general.tagGroups` | Nests tags under group names when grouping by tag | none |
-| `todoforge.general.caseSensitive` | Matches tags with exact case | `false` |
-| `todoforge.general.subTagRegex` | Reads a sub-tag from the text after the tag | `#123` and `@urgent` |
-| `todoforge.general.labelFormat` | Row label. Tokens: `${tag}`, `${text}`, `${file}`, `${line}`, `${subtag}` | `${tag}: ${text}` |
+| `todoforge.general.tags` | `TODO FIXME HACK BUG XXX UNDONE NOTE REVIEW OPTIMIZE` | Tags to find. |
+| `todoforge.general.strictTags` | `NOTE BUG REVIEW OPTIMIZE` | Tags that need `:` or `(` after them. |
+| `todoforge.general.caseSensitive` | `true` | `todo` in prose is not a TODO. |
+| `todoforge.scanning.excludeGlobs` | .NET, node and generated files | Paths to skip. |
+| `todoforge.scanning.mode` | `workspace` | Or only open files / the current file. |
+| `todoforge.tree.groupBy` | `tag` | `tag`, `file`, `owner`, `subtag`, `flat`. |
+| `todoforge.tree.sortBy` | `location` | `location`, `priority`, `due`, `age`. |
+| `todoforge.highlighting.style` | `tag` | What to color. |
+| `todoforge.highlighting.inlineHints` | `true` | `overdue 3d` after the line. |
+| `todoforge.highlighting.tags` | `{}` | Per-tag colors, icons, ruler lane. |
+| `todoforge.dotnet.codePatterns` | `true` | `NotImplementedException`, `[Obsolete]`, `#warning`. |
+| `todoforge.markdown.enabled` | `true` | Find `- [ ]` checklist items. |
+| `todoforge.statusbar.format` | `compact` | `2/18 ⚠1`, or per-tag counts. |
+| `todoforge.problems.enabled` | `false` | Also list TODOs in Problems. |
+| `todoforge.codelens.enabled` | `false` | Pin / Snooze above each TODO. |
+| `todoforge.syntax.owner` | `""` | Your name for `is:mine`; empty uses git. |
+| `todoforge.stale.afterDays` | `180` | When a TODO counts as stale. |
+| `todoforge.git.enabled` | `true` | Changes view, blame, `is:mine`. |
+| `todoforge.git.baseBranch` | `""` | Branch for “This branch”; empty detects it. |
+| `todoforge.ai.enabled` | `false` | Opt in to Explain TODO with AI. |
 
-### Scanning
-
-| Setting | What it does | Default |
-| --- | --- | --- |
-| `todoforge.scanning.mode` | Workspace, open files, current file, or workspace plus unsaved editors | `workspace` |
-| `todoforge.scanning.includeGlobs` | Globs to include. Empty includes every text file that is not excluded | none |
-| `todoforge.scanning.excludeGlobs` | Globs to skip | `bin`, `obj`, `.vs`, `packages`, `node_modules`, `*.g.cs`, `*.designer.cs` |
-| `todoforge.scanning.useGitignore` | Honors `.gitignore` and `.ignore` | `true` |
-| `todoforge.scanning.useVsCodeExcludes` | Also honors `files.exclude` and `search.exclude` | `true` |
-| `todoforge.scanning.maxFileSizeKb` | Skips files larger than this, in kilobytes | `1024` |
-| `todoforge.scanning.debounceMs` | Waits this long after a change before updating | `400` |
-| `todoforge.scanning.autoRefreshIntervalSec` | Full rescan interval in seconds. `0` is off | `0` |
-| `todoforge.scanning.refreshOnGitHeadChange` | Rescans when `.git/HEAD` changes | `true` |
-| `todoforge.regex.custom` | Replaces the built-in comment matcher. Use `$TAGS` for your tag list. An invalid pattern is rejected and the built-in matcher stays in use | empty |
-| `todoforge.regex.multiline` | Appends following comment lines to a match | `false` |
-| `todoforge.regex.multilineMaxLines` | Extra lines kept when multiline is on | `3` |
-
-### Highlighting
-
-| Setting | What it does | Default |
-| --- | --- | --- |
-| `todoforge.highlighting.enabled` | Highlights tags in open editors | `true` |
-| `todoforge.highlighting.style` | Colors the tag, the comment, or the whole line | `tag` |
-| `todoforge.highlighting.tags` | Per-tag color, icon, ruler lane, and font style | built-in palette |
-
-### Tree, tasks, and status
-
-| Setting | What it does | Default |
-| --- | --- | --- |
-| `todoforge.tree.groupBy` | Groups Found in Code by file, tag, sub-tag, or a flat list | `tag` |
-| `todoforge.tree.showActivityBadge` | Shows the match count on the activity bar icon | `true` |
-| `todoforge.tasks.enabled` | Shows My Tasks | `true` |
-| `todoforge.tasks.storage` | `workspaceState` keeps tasks in VS Code. `workspaceFile` writes `.vscode/todoforge.tasks.json` | `workspaceState` |
-| `todoforge.tasks.updateSourceOnDone` | Replaces the linked comment tag with `DONE` when the task is done | `false` |
-| `todoforge.markdown.enabled` | Detects Markdown checklists | `true` |
-| `todoforge.markdown.groupSeparately` | Places checklists in their own group | `true` |
-| `todoforge.codelens.enabled` | Shows Track as Task and Copy above a tag | `false` |
-| `todoforge.statusbar.enabled` | Shows counts in the status bar | `true` |
-| `todoforge.statusbar.format` | `perTag` lists each tag. `total` shows one number | `perTag` |
-| `todoforge.migrateFromTodoTree` | Offers to copy supported Todo Tree settings on first launch | `true` |
-
-## Requirements
-
-- VS Code 1.85.0 or newer
+All 41 settings are listed in the Settings editor under **TodoForge** (**TodoForge: Open Settings**).
 
 ## Privacy
 
-Scanning, highlights, and tasks stay on this machine. TodoForge does not collect or send usage data.
+- **No network.** TodoForge makes no HTTP requests. Scanning uses the bundled ripgrep; git features run local, read-only git commands.
+- **No telemetry, no account, no sign-in.**
+- **Your data stays in VS Code.** Pins, muted TODOs and saved views live in VS Code's workspace and global state. Nothing is written to your repo unless you edit a TODO (snooze, set a date, remove) or export a view.
+- **AI is opt-in.** With `todoforge.ai.enabled` on, **Explain TODO with AI** asks for consent once, then sends only the TODO and nearby lines to a chat model you already have in VS Code (for example GitHub Copilot). Off by default, and off in untrusted workspaces.
+- **Untrusted workspaces.** Scanning and highlights work; git, the workspace's custom regex and AI stay off.
+
+See [SECURITY.md](SECURITY.md) for how to report a problem.
+
+## FAQ
+
+**Does it work with Todo Tree installed?** Yes. Both can run; you may want to turn one off to avoid double highlights. **Import Settings** copies your Todo Tree tags and excludes.
+
+**My TODO is not found.** Check that it is in a comment, that the tag is in `todoforge.general.tags`, and that the file is not excluded (`.gitignore`, `files.exclude`, `todoforge.scanning.excludeGlobs`). Strict tags (`NOTE`, `BUG`, …) need a `:` or `(`. The **TodoForge** channel in the Output panel has the details.
+
+**How fast is it?** Activation takes about 50 ms and does not wait for the scan. On a 20,000-file test repo a full scan takes about 50 ms and one changed file about 7 ms.
+
+**Does it support Remote SSH, WSL, Dev Containers and Codespaces?** Yes, it runs where your files are. It does not support virtual workspaces (such as vscode.dev with a GitHub repo) because it needs ripgrep and git.
+
+**Where do pins and saved views go?** VS Code's storage for this workspace (pins, mute) and for you (saved views). Not in your repo.
+
+More answers in [docs/faq.md](docs/faq.md).
 
 ## Feedback
 
-Use the Q&A section on the Marketplace page for questions and requests.
+Found a bug or missing something? [Open an issue](https://github.com/onurkarakus/todo-forge/issues). Release notes are in [CHANGELOG.md](CHANGELOG.md).
 
-## License
-
-MIT
+TodoForge is MIT licensed.
