@@ -13,6 +13,8 @@ npm run compile
 
 Press **F5** in VS Code to start an Extension Development Host.
 
+After every `git pull`, run `npm install` again: dev dependencies such as `@types/vscode` change between versions, and stale `node_modules` show up as false errors in the Problems panel (for example `Property 'lm' does not exist on type 'typeof import("vscode")'`). The repo's `.vscode/settings.json` makes VS Code use the project's own TypeScript (`node_modules/typescript`) instead of the editor's bundled one, so Insiders builds with a newer TypeScript don't report different errors than `npm run check-types`.
+
 ## Before you open a pull request
 
 ```sh
