@@ -63,6 +63,28 @@ describe("TodoForge in VS Code", function () {
     assert.equal(counts.branch, 1);
   });
 
+  it("keeps the Changes view right while the file has unsaved edits", async () => {
+    const document = await vscode.workspace.openTextDocument(program);
+    const editor = await vscode.window.showTextDocument(document);
+    // Three lines above both TODOs: their saved-file line numbers no longer match.
+    await editor.edit((builder) => builder.insert(new vscode.Position(0, 0), "\n\n\n"));
+    assert.ok(document.isDirty);
+    await waitFor(() => {
+      const value = api.changes();
+      return value.uncommitted === 1 && value.branch === 1 ? value : undefined;
+    }, "shifted changes", 5000);
+    // A TODO typed but not saved is uncommitted too.
+    await editor.edit((builder) => builder.insert(new vscode.Position(1, 0), "// TODO: typed, not saved\n"));
+    await waitFor(() => api.changes().uncommitted === 2, "unsaved TODO in Changes", 5000);
+    assert.equal(api.changes().branch, 1);
+    await vscode.commands.executeCommand("workbench.action.files.revert");
+    assert.ok(!document.isDirty);
+    await waitFor(() => {
+      const value = api.changes();
+      return value.uncommitted === 1 && value.branch === 1 ? value : undefined;
+    }, "changes after revert", 5000);
+  });
+
   it("filters with the query language", () => {
     const all = api.query("");
     assert.ok(all >= 5);

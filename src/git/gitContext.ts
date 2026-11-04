@@ -1,6 +1,7 @@
 import * as vscode from "vscode";
 
 import { logInfo } from "../logger";
+import { changeFromEdit } from "../scanning/lineShift";
 import type { BlameInfo, TodoForgeSettings, TodoMatch } from "../types";
 import {
   blameLines,
@@ -11,6 +12,7 @@ import {
   userIdentity,
   type ChangeSets,
 } from "./gitService";
+import { createEditLog, mapLineSet, type LineSet } from "./lineMap";
 
 export interface GitState {
   /** Folder path to change sets; missing when the folder is not a repository. */
@@ -65,6 +67,34 @@ export const createGitContext = (
 
   const filePath = (match: TodoMatch): string => vscode.Uri.parse(match.uri).fsPath;
 
+  // git diff reads the files on disk. While a buffer has unsaved edits, the
+  // TODO lines come from the live buffer, so the diff's line numbers are
+  // shifted through the edits made since the last save.
+  const edits = createEditLog();
+  let generation = 0;
+  const mapped = new Map<string, { key: string; uncommitted?: LineSet; branch?: LineSet }>();
+
+  const liveSets = (match: TodoMatch, sets: ChangeSets): { uncommitted?: LineSet; branch?: LineSet } => {
+    const file = filePath(match);
+    const version = edits.version(match.uri);
+    if (version === 0) {
+      return { uncommitted: sets.uncommitted.get(file), branch: sets.branch.get(file) };
+    }
+    const key = `${generation}:${version}`;
+    const cached = mapped.get(match.uri);
+    if (cached?.key === key) {
+      return cached;
+    }
+    const pending = edits.pending(match.uri);
+    const result = {
+      key,
+      uncommitted: mapLineSet(sets.uncommitted.get(file), pending),
+      branch: mapLineSet(sets.branch.get(file), pending),
+    };
+    mapped.set(match.uri, result);
+    return result;
+  };
+
   const refreshChanges = async (): Promise<void> => {
     if (!enabled()) {
       state = { changes: new Map(), me: { names: [], emails: [] } };
@@ -73,6 +103,7 @@ export const createGitContext = (
       return;
     }
     const started = performance.now();
+    const snapshot = edits.snapshot();
     const changes = new Map<string, ChangeSets>();
     const names = new Set<string>();
     const emails = new Set<string>();
@@ -99,6 +130,9 @@ export const createGitContext = (
     }
     available = changes.size > 0;
     state = { changes, me: { names: [...names], emails: [...emails] } };
+    edits.settle(snapshot);
+    generation += 1;
+    mapped.clear();
     logInfo(`Git changes read in ${Math.round(performance.now() - started)}ms`);
     emitter.fire();
   };
@@ -167,7 +201,39 @@ export const createGitContext = (
 
   const disposables: vscode.Disposable[] = [
     emitter,
-    vscode.workspace.onDidSaveTextDocument(() => scheduleRefresh()),
+    vscode.workspace.onDidSaveTextDocument((document) => {
+      edits.saved(document.uri.toString());
+      scheduleRefresh();
+    }),
+    vscode.workspace.onDidChangeTextDocument((event) => {
+      const document = event.document;
+      if (document.uri.scheme !== "file") {
+        return;
+      }
+      const uri = document.uri.toString();
+      if (event.contentChanges.length > 0) {
+        edits.record(
+          uri,
+          event.contentChanges.map((change) => changeFromEdit(change.range.start.line, change.range.end.line, change.text)),
+        );
+        return;
+      }
+      // No content changes: only the dirty flag flipped. When the buffer is
+      // clean again without a save (undo to the saved text, revert), drop the
+      // unsaved edits. After a save, clean() keeps everything up to the save,
+      // so the order of this event and onDidSaveTextDocument does not matter.
+      if (!document.isDirty) {
+        setTimeout(() => {
+          if (!document.isDirty) {
+            edits.clean(uri);
+          }
+        }, 100);
+      }
+    }),
+    vscode.workspace.onDidCloseTextDocument((document) => {
+      // Closing a dirty buffer without saving reverts to the file on disk.
+      edits.clean(document.uri.toString());
+    }),
     vscode.workspace.onDidChangeWorkspaceFolders(() => scheduleRefresh()),
   ];
   for (const folder of vscode.workspace.workspaceFolders ?? []) {
@@ -184,21 +250,24 @@ export const createGitContext = (
     get state() {
       return state;
     },
-    isUncommitted: (match) => lineIsIn(changesFor(match)?.uncommitted.get(filePath(match)), match.line + 1),
+    isUncommitted: (match) => {
+      const sets = changesFor(match);
+      return sets ? lineIsIn(liveSets(match, sets).uncommitted, match.line + 1) : false;
+    },
     isOnBranch: (match) => {
       const sets = changesFor(match);
       if (!sets || sets.onBaseBranch) {
         return false;
       }
-      return lineIsIn(sets.branch.get(filePath(match)), match.line + 1);
+      return lineIsIn(liveSets(match, sets).branch, match.line + 1);
     },
     isNew: (match) => {
       const sets = changesFor(match);
       if (!sets) {
         return false;
       }
-      const file = filePath(match);
-      return lineIsIn(sets.uncommitted.get(file), match.line + 1) || (!sets.onBaseBranch && lineIsIn(sets.branch.get(file), match.line + 1));
+      const live = liveSets(match, sets);
+      return lineIsIn(live.uncommitted, match.line + 1) || (!sets.onBaseBranch && lineIsIn(live.branch, match.line + 1));
     },
     baseRefOf: (match) => changesFor(match)?.baseRef,
     blameOf: (match) => {
