@@ -8,7 +8,7 @@ All notable changes to TodoForge. Dates are in the Europe/Istanbul time zone.
 
 ### Added
 
-- **Copilot Chat tools** (VS Code 1.95+): `#todos` lists and filters TODOs, `#todoChanges` lists uncommitted and branch TODOs, `#todo` shows one TODO with blame. Read-only, local index only, capped results. New setting `todoforge.ai.chatTools` (default on). Off in untrusted workspaces. Nothing changes on older VS Code or without a chat extension.
+- **Copilot Chat tools** (VS Code 1.95+): `#todos` lists and filters TODOs, `#todoChanges` lists uncommitted and branch TODOs, `#todo` shows one TODO with blame. Read-only, local index only, capped results. Off by default: opt in with the new setting `todoforge.ai.chatTools` or the new Get Started step. Off in untrusted workspaces. Nothing changes on older VS Code or without a chat extension.
 
 ### Fixed
 

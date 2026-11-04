@@ -18,6 +18,7 @@ describe("settings", () => {
     assert.ok(settings.tags.includes("UNDONE"));
     assert.equal(settings.problemsEnabled, false);
     assert.equal(settings.aiEnabled, false);
+    assert.equal(settings.chatTools, false);
     assert.equal(settings.codelensEnabled, false);
   });
 

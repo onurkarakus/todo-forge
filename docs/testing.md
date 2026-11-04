@@ -43,9 +43,9 @@ npm test -- --grep "grouping"
 - pin and unpin, next TODO navigation, a TODO typed into an open editor
 - the Insights panel opens
 - the Changes view stays right while a file has unsaved edits, and after revert
-- the chat tools are registered, filter and cap results, and respect `todoforge.ai.chatTools` (through `vscode.lm.invokeTool`, no Copilot needed)
+- the chat tools are registered, filter and cap results, and are off by default and work once `todoforge.ai.chatTools` is turned on (through `vscode.lm.invokeTool`, no Copilot needed)
 
-A second run, `test/integration/untrusted.test.cjs`, opens a copy of the workspace in Restricted Mode. `runTests` always passes `--disable-workspace-trust`, so the script starts VS Code itself with workspace trust on and a workspace `.vscode/settings.json` that sets `todoforge.regex.custom` and `todoforge.git.baseBranch`. It checks that scanning works, git stays off, the custom regex is ignored and the chat tools refuse.
+A second run, `test/integration/untrusted.test.cjs`, opens a copy of the workspace in Restricted Mode. `runTests` always passes `--disable-workspace-trust`, so the script starts VS Code itself with workspace trust on and a workspace `.vscode/settings.json` that sets `todoforge.regex.custom` and `todoforge.git.baseBranch`. User settings turn the chat tools on, so their refusal is about trust. It checks that scanning works, git stays off, the custom regex is ignored and the chat tools refuse.
 
 On Linux without a display:
 

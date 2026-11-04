@@ -166,35 +166,47 @@ describe("TodoForge in VS Code", function () {
     return result.content.map((part) => part.value ?? "").join("");
   };
 
-  it("registers read-only chat tools for Copilot", async () => {
-    const names = vscode.lm.tools.map((tool) => tool.name);
-    for (const name of ["todoforge_listTodos", "todoforge_listChanges", "todoforge_getTodo"]) {
-      assert.ok(names.includes(name), `missing tool ${name}`);
+  const chatTools = (value) =>
+    vscode.workspace.getConfiguration("todoforge").update("ai.chatTools", value, vscode.ConfigurationTarget.Global);
+
+  it("keeps chat tools off by default", async () => {
+    assert.equal(vscode.workspace.getConfiguration("todoforge").get("ai.chatTools"), false);
+    const listed = vscode.lm.tools.some((tool) => tool.name === "todoforge_listTodos");
+    if (listed) {
+      const text = await toolText("todoforge_listTodos", {});
+      assert.match(text, /turned off/);
+      assert.doesNotMatch(text, /committed on the branch/);
     }
-    const overdue = await toolText("todoforge_listTodos", { status: ["overdue"] });
-    assert.match(overdue, /^1 of \d+ TODOs match "is:overdue"/);
-    assert.match(overdue, /committed on the branch/);
-
-    const limited = await toolText("todoforge_listTodos", { limit: 1 });
-    assert.match(limited, /Showing 1 of \d+/);
-
-    const changes = await toolText("todoforge_listChanges", {});
-    assert.match(changes, /^1 uncommitted and 1 branch TODOs\. Base branch: main/);
-
-    const fixme = api.all().find((match) => match.text === "committed on the branch");
-    const detail = await toolText("todoforge_getTodo", { ref: `${fixme.relativePath}:${fixme.line + 1}` });
-    assert.match(detail, /"tag": "FIXME"/);
-    assert.match(detail, /"owner": "onur"/);
   });
 
-  it("chat tools respect the setting", async () => {
-    const config = vscode.workspace.getConfiguration("todoforge");
-    await config.update("ai.chatTools", false, vscode.ConfigurationTarget.Global);
+  it("answers through read-only chat tools once turned on", async () => {
+    await chatTools(true);
     try {
-      await waitFor(async () => /turned off/.test(await toolText("todoforge_listTodos", {})), "tools off");
+      const names = vscode.lm.tools.map((tool) => tool.name);
+      for (const name of ["todoforge_listTodos", "todoforge_listChanges", "todoforge_getTodo"]) {
+        assert.ok(names.includes(name), `missing tool ${name}`);
+      }
+      const overdue = await waitFor(async () => {
+        const text = await toolText("todoforge_listTodos", { status: ["overdue"] });
+        return /turned off/.test(text) ? undefined : text;
+      }, "tools on");
+      assert.match(overdue, /^1 of \d+ TODOs match "is:overdue"/);
+      assert.match(overdue, /committed on the branch/);
+
+      const limited = await toolText("todoforge_listTodos", { limit: 1 });
+      assert.match(limited, /Showing 1 of \d+/);
+
+      const changes = await toolText("todoforge_listChanges", {});
+      assert.match(changes, /^1 uncommitted and 1 branch TODOs\. Base branch: main/);
+
+      const fixme = api.all().find((match) => match.text === "committed on the branch");
+      const detail = await toolText("todoforge_getTodo", { ref: `${fixme.relativePath}:${fixme.line + 1}` });
+      assert.match(detail, /"tag": "FIXME"/);
+      assert.match(detail, /"owner": "onur"/);
     } finally {
-      await config.update("ai.chatTools", undefined, vscode.ConfigurationTarget.Global);
+      await chatTools(undefined);
     }
+    await waitFor(async () => /turned off/.test(await toolText("todoforge_listTodos", {})), "tools off again");
   });
 
   it("opens Insights", async () => {

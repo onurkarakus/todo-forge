@@ -46,7 +46,7 @@ fs.writeFileSync(path.join(untrusted, "src", "Extra.cs"), "ZZ TODO: custom only\
 fs.mkdirSync(path.join(untrustedData, "User"), { recursive: true });
 fs.writeFileSync(
   path.join(untrustedData, "User", "settings.json"),
-  JSON.stringify({ "security.workspace.trust.enabled": true, "security.workspace.trust.startupPrompt": "never", "security.workspace.trust.banner": "never" }),
+  JSON.stringify({ "security.workspace.trust.enabled": true, "security.workspace.trust.startupPrompt": "never", "security.workspace.trust.banner": "never", "todoforge.ai.chatTools": true }),
 );
 
 const runUntrusted = (executable) =>

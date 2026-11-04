@@ -17,7 +17,7 @@
 - **TODOs that carry meaning.** Write `TODO(onur, 2026-12-01, !high, #perf): …` and get an owner, a due date that turns red when overdue, a priority and labels. Every part is optional.
 - **See what you are adding.** The **Changes** view lists TODOs you have not committed and TODOs added on your branch, from local git. Check it before you open a pull request.
 - **Act from the line.** Hover a TODO for who wrote it and when, then Snooze, set a date, set a priority, pin or remove it with one click or **Ctrl+.**
-- **Private by design.** Nothing leaves your machine. No sign-in, no telemetry, no network calls. AI help is off unless you turn it on.
+- **Private by design.** Nothing leaves your machine. No sign-in, no telemetry, no network calls. AI help and the Copilot chat tools are off unless you turn them on.
 
 ## Features
 
@@ -85,7 +85,7 @@ Counts by tag, folder and owner, age from git blame, and the overdue and oldest 
 
 ### Ask Copilot about your TODOs
 
-TodoForge adds three read-only tools for Copilot Chat and agent mode (VS Code 1.95 or later):
+TodoForge adds three read-only tools for Copilot Chat and agent mode (VS Code 1.95 or later). They are **off by default**: set `todoforge.ai.chatTools` to `true` (or use the **Ask Copilot about your TODOs** step in Get Started) to turn them on.
 
 | Tool | Reference | What it returns |
 | --- | --- | --- |
@@ -95,7 +95,7 @@ TodoForge adds three read-only tools for Copilot Chat and agent mode (VS Code 1.
 
 Ask “which overdue TODOs are mine?”, “what TODOs did I add on this branch?” or “plan the FIXMEs in `src/api`”. Results are capped (50 by default, 200 at most) so a large repo does not flood the chat.
 
-The tools read the index TodoForge already has. They never read surrounding code and make no network request. They run only when you chat and the model calls them, and VS Code shows each call. Turn them off with `todoforge.ai.chatTools`. They are off in untrusted workspaces. Without Copilot or another chat extension, or on VS Code older than 1.95, nothing changes.
+The tools read the index TodoForge already has. They never read surrounding code and make no network request. They run only when you chat and the model calls them, and VS Code shows each call. They are off in untrusted workspaces. Without Copilot or another chat extension, or on VS Code older than 1.95, nothing changes.
 
 ### Get started in a minute
 
@@ -168,7 +168,7 @@ The defaults are meant to be left alone. The ones people change most:
 | `todoforge.git.enabled` | `true` | Changes view, blame, `is:mine`. |
 | `todoforge.git.baseBranch` | `""` | Branch for “This branch”; empty detects it. |
 | `todoforge.ai.enabled` | `false` | Opt in to Explain TODO with AI. |
-| `todoforge.ai.chatTools` | `true` | Let Copilot Chat ask TodoForge about your TODOs. |
+| `todoforge.ai.chatTools` | `false` | Opt in to the Copilot Chat tools (`#todos`, `#todoChanges`, `#todo`). |
 
 All 42 settings are listed in the Settings editor under **TodoForge** (**TodoForge: Open Settings**).
 
@@ -178,7 +178,7 @@ All 42 settings are listed in the Settings editor under **TodoForge** (**TodoFor
 - **No telemetry, no account, no sign-in.**
 - **Your data stays in VS Code.** Pins, muted TODOs and saved views live in VS Code's workspace and global state. Nothing is written to your repo unless you edit a TODO (snooze, set a date, remove) or export a view.
 - **AI is opt-in.** With `todoforge.ai.enabled` on, **Explain TODO with AI** asks for consent once, then sends only the TODO and nearby lines to a chat model you already have in VS Code (for example GitHub Copilot). Off by default, and off in untrusted workspaces.
-- **Chat tools return TODOs only when you ask.** When you chat with Copilot (or another chat model in VS Code) and the model calls a TodoForge tool, the tool returns TODO lines and their metadata (path, line, tag, text, owner, dates, labels, blame author) from TodoForge's local index to that chat. That chat model, and its provider's terms, then see that data, as with any file you attach. TodoForge makes no request itself, never sends surrounding code, and does nothing when you do not chat. Turn off with `todoforge.ai.chatTools`.
+- **Chat tools are opt-in.** Off by default; turn on `todoforge.ai.chatTools`. When they are on and you chat with Copilot (or another chat model in VS Code) and the model calls a TodoForge tool, the tool returns TODO lines and their metadata (path, line, tag, text, owner, dates, labels, blame author) from TodoForge's local index to that chat. That chat model, and its provider's terms, then see that data, as with any file you attach. TodoForge makes no request itself, never sends surrounding code, and does nothing when you do not chat.
 - **Untrusted workspaces.** Scanning and highlights work; git, the workspace's custom regex, AI and the chat tools stay off.
 
 See [SECURITY.md](SECURITY.md) for how to report a problem.

@@ -750,6 +750,17 @@
             "completionEvents": [
               "onCommand:todoforge.showInsights"
             ]
+          },
+          {
+            "id": "todoforge.chat",
+            "title": "%walkthrough.chat.title%",
+            "description": "%walkthrough.chat.description%",
+            "media": {
+              "markdown": "media/walkthrough/chat.md"
+            },
+            "completionEvents": [
+              "onSettingChanged:todoforge.ai.chatTools"
+            ]
           }
         ]
       }
@@ -1488,7 +1499,7 @@
         },
         "todoforge.ai.chatTools": {
           "type": "boolean",
-          "default": true,
+          "default": false,
           "markdownDescription": "%config.ai.chatTools%",
           "order": 41
         },

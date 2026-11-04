@@ -14,7 +14,7 @@ TodoForge is **editor-only, for individual developers**:
 - Local, read-only git only (`diff`, `ls-files`, `merge-base`, `blame`, `check-ignore`). Never fetch or push.
 - No team, CI, CLI, SARIF or issue-tracker features. Say no to them in reviews.
 - AI features stay opt-in (`todoforge.ai.enabled`, default `false`) and only use `vscode.lm`.
-- Chat tools (`features/chatTools`, `tools/todoTools`) stay read-only, return only indexed TODO data (never surrounding code), cap their output, and stay off in untrusted workspaces or when `todoforge.ai.chatTools` is `false`. Feature-detect any `vscode.lm` API newer than the `engines` version.
+- Chat tools (`features/chatTools`, `tools/todoTools`) stay read-only, return only indexed TODO data (never surrounding code), cap their output, are opt-in (`todoforge.ai.chatTools`, default `false`), and stay off in untrusted workspaces. Feature-detect any `vscode.lm` API newer than the `engines` version.
 
 See [docs/architecture.md](docs/architecture.md) before larger changes.
 

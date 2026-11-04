@@ -54,7 +54,7 @@ The Marketplace and Open VSX pages show `README.md`. Its structure, top to botto
 >
 > Private by design: no network, no telemetry, no account. AI help is opt-in and uses a model you already have in VS Code.
 >
-> Using Copilot Chat? Ask “which overdue TODOs are mine?” or “what TODOs did I add on this branch?”: TodoForge answers through read-only chat tools (`#todos`, `#todoChanges`, `#todo`) from its local index.
+> Using Copilot Chat? Ask “which overdue TODOs are mine?” or “what TODOs did I add on this branch?”: turn on `todoforge.ai.chatTools` and TodoForge answers through read-only chat tools (`#todos`, `#todoChanges`, `#todo`) from its local index. Off by default.
 >
 > Coming from Todo Tree, Rider or Visual Studio? One command imports your tags.
 
@@ -70,7 +70,7 @@ The Marketplace and Open VSX pages show `README.md`. Its structure, top to botto
 - Theme colors with accessible light-theme contrast
 - .NET aware: excludes build output, finds NotImplementedException and [Obsolete]
 - Import from Todo Tree, Rider or Visual Studio
-- Copilot Chat tools: ask about your TODOs with #todos, #todoChanges and #todo (read-only)
+- Copilot Chat tools: ask about your TODOs with #todos, #todoChanges and #todo (read-only, opt-in)
 - English and Turkish
 - Offline, no telemetry, no account
 
