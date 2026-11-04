@@ -37,6 +37,7 @@ file watcher / editor edits ──► core/engine ──┤  index of TodoMatch 
 | `tree/` | `query` (filter language), `grouping`, `elements`, providers for the TODO tree and Changes view, export | providers only |
 | `highlighting/` | `palette` (built-in tag colors per theme, contributed colors), `hints`, `decorationFactory`, `highlighter` | yes |
 | `features/` | hover card, code actions, completion, diagnostics, status bar, insights panel, AI, import settings, editing helpers, checkbox toggle | yes |
+| `tools/` | `todoTools`: input → query, filters, records and size-capped rendering for the chat tools | no |
 | `pins/` | fingerprints that survive line moves, resolution, ordering | no |
 | `insights/` | `model` (counts, ages, lists) and `render` (CSP HTML) | no |
 | `config/` | settings reader and writer, defaults, migration, importers for Todo Tree, Rider and Visual Studio | `settings` only |
@@ -60,6 +61,8 @@ A custom regex (`todoforge.regex.custom`) replaces steps 2–4; it is ignored in
 - `blame --line-porcelain -L n,n --contents -` for author and age (dirty buffers included)
 - `check-ignore --stdin` to filter watcher events
 
+Diff line numbers describe the saved file. While a buffer has unsaved edits, `gitContext` keeps an edit log per file (`git/lineMap`) and maps the diff's line sets onto the live buffer: lines after an edit shift, edited lines count as changed. The log is cleared on save or revert and settled when a fresh diff arrives.
+
 The base branch is `todoforge.git.baseBranch` or the first of `origin/HEAD`, `main`, `master`, `develop` that exists. Git is off in untrusted workspaces.
 
 ## Storage
@@ -79,3 +82,7 @@ The Insights panel builds a full HTML string with a nonce-based CSP (`default-sr
 ## Packaging
 
 `scripts/package.mjs` builds one VSIX per VS Code target and copies only that platform's ripgrep into `bin/<platform>-<arch>/`. `scanning/rgPath` looks there first, then in `node_modules/@vscode/ripgrep-*` during development. See [release.md](release.md).
+
+## Chat tools
+
+`features/chatTools` registers `todoforge_listTodos`, `todoforge_listChanges` and `todoforge_getTodo` with `vscode.lm.registerTool`. The API arrived in VS Code 1.95 and TodoForge supports 1.90, so it is feature-detected and typed locally; nothing is registered on older versions. Each call checks workspace trust and `todoforge.ai.chatTools` (the `when` clause in `package.json` also hides the tools). The tools read the unmuted index plus git change sets and blame. The pure logic (filters, limits of 50/200 items, 200 characters per text and 24,000 characters in total) is in `tools/todoTools` and unit tested.

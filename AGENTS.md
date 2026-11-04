@@ -14,6 +14,7 @@ TodoForge is **editor-only, for individual developers**:
 - Local, read-only git only (`diff`, `ls-files`, `merge-base`, `blame`, `check-ignore`). Never fetch or push.
 - No team, CI, CLI, SARIF or issue-tracker features. Say no to them in reviews.
 - AI features stay opt-in (`todoforge.ai.enabled`, default `false`) and only use `vscode.lm`.
+- Chat tools (`features/chatTools`, `tools/todoTools`) stay read-only, return only indexed TODO data (never surrounding code), cap their output, and stay off in untrusted workspaces or when `todoforge.ai.chatTools` is `false`. Feature-detect any `vscode.lm` API newer than the `engines` version.
 
 See [docs/architecture.md](docs/architecture.md) before larger changes.
 
@@ -67,6 +68,7 @@ export const scanWorkspace = async (
   /tree           -> TODO tree and Changes tree providers, grouping, query language
   /highlighting   -> palette (theme colors), decorations, inline hints, icons
   /features       -> hover, quick fixes, completion, diagnostics, status bar, insights panel, AI, import
+  /tools          -> chat tool logic: filters, limits, rendering (pure)
   /pins           -> pin fingerprints and resolution
   /insights       -> insights model and HTML rendering (pure)
   /config         -> settings, defaults, migration, importers (Todo Tree, Rider, Visual Studio)
@@ -104,7 +106,7 @@ export const scanWorkspace = async (
 - Integration tests for scanning behavior using fixture projects.
 - Always test large-file and multi-root scenarios.
 - Mock VS Code APIs; do not require a full VS Code instance for unit tests.
-- Integration tests in `test/integration/` run in a real VS Code against a temporary git workspace made by `scripts/run-integration.mjs`.
+- Integration tests in `test/integration/` run in a real VS Code against a temporary git workspace made by `scripts/run-integration.mjs`, once trusted and once in Restricted Mode (`untrusted.test.cjs`).
 - Marketplace screenshots come from `scripts/screenshots/` (demo workspace + Playwright driver). Re-run them when the UI changes.
 
 ## Git

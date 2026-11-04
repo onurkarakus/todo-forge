@@ -27,7 +27,7 @@ Every TODO in one tree, with owners, due dates and a Changes view for your branc
 ```
 todo, fixme, todo tree, todo-tree, todo highlight, hack, bug, xxx, comments, highlight,
 task list, tasks, due date, deadline, owner, dotnet, csharp, c#, rider, visual studio,
-ripgrep, markdown, checklist, git, branch, blame, offline, privacy, productivity, notes
+ripgrep, markdown, checklist, git, branch, blame, offline, privacy, productivity, copilot
 ```
 
 ## Long description
@@ -38,7 +38,7 @@ The Marketplace and Open VSX pages show `README.md`. Its structure, top to botto
 2. Trust line: *Fast on big .NET and web repos. Offline. No account. No telemetry.*
 3. Demo GIF (typing a TODO → tree → snooze).
 4. **Why TodoForge** – five bullets: works on install, TODOs that carry meaning, see what you are adding, act from the line, private by design.
-5. **Features** with a screenshot each: tree, highlights (dark + light), owners/dates/priorities (hover + quick fix), Changes, live filter (query table), Insights, Get Started and import.
+5. **Features** with a screenshot each: tree, highlights (dark + light), owners/dates/priorities (hover + quick fix), Changes, live filter (query table), Insights, Copilot Chat tools (`#todos`, `#todoChanges`, `#todo`), Get Started and import.
 6. **TodoForge and Todo Tree** comparison table.
 7. **Commands and keys**, **Settings** (20 most used), **Privacy**, **FAQ**, **Feedback**.
 
@@ -54,6 +54,8 @@ The Marketplace and Open VSX pages show `README.md`. Its structure, top to botto
 >
 > Private by design: no network, no telemetry, no account. AI help is opt-in and uses a model you already have in VS Code.
 >
+> Using Copilot Chat? Ask “which overdue TODOs are mine?” or “what TODOs did I add on this branch?”: TodoForge answers through read-only chat tools (`#todos`, `#todoChanges`, `#todo`) from its local index.
+>
 > Coming from Todo Tree, Rider or Visual Studio? One command imports your tags.
 
 ## Feature bullets (for galleries, stores with bullet fields)
@@ -68,6 +70,7 @@ The Marketplace and Open VSX pages show `README.md`. Its structure, top to botto
 - Theme colors with accessible light-theme contrast
 - .NET aware: excludes build output, finds NotImplementedException and [Obsolete]
 - Import from Todo Tree, Rider or Visual Studio
+- Copilot Chat tools: ask about your TODOs with #todos, #todoChanges and #todo (read-only)
 - English and Turkish
 - Offline, no telemetry, no account
 

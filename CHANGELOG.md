@@ -2,6 +2,23 @@
 
 All notable changes to TodoForge. Dates are in the Europe/Istanbul time zone.
 
+## [1.2.0] - 2026-11-04
+
+1.1 is skipped: odd minor versions are kept for pre-releases.
+
+### Added
+
+- **Copilot Chat tools** (VS Code 1.95+): `#todos` lists and filters TODOs, `#todoChanges` lists uncommitted and branch TODOs, `#todo` shows one TODO with blame. Read-only, local index only, capped results. New setting `todoforge.ai.chatTools` (default on). Off in untrusted workspaces. Nothing changes on older VS Code or without a chat extension.
+
+### Fixed
+
+- The Changes view, `is:uncommitted` and `is:new` now follow unsaved edits: lines added or removed above a TODO no longer move it in or out of the view until you save. Reverting the file restores the saved state.
+
+### Tests
+
+- Integration run in Restricted Mode (workspace trust on): scanning works, git stays off, a workspace custom regex is ignored, chat tools refuse.
+- Integration tests for the chat tools and for Changes with unsaved edits.
+
 ## [1.0.0] - 2026-11-03
 
 TodoForge 1.0 is an editor-only release for individual developers: offline, no account, no telemetry, no network.

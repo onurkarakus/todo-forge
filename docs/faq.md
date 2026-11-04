@@ -38,7 +38,11 @@
 
 **What about AI?** Off by default. When you turn on `todoforge.ai.enabled` and run **Explain TODO with AI**, TodoForge asks for consent once, then sends the TODO and nearby lines to a chat model you pick inside VS Code (for example GitHub Copilot). That model's terms apply. TodoForge makes no request itself.
 
-**Untrusted workspaces?** Scanning and highlights work. Git commands, the workspace's custom regex and AI are off until you trust the folder.
+**What do the Copilot chat tools share?** Only when you chat and the model calls a TodoForge tool: the matching TODO lines with path, line, tag, owner, dates, labels and blame author, from TodoForge's local index, go to the chat model you are using. No surrounding code. TodoForge itself makes no request. Set `todoforge.ai.chatTools` to `false` to remove them.
+
+**I don't use Copilot.** The tools do nothing without a chat extension, and on VS Code older than 1.95 they are not registered.
+
+**Untrusted workspaces?** Scanning and highlights work. Git commands, the workspace's custom regex, AI and the chat tools are off until you trust the folder.
 
 ## Platforms
 

@@ -36,6 +36,8 @@ Mağaza aramaları İngilizce yapıldığı için `package.json` içindeki 30 İ
 >
 > Gizlilik baştan tasarımda: ağ isteği yok, telemetri yok, hesap yok. Yapay zekâ desteği isteğe bağlıdır ve VS Code'da zaten kullandığınız bir modeli kullanır.
 >
+> Copilot Chat mi kullanıyorsunuz? “Geciken TODO'larımdan hangileri bende?” ya da “Bu dalda hangi TODO'ları ekledim?” diye sorun: TodoForge yerel dizininden salt okunur sohbet araçlarıyla (`#todos`, `#todoChanges`, `#todo`) yanıt verir.
+>
 > Todo Tree, Rider ya da Visual Studio'dan mı geliyorsunuz? Tek komutla etiketlerinizi içe aktarın.
 
 ## Öne çıkanlar
@@ -50,6 +52,7 @@ Mağaza aramaları İngilizce yapıldığı için `package.json` içindeki 30 İ
 - Açık temada erişilebilir kontrastlı tema renkleri
 - .NET uyumlu: derleme çıktısını atlar, NotImplementedException ve [Obsolete] satırlarını bulur
 - Todo Tree, Rider veya Visual Studio'dan içe aktarma
+- Copilot Chat araçları: #todos, #todoChanges ve #todo ile TODO'larınızı sorun (salt okunur)
 - Türkçe ve İngilizce arayüz
 - Çevrimdışı, telemetri yok, hesap yok
 
