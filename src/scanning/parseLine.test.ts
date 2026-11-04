@@ -131,6 +131,8 @@ describe("parseLine", () => {
   it("supports custom regexes with and without a tag group", () => {
     assert.equal(parse("REM TODO: batch", "a.txt2", { customRegex: "REM\\s+($TAGS)" })[0]?.tag, "TODO");
     assert.equal(parse("REM TODO: batch", "a.txt2", { customRegex: "REM\\s+(?:$TAGS)" })[0]?.tag, "TODO");
+    assert.deepEqual(parse("ZZ TODO: custom only", "src/Extra.cs"), []);
+    assert.equal(parse("ZZ TODO: custom only", "src/Extra.cs", { customRegex: "ZZ\\s+($TAGS)" })[0]?.tag, "TODO");
   });
 
   it("honors case sensitivity", () => {
