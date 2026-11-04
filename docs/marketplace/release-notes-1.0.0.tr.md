@@ -12,15 +12,11 @@
 - **İçgörüler** – etikete, klasöre ve sahibe göre sayılar, yaşlar, geciken ve en eski TODO'lar.
 - Açık temada da okunaklı **tema renkleri**, yeni simge, Başlarken rehberi ve **Türkçe** arayüz.
 - Todo Tree, Rider veya Visual Studio'dan **ayarları içe aktarma**.
+- **Copilot Chat araçları** (isteğe bağlı) – `#todos`, `#todoChanges` ve `#todo` ile Copilot'a TODO'larınızı sorun; salt okunur, yerel dizinden, varsayılan olarak kapalı (`todoforge.ai.chatTools`).
 
 ## Varsayılanlar daha sessiz
 
 Etiketler büyük/küçük harfe duyarlı; `NOTE`, `BUG`, `REVIEW`, `OPTIMIZE` ancak ardından `:` veya `(` gelirse sayılır. Üretilmiş ve küçültülmüş dosyalar atlanır. Sorunlar paneli ve CodeLens siz açana kadar kapalı.
-
-## 0.1'den gelen kırıcı değişiklikler
-
-- My Tasks (Görevlerim) yerini Sabitlenenler'e bıraktı. 0.1'deki görevler taşınmaz.
-- `todoforge.tasks.*` ayarları kaldırıldı.
 
 ## Gizlilik
 

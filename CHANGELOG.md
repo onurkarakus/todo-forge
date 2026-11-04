@@ -2,26 +2,9 @@
 
 All notable changes to TodoForge. Dates are in the Europe/Istanbul time zone.
 
-## [1.2.0] - 2026-11-04
+## [1.0.0] - 2026-11-04
 
-1.1 is skipped: odd minor versions are kept for pre-releases.
-
-### Added
-
-- **Copilot Chat tools** (VS Code 1.95+): `#todos` lists and filters TODOs, `#todoChanges` lists uncommitted and branch TODOs, `#todo` shows one TODO with blame. Read-only, local index only, capped results. Off by default: opt in with the new setting `todoforge.ai.chatTools` or the new Get Started step. Off in untrusted workspaces. Nothing changes on older VS Code or without a chat extension.
-
-### Fixed
-
-- The Changes view, `is:uncommitted` and `is:new` now follow unsaved edits: lines added or removed above a TODO no longer move it in or out of the view until you save. Reverting the file restores the saved state.
-
-### Tests
-
-- Integration run in Restricted Mode (workspace trust on): scanning works, git stays off, a workspace custom regex is ignored, chat tools refuse.
-- Integration tests for the chat tools and for Changes with unsaved edits.
-
-## [1.0.0] - 2026-11-03
-
-TodoForge 1.0 is an editor-only release for individual developers: offline, no account, no telemetry, no network.
+First Marketplace release. TodoForge 1.0 is an editor-only release for individual developers: offline, no account, no telemetry, no network.
 
 ### Added
 
@@ -38,6 +21,7 @@ TodoForge 1.0 is an editor-only release for individual developers: offline, no a
 - **Mute** a TODO in this workspace, and **Unmute TODOs…** to bring it back.
 - **Insights** panel: counts by tag, folder and owner, age from git blame, and the overdue and oldest TODOs. Local webview with a strict CSP.
 - **Explain TODO with AI** (opt-in, off by default): uses a chat model you already have in VS Code through the Language Model API, after a one-time consent prompt.
+- **Copilot Chat tools** (VS Code 1.95+): `#todos` lists and filters TODOs, `#todoChanges` lists uncommitted and branch TODOs, `#todo` shows one TODO with blame. Read-only, local index only, capped results. Off by default: opt in with the new setting `todoforge.ai.chatTools` or the new Get Started step. Off in untrusted workspaces. Nothing changes on older VS Code or without a chat extension.
 - **Import Settings** from Todo Tree, JetBrains Rider/ReSharper (`.DotSettings`) or Visual Studio (`.vssettings`) in one command.
 - **Group by owner** and **label**, and **sort by priority, due date or age**.
 - **Next/previous TODO in file** keybindings: `Ctrl+Alt+PageDown` / `Ctrl+Alt+PageUp`.
@@ -72,8 +56,16 @@ TodoForge 1.0 is an editor-only release for individual developers: offline, no a
 
 - `;` comments in INI, `.properties`, `.cfg` and `.editorconfig` files were not found.
 - Changing a color or tree setting no longer rescans the whole workspace.
+- The Changes view, `is:uncommitted` and `is:new` now follow unsaved edits: lines added or removed above a TODO no longer move it in or out of the view until you save. Reverting the file restores the saved state.
+
+### Tests
+
+- Integration run in Restricted Mode (workspace trust on): scanning works, git stays off, a workspace custom regex is ignored, chat tools refuse.
+- Integration tests for the chat tools and for Changes with unsaved edits.
 
 ## [0.1.0] - 2026-10-26
+
+Internal preview, never published to a marketplace.
 
 ### Added
 

@@ -12,15 +12,11 @@
 - **Insights** – counts by tag, folder and owner, ages, overdue and oldest TODOs.
 - **Theme colors** that work on light themes too, a new icon, a Get Started walkthrough, and Turkish.
 - **Import Settings** from Todo Tree, Rider or Visual Studio.
+- **Copilot Chat tools** (opt-in) – ask Copilot about your TODOs with `#todos`, `#todoChanges` and `#todo`; read-only, from the local index, off by default (`todoforge.ai.chatTools`).
 
 ## Quieter by default
 
 Tags are case-sensitive, and `NOTE`, `BUG`, `REVIEW`, `OPTIMIZE` need a `:` or `(`. Generated and minified files are skipped. Problems and CodeLens are off until you turn them on.
-
-## Breaking changes from 0.1
-
-- My Tasks is replaced by Pins. Tasks from 0.1 are not migrated.
-- `todoforge.tasks.*` settings are removed.
 
 ## Privacy
 
