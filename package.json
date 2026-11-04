@@ -2,7 +2,7 @@
   "name": "todoforge",
   "displayName": "%ext.displayName%",
   "description": "%ext.description%",
-  "version": "1.0.0",
+  "version": "1.2.0",
   "publisher": "onurkarakus",
   "author": {
     "name": "Onur Karakuş"
@@ -60,7 +60,7 @@
     "offline",
     "privacy",
     "productivity",
-    "notes"
+    "copilot"
   ],
   "l10n": "./l10n",
   "capabilities": {
@@ -1486,15 +1486,179 @@
           "order": 40,
           "scope": "application"
         },
+        "todoforge.ai.chatTools": {
+          "type": "boolean",
+          "default": true,
+          "markdownDescription": "%config.ai.chatTools%",
+          "order": 41
+        },
         "todoforge.migrateFromTodoTree": {
           "type": "boolean",
           "default": true,
           "markdownDescription": "%config.migrateFromTodoTree%",
-          "order": 41,
+          "order": 42,
           "scope": "application"
         }
       }
-    }
+    },
+    "languageModelTools": [
+      {
+        "name": "todoforge_listTodos",
+        "toolReferenceName": "todos",
+        "canBeReferencedInPrompt": true,
+        "displayName": "%tool.list.displayName%",
+        "userDescription": "%tool.list.userDescription%",
+        "modelDescription": "Lists TODO-style comments (TODO, FIXME, HACK, BUG, XXX, NOTE, REVIEW, OPTIMIZE, UNDONE, custom tags), Markdown checklist items and .NET code markers (NotImplementedException, [Obsolete], #warning) that TodoForge has already indexed in the open workspace. Read-only and local. Use it to answer questions like 'what TODOs are overdue', 'what FIXMEs are in src/api', 'what is assigned to me', 'what TODOs did I add on this branch'. Each result has ref (path:line), tag, text, file, 1-based line and, when known, owner, due (YYYY-MM-DD), dueIn (days, negative = overdue), priority, labels, git author and age, change (uncommitted or branch) and pinned. Combine filters; all are optional. Muted TODOs are never returned. Results are limited; narrow filters instead of raising the limit when possible.",
+        "icon": "$(checklist)",
+        "tags": [
+          "todoforge",
+          "todo",
+          "comments",
+          "tasks"
+        ],
+        "when": "config.todoforge.ai.chatTools && isWorkspaceTrusted",
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "file": {
+              "type": "string",
+              "description": "Only TODOs whose workspace-relative path contains this text, for example 'src/api' or 'OrdersController.cs'."
+            },
+            "tags": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "Only these tags, for example ['FIXME','BUG']. Case-sensitive as configured."
+            },
+            "owner": {
+              "type": "string",
+              "description": "Inline owner from TODO(owner) or git blame author, for example 'ayse'."
+            },
+            "label": {
+              "type": "string",
+              "description": "Inline label from TODO(#label), without '#'."
+            },
+            "status": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "enum": [
+                  "overdue",
+                  "due",
+                  "dueSoon",
+                  "stale",
+                  "mine",
+                  "new",
+                  "uncommitted",
+                  "branch"
+                ]
+              },
+              "description": "overdue: due date passed. due: has a due date. dueSoon: due within 7 days. stale: older than the user's stale threshold by git blame. mine: owned or written by the current user. new: uncommitted or added on this branch. uncommitted: not committed yet. branch: committed on this branch but not on the base branch."
+            },
+            "priority": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "enum": [
+                  "high",
+                  "medium",
+                  "low"
+                ]
+              },
+              "description": "Only these inline priorities (!high, !medium, !low)."
+            },
+            "text": {
+              "type": "string",
+              "description": "Words that must appear in the tag, text, path, owner or labels."
+            },
+            "query": {
+              "type": "string",
+              "description": "Optional raw TodoForge filter query, for example 'tag:FIXME @onur -test'. Combined with the other filters."
+            },
+            "sortBy": {
+              "type": "string",
+              "enum": [
+                "location",
+                "priority",
+                "due",
+                "age"
+              ],
+              "description": "Sort order. Defaults to due date when filtering by due status, otherwise file and line."
+            },
+            "limit": {
+              "type": "number",
+              "description": "Maximum results, 1-200. Default 50."
+            }
+          }
+        }
+      },
+      {
+        "name": "todoforge_listChanges",
+        "toolReferenceName": "todoChanges",
+        "canBeReferencedInPrompt": true,
+        "displayName": "%tool.changes.displayName%",
+        "userDescription": "%tool.changes.userDescription%",
+        "modelDescription": "Lists the TODO-style comments the user is adding: 'uncommitted' (in unsaved or uncommitted changes) and 'branch' (committed on the current branch since it left the base branch). Use it before a commit or pull request, or when the user asks which TODOs they introduced. Read-only, uses only local git data TodoForge already computed; nothing is fetched. Returns the base branch and records with ref, tag, text, file, 1-based line, change and metadata.",
+        "icon": "$(git-compare)",
+        "tags": [
+          "todoforge",
+          "todo",
+          "git",
+          "changes"
+        ],
+        "when": "config.todoforge.ai.chatTools && isWorkspaceTrusted",
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "scope": {
+              "type": "string",
+              "enum": [
+                "all",
+                "uncommitted",
+                "branch"
+              ],
+              "description": "Which TODOs to list. Default all."
+            },
+            "limit": {
+              "type": "number",
+              "description": "Maximum results, 1-200. Default 100."
+            }
+          }
+        }
+      },
+      {
+        "name": "todoforge_getTodo",
+        "toolReferenceName": "todo",
+        "canBeReferencedInPrompt": true,
+        "displayName": "%tool.get.displayName%",
+        "userDescription": "%tool.get.userDescription%",
+        "modelDescription": "Returns details for one TODO identified by ref ('path:line' as returned by todoforge_listTodos) or by file and 1-based line (the nearest TODO within 3 lines). Includes the full comment text, inline metadata, git blame author, date and commit summary, change status and pin state. Does not return surrounding code; read the file with your own tools if needed.",
+        "icon": "$(note)",
+        "tags": [
+          "todoforge",
+          "todo"
+        ],
+        "when": "config.todoforge.ai.chatTools && isWorkspaceTrusted",
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "ref": {
+              "type": "string",
+              "description": "'path:line', for example 'src/Shop.Api/Controllers/OrdersController.cs:16'."
+            },
+            "file": {
+              "type": "string",
+              "description": "Workspace-relative path or file name, used with line when ref is not given."
+            },
+            "line": {
+              "type": "number",
+              "description": "1-based line number."
+            }
+          }
+        }
+      }
+    ]
   },
   "scripts": {
     "vscode:prepublish": "npm run package",

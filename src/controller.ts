@@ -7,6 +7,7 @@ import { updateSetting, userHasConfiguredTodoForge } from "./config/settings";
 import { createEngine } from "./core/engine";
 import { createStateStore, type SavedView } from "./core/state";
 import { aiAvailable, explainTodo } from "./features/ai";
+import { registerChatTools } from "./features/chatTools";
 import { setCheckboxLine } from "./features/checkbox";
 import { registerCodeActions } from "./features/codeActions";
 import { registerCompletion } from "./features/completion";
@@ -892,6 +893,24 @@ export const createController = (
       await vscode.commands.executeCommand("todoforge.importSettings");
     }
   };
+
+  disposables.push(
+    ...registerChatTools({
+      matches: unmuted,
+      settings: () => engine.settings,
+      git,
+      context: () => {
+        const base = unmuted()[0];
+        return {
+          ...queryContext(),
+          isUncommitted: git.isUncommitted,
+          isOnBranch: git.isOnBranch,
+          isPinned: (match) => isPinned(state.pins, match),
+          baseRef: base ? git.baseRefOf(base) : undefined,
+        };
+      },
+    }),
+  );
 
   syncCodeLens();
   engine.start();

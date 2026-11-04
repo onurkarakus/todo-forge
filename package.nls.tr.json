@@ -117,9 +117,16 @@
   "config.git.blame.off": "Git blame hiç çalıştırılmaz.",
   "config.git.blame": "Git blame'in ne zaman okunacağı.",
   "config.ai.enabled": "**TODO'yu Yapay Zekâ ile Açıkla** komutunu açar. VS Code'da zaten olan bir sohbet modelini (örneğin GitHub Copilot) Language Model API üzerinden, tek seferlik onayla kullanır. TodoForge kendisi hiçbir ağ isteği yapmaz.",
+  "config.ai.chatTools": "VS Code'daki sohbet ajanlarının (örneğin GitHub Copilot ajan modu) salt okunur TodoForge araçlarıyla TODO'larınızı okumasına izin ver: TODO'ları listele ve filtrele, Değişiklikleri listele, tek bir TODO'yu getir. Yalnızca siz sohbet ettiğinizde çalışır ve bu penceredeki TODO verisini döndürür; dosya içeriğini asla göndermez. Güvenilmeyen çalışma alanlarında kapalıdır.",
   "config.migrateFromTodoTree": "Todo Tree ayarlarınızı içe aktarmayı bir kez öner.",
+  "tool.list.displayName": "TODO'ları Listele",
+  "tool.list.userDescription": "Bu çalışma alanındaki TODO, FIXME, HACK ve diğer etiketli yorumları dosyaya, etikete, sahibe, etikete (#), son tarihe, önceliğe veya git durumuna göre bulur.",
+  "tool.changes.displayName": "TODO Değişikliklerini Listele",
+  "tool.changes.userDescription": "Henüz commit etmediğiniz TODO'lar ve geçerli dalınızda eklenen TODO'lar (yerel git'ten).",
+  "tool.get.displayName": "TODO Ayrıntılarını Getir",
+  "tool.get.userDescription": "Tek bir TODO'nun ayrıntıları: sahip, son tarih, öncelik, etiketler, git yazarı ve yaşı, yeni olup olmadığı.",
   "ext.displayName": "TodoForge – TODO Ağacı, Vurgular ve Son Tarihler",
   "ext.description": "Hızlı ve çevrimdışı TODO/FIXME ağacı: temaya uyan vurgular, sahip ve son tarih, hızlı düzeltmeler, dalınız için Değişiklikler görünümü ve birinci sınıf .NET desteği. Hesap yok, telemetri yok.",
-  "ext.untrusted": "Güvenilmeyen çalışma alanlarında TodoForge tarar ve vurgular; ancak git çalıştırmaz, çalışma alanındaki özel düzenli ifadeyi yok sayar ve yapay zekâ yardımını kapatır.",
+  "ext.untrusted": "Güvenilmeyen çalışma alanlarında TodoForge tarar ve vurgular; ancak git çalıştırmaz, çalışma alanındaki özel düzenli ifadeyi yok sayar, yapay zekâ yardımını ve sohbet araçlarını kapatır.",
   "ext.virtual": "TodoForge yerel dosyalarda ripgrep ve git çalıştırır."
 }

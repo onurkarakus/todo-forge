@@ -161,6 +161,42 @@ describe("TodoForge in VS Code", function () {
     await waitFor(() => !api.all().some((match) => match.text === "typed live"), "undo");
   });
 
+  const toolText = async (name, input) => {
+    const result = await vscode.lm.invokeTool(name, { input, toolInvocationToken: undefined }, new vscode.CancellationTokenSource().token);
+    return result.content.map((part) => part.value ?? "").join("");
+  };
+
+  it("registers read-only chat tools for Copilot", async () => {
+    const names = vscode.lm.tools.map((tool) => tool.name);
+    for (const name of ["todoforge_listTodos", "todoforge_listChanges", "todoforge_getTodo"]) {
+      assert.ok(names.includes(name), `missing tool ${name}`);
+    }
+    const overdue = await toolText("todoforge_listTodos", { status: ["overdue"] });
+    assert.match(overdue, /^1 of \d+ TODOs match "is:overdue"/);
+    assert.match(overdue, /committed on the branch/);
+
+    const limited = await toolText("todoforge_listTodos", { limit: 1 });
+    assert.match(limited, /Showing 1 of \d+/);
+
+    const changes = await toolText("todoforge_listChanges", {});
+    assert.match(changes, /^1 uncommitted and 1 branch TODOs\. Base branch: main/);
+
+    const fixme = api.all().find((match) => match.text === "committed on the branch");
+    const detail = await toolText("todoforge_getTodo", { ref: `${fixme.relativePath}:${fixme.line + 1}` });
+    assert.match(detail, /"tag": "FIXME"/);
+    assert.match(detail, /"owner": "onur"/);
+  });
+
+  it("chat tools respect the setting", async () => {
+    const config = vscode.workspace.getConfiguration("todoforge");
+    await config.update("ai.chatTools", false, vscode.ConfigurationTarget.Global);
+    try {
+      await waitFor(async () => /turned off/.test(await toolText("todoforge_listTodos", {})), "tools off");
+    } finally {
+      await config.update("ai.chatTools", undefined, vscode.ConfigurationTarget.Global);
+    }
+  });
+
   it("opens Insights", async () => {
     await vscode.commands.executeCommand("todoforge.showInsights");
     await waitFor(

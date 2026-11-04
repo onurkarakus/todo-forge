@@ -117,9 +117,16 @@
   "config.git.blame.off": "Never run git blame.",
   "config.git.blame": "When to read git blame.",
   "config.ai.enabled": "Opt in to **Explain TODO with AI**. It uses a chat model you already have in VS Code (for example GitHub Copilot) through the Language Model API, after a one-time consent. TodoForge makes no network request itself.",
+  "config.ai.chatTools": "Let chat agents in VS Code (for example GitHub Copilot agent mode) read your TODOs with the read-only TodoForge tools: list and filter TODOs, list Changes, get one TODO. They run only when you chat and return TODO data from this window, never file contents. Off in untrusted workspaces.",
   "config.migrateFromTodoTree": "Offer once to import your Todo Tree settings.",
+  "tool.list.displayName": "List TODOs",
+  "tool.list.userDescription": "Find TODO, FIXME, HACK and other tagged comments in this workspace, filtered by file, tag, owner, label, due date, priority or git status.",
+  "tool.changes.displayName": "List TODO Changes",
+  "tool.changes.userDescription": "TODOs you have not committed yet and TODOs added on your current branch, from local git.",
+  "tool.get.displayName": "Get TODO Details",
+  "tool.get.userDescription": "Details of one TODO: owner, due date, priority, labels, git author and age, and whether it is new.",
   "ext.displayName": "TodoForge – TODO Tree, Highlights & Due Dates",
   "ext.description": "Fast, offline TODO and FIXME tree with theme-aware highlights, owners and due dates, quick fixes, a Changes view for your branch and first-class .NET support. No account, no telemetry.",
-  "ext.untrusted": "In untrusted workspaces TodoForge scans and highlights, but does not run git, ignores a workspace custom regex and turns AI help off.",
+  "ext.untrusted": "In untrusted workspaces TodoForge scans and highlights, but does not run git, ignores a workspace custom regex and turns AI help and chat tools off.",
   "ext.virtual": "TodoForge runs ripgrep and git on local files."
 }

@@ -121,6 +121,7 @@ export interface TodoForgeSettings {
   gitBaseBranch: string;
   blameMode: BlameMode;
   aiEnabled: boolean;
+  chatTools: boolean;
   migrateFromTodoTree: boolean;
 }
 

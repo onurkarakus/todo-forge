@@ -104,6 +104,7 @@ export const defaultSettings = (): TodoForgeSettings => {
     gitBaseBranch: "",
     blameMode: "onDemand",
     aiEnabled: false,
+    chatTools: true,
     migrateFromTodoTree: true,
   };
 };
@@ -261,6 +262,7 @@ export const settingsFromValues = (
     gitBaseBranch: typeof values["git.baseBranch"] === "string" ? values["git.baseBranch"] : "",
     blameMode: oneOf<BlameMode>(values["git.blame"], ["onDemand", "off"], defaults.blameMode),
     aiEnabled: values["ai.enabled"] === true,
+    chatTools: values["ai.chatTools"] !== false,
     migrateFromTodoTree: values["migrateFromTodoTree"] !== false,
   };
 

@@ -44,6 +44,7 @@ export const SETTING_KEYS = [
   "git.baseBranch",
   "git.blame",
   "ai.enabled",
+  "ai.chatTools",
   "migrateFromTodoTree",
 ] as const;
 
