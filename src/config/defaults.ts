@@ -1,5 +1,6 @@
 import type {
   BlameMode,
+  CommentMarker,
   FontStyleName,
   GroupBy,
   HighlightStyle,
@@ -46,6 +47,15 @@ export const DEFAULT_EXCLUDE_GLOBS: readonly string[] = [
 export const DEFAULT_SUBTAG_REGEX = "(?:#(\\d+)|@([\\w-]+))";
 
 export const DEFAULT_LABEL_FORMAT = "${tag}: ${text}";
+
+/** Better Comments-style markers. They decorate the editor only, never the tree. */
+export const DEFAULT_COMMENT_MARKERS: readonly CommentMarker[] = [
+  { tag: "!", bold: true },
+  { tag: "?" },
+  { tag: "*" },
+  { tag: "//", strikethrough: true },
+];
+
 
 export const FULL_SCAN_PATH_THRESHOLD = 200;
 
@@ -106,6 +116,14 @@ export const defaultSettings = (): TodoForgeSettings => {
     aiEnabled: false,
     chatTools: false,
     migrateFromTodoTree: true,
+    ticketUrl: "",
+    commentMarkersEnabled: true,
+    commentMarkers: DEFAULT_COMMENT_MARKERS.map((marker) => ({ ...marker })),
+    commentMarkersMultiline: true,
+    highlightGutterIcons: true,
+    highlightOpacity: 1,
+    highlightBorder: false,
+    autoReveal: true,
   };
 };
 
@@ -163,6 +181,17 @@ const readTagStyles = (value: unknown): Record<string, TagStyle> => {
     if (typeof record.fontStyle === "string") {
       style.fontStyle = oneOf<FontStyleName>(record.fontStyle, ["normal", "italic", "bold", "underline"], "normal");
     }
+    if (record.hideFromTree === true) {
+      style.hideFromTree = true;
+    }
+    if (typeof record.opacity === "number" && Number.isFinite(record.opacity)) {
+      style.opacity = Math.min(1, Math.max(0, record.opacity));
+    }
+    if (typeof record.border === "string") {
+      style.border = record.border;
+    } else if (record.border === true || record.border === false) {
+      style.border = record.border;
+    }
     styles[tag] = style;
   }
   return styles;
@@ -183,6 +212,48 @@ const readSeverity = (value: unknown): Record<string, string> => {
 
 const positiveInt = (value: unknown, min: number, fallback: number): number => {
   return typeof value === "number" && Number.isFinite(value) && value >= min ? Math.floor(value) : fallback;
+};
+
+
+const readOpacity = (value: unknown, fallback: number): number => {
+  return typeof value === "number" && Number.isFinite(value) ? Math.min(1, Math.max(0, value)) : fallback;
+};
+
+const readCommentMarkers = (value: unknown, fallback: CommentMarker[]): CommentMarker[] => {
+  if (!Array.isArray(value)) {
+    return fallback.map((marker) => ({ ...marker }));
+  }
+  const markers: CommentMarker[] = [];
+  for (const entry of value) {
+    if (!entry || typeof entry !== "object") {
+      continue;
+    }
+    const record = entry as Record<string, unknown>;
+    if (typeof record.tag !== "string" || record.tag.length === 0) {
+      continue;
+    }
+    const marker: CommentMarker = { tag: record.tag };
+    if (typeof record.color === "string") {
+      marker.color = record.color;
+    }
+    if (typeof record.backgroundColor === "string") {
+      marker.backgroundColor = record.backgroundColor;
+    }
+    if (typeof record.bold === "boolean") {
+      marker.bold = record.bold;
+    }
+    if (typeof record.italic === "boolean") {
+      marker.italic = record.italic;
+    }
+    if (typeof record.strikethrough === "boolean") {
+      marker.strikethrough = record.strikethrough;
+    }
+    if (typeof record.underline === "boolean") {
+      marker.underline = record.underline;
+    }
+    markers.push(marker);
+  }
+  return markers;
 };
 
 export const settingsFromValues = (
@@ -240,11 +311,14 @@ export const settingsFromValues = (
     highlightingEnabled: values["highlighting.enabled"] !== false,
     highlightStyle: oneOf<HighlightStyle>(
       values["highlighting.style"],
-      ["tag", "comment", "line"],
+      ["tag", "text", "comment", "line"],
       defaults.highlightStyle,
     ),
     inlineHints: values["highlighting.inlineHints"] !== false,
     tagStyles: readTagStyles(values["highlighting.tags"]),
+    highlightGutterIcons: values["highlighting.gutterIcons"] !== false,
+    highlightOpacity: readOpacity(values["highlighting.opacity"], defaults.highlightOpacity),
+    highlightBorder: values["highlighting.border"] === true,
     groupBy: oneOf<GroupBy>(values["tree.groupBy"], ["file", "tag", "subtag", "owner", "flat"], defaults.groupBy),
     sortBy: oneOf<SortBy>(values["tree.sortBy"], ["location", "age", "due", "priority"], defaults.sortBy),
     showActivityBadge: values["tree.showActivityBadge"] !== false,
@@ -264,6 +338,11 @@ export const settingsFromValues = (
     aiEnabled: values["ai.enabled"] === true,
     chatTools: values["ai.chatTools"] === true,
     migrateFromTodoTree: values["migrateFromTodoTree"] !== false,
+    ticketUrl: typeof values["general.ticketUrl"] === "string" ? values["general.ticketUrl"] : "",
+    commentMarkersEnabled: values["commentMarkers.enabled"] !== false,
+    commentMarkers: readCommentMarkers(values["commentMarkers.tags"], defaults.commentMarkers),
+    commentMarkersMultiline: values["commentMarkers.multiline"] !== false,
+    autoReveal: values["tree.autoReveal"] !== false,
   };
 
   return { settings, errors };

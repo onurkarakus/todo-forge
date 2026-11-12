@@ -2,7 +2,7 @@ import * as vscode from "vscode";
 
 import type { TodoForgeSettings } from "../types";
 import { iconSvg } from "./icons";
-import { styleForTag, type ResolvedTagStyle } from "./palette";
+import { applyOpacity, styleForTag, type ResolvedTagStyle } from "./palette";
 
 export interface TagDecorations {
   inline: vscode.TextEditorDecorationType;
@@ -28,13 +28,26 @@ const svgUri = (icon: string, color: string): vscode.Uri => {
   return vscode.Uri.parse(`data:image/svg+xml;utf8,${encodeURIComponent(iconSvg(icon, color))}`);
 };
 
+const clampOpacity = (value: number): number => Math.min(1, Math.max(0, value));
+
 export const themeColorId = (key: string, part: "Foreground" | "Background"): string => `todoforge.${key}${part}`;
+
+const borderColor = (resolved: ResolvedTagStyle, settings: TodoForgeSettings, theme: "dark" | "light"): string | undefined => {
+  const flag = resolved.border ?? (settings.highlightBorder ? true : false);
+  if (!flag) {
+    return undefined;
+  }
+  const color = typeof flag === "string" ? flag : theme === "dark" ? resolved.colors.dark : resolved.colors.light;
+  const opacity = clampOpacity(resolved.opacity * settings.highlightOpacity);
+  return opacity === 1 ? color : applyOpacity(color, opacity);
+};
 
 /**
  * Built-in tags use contributed theme colors so they follow the active theme
  * (and `workbench.colorCustomizations`). Custom tags and user overrides use
  * separate dark and light colors. Gutter icons are images, so they get a
- * light and a dark variant.
+ * light and a dark variant. Opacity or a border falls back to hex colors so
+ * the setting can be applied.
  */
 export const createTagDecorations = (tag: string, settings: TodoForgeSettings): TagDecorations => {
   const resolved = styleForTag(tag, settings.tags, settings.tagStyles);
@@ -42,7 +55,15 @@ export const createTagDecorations = (tag: string, settings: TodoForgeSettings): 
   const fontWeight = resolved.fontStyle === "bold" ? "600" : undefined;
   const textDecoration = resolved.fontStyle === "underline" ? "underline" : undefined;
   const wholeLine = settings.highlightStyle === "line";
-  const themed = resolved.themeKey;
+  const opacity = clampOpacity(resolved.opacity * settings.highlightOpacity);
+  const themed = Boolean(resolved.themeKey) && opacity === 1;
+  const darkFg = opacity === 1 ? resolved.colors.dark : applyOpacity(resolved.colors.dark, opacity);
+  const lightFg = opacity === 1 ? resolved.colors.light : applyOpacity(resolved.colors.light, opacity);
+  const darkBg = applyOpacity(resolved.colors.darkBackground, opacity);
+  const lightBg = applyOpacity(resolved.colors.lightBackground, opacity);
+  const darkBorder = borderColor(resolved, settings, "dark");
+  const lightBorder = borderColor(resolved, settings, "light");
+  const gutter = settings.highlightGutterIcons !== false;
   const inline = vscode.window.createTextEditorDecorationType({
     fontStyle,
     fontWeight,
@@ -52,17 +73,19 @@ export const createTagDecorations = (tag: string, settings: TodoForgeSettings): 
     gutterIconSize: "75%",
     ...(themed
       ? {
-          color: new vscode.ThemeColor(themeColorId(themed, "Foreground")),
-          backgroundColor: new vscode.ThemeColor(themeColorId(themed, "Background")),
+          color: new vscode.ThemeColor(themeColorId(resolved.themeKey as string, "Foreground")),
+          backgroundColor: new vscode.ThemeColor(themeColorId(resolved.themeKey as string, "Background")),
         }
       : {}),
     dark: {
-      gutterIconPath: svgUri(resolved.icon, resolved.colors.dark),
-      ...(themed ? {} : { color: resolved.colors.dark, backgroundColor: resolved.colors.darkBackground }),
+      ...(gutter ? { gutterIconPath: svgUri(resolved.icon, resolved.colors.dark) } : {}),
+      ...(themed ? {} : { color: darkFg, backgroundColor: darkBg }),
+      ...(darkBorder ? { border: "1px solid", borderColor: darkBorder } : {}),
     },
     light: {
-      gutterIconPath: svgUri(resolved.icon, resolved.colors.light),
-      ...(themed ? {} : { color: resolved.colors.light, backgroundColor: resolved.colors.lightBackground }),
+      ...(gutter ? { gutterIconPath: svgUri(resolved.icon, resolved.colors.light) } : {}),
+      ...(themed ? {} : { color: lightFg, backgroundColor: lightBg }),
+      ...(lightBorder ? { border: "1px solid", borderColor: lightBorder } : {}),
     },
   });
   const lane = laneOf(resolved.ruler);
@@ -71,10 +94,10 @@ export const createTagDecorations = (tag: string, settings: TodoForgeSettings): 
         overviewRulerLane: lane,
         rangeBehavior: vscode.DecorationRangeBehavior.ClosedClosed,
         ...(themed
-          ? { overviewRulerColor: new vscode.ThemeColor(themeColorId(themed, "Foreground")) }
+          ? { overviewRulerColor: new vscode.ThemeColor(themeColorId(resolved.themeKey as string, "Foreground")) }
           : {}),
-        dark: themed ? {} : { overviewRulerColor: resolved.colors.dark },
-        light: themed ? {} : { overviewRulerColor: resolved.colors.light },
+        dark: themed ? {} : { overviewRulerColor: darkFg },
+        light: themed ? {} : { overviewRulerColor: lightFg },
       })
     : undefined;
   return { inline, ruler };

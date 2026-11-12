@@ -16,6 +16,7 @@ export const MIME_MATCH = "application/vnd.todoforge.match";
 export interface TreeDecorators {
   card: (match: TodoMatch) => CardContext;
   isPinned: (match: TodoMatch) => boolean;
+  ticketUrl?: (match: TodoMatch) => string | undefined;
 }
 
 export interface PinEntry {
@@ -277,12 +278,16 @@ export class TodoTreeProvider
       return "pins-root";
     }
     if (element.type === "pin") {
-      return element.match ? "pin" : "pin-missing";
+      if (!element.match) {
+        return "pin-missing";
+      }
+      return this.decorators?.ticketUrl?.(element.match) ? "pin-ticket" : "pin";
     }
     const node = element.node;
     if (node.match) {
       const pinned = this.decorators?.isPinned(node.match) ? "-pinned" : "";
-      return node.match.kind === "markdown" ? `markdown${pinned}` : node.match.kind === "code" ? `code${pinned}` : `match${pinned}`;
+      const ticket = this.decorators?.ticketUrl?.(node.match) ? "-ticket" : "";
+      return node.match.kind === "markdown" ? `markdown${pinned}${ticket}` : node.match.kind === "code" ? `code${pinned}${ticket}` : `match${pinned}${ticket}`;
     }
     return node.kind;
   }

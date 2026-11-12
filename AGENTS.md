@@ -66,12 +66,12 @@ export const scanWorkspace = async (
   /git            -> local git (diff/blame parsing, service, context with caches)
   /core           -> engine (scan, watch, live edits), state (pins, mute, views)
   /tree           -> TODO tree and Changes tree providers, grouping, query language
-  /highlighting   -> palette (theme colors), decorations, inline hints, icons
+  /highlighting   -> palette (theme colors), decorations, comment markers, inline hints, icons
   /features       -> hover, quick fixes, completion, diagnostics, status bar, insights panel, AI, import
   /tools          -> chat tool logic: filters, limits, rendering (pure)
   /pins           -> pin fingerprints and resolution
   /insights       -> insights model and HTML rendering (pure)
-  /config         -> settings, defaults, migration, importers (Todo Tree, Rider, Visual Studio)
+  /config         -> settings, defaults, migration, importers (Todo Tree, Better Todo Tree, Better Comments, Rider, Visual Studio)
   /commands       -> navigation helpers
   /utils          -> pure helpers (regex, paths, debounce, ids)
   controller.ts   -> composition root: commands, views, context keys

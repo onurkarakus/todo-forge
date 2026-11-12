@@ -51,6 +51,14 @@ export const STATUS_COLORS: Readonly<Record<string, { dark: string; light: strin
   hintForeground: { dark: "#8B949E", light: "#6E7781", description: "Inline TODO hints such as due dates." },
 };
 
+/** Built-in Better Comments-style marker colors (`todoforge.commentAlertForeground`, …). */
+export const COMMENT_MARKER_COLORS: Readonly<Record<string, { dark: string; light: string; darkBackground: string; lightBackground: string; description: string }>> = {
+  commentAlert: { dark: "#FF6B6B", light: "#C62828", darkBackground: "#FF6B6B24", lightBackground: "#C628281A", description: "Alert comment markers (`// !`)." },
+  commentQuestion: { dark: "#82AAFF", light: "#1F5BB8", darkBackground: "#82AAFF24", lightBackground: "#1F5BB81A", description: "Question comment markers (`// ?`)." },
+  commentHighlight: { dark: "#C3E88D", light: "#3B6E12", darkBackground: "#C3E88D24", lightBackground: "#3B6E121A", description: "Highlight comment markers (`// *`)." },
+  commentStrikethrough: { dark: "#8B949E", light: "#6E7781", darkBackground: "#8B949E24", lightBackground: "#6E77811A", description: "Strikethrough comment markers (`////`)." },
+};
+
 /** Fallback colors for custom tags, cycled in tag order. */
 export const CUSTOM_PALETTE: readonly TagColors[] = [
   colors("#E6B325", "#8A5A00"),
@@ -78,6 +86,18 @@ export const KNOWN_ICONS = new Set([
   "archive",
   "pin",
   "star",
+  "check",
+  "x",
+  "info",
+  "lightbulb",
+  "beaker",
+  "comment",
+  "link",
+  "clock",
+  "bookmark",
+  "shield",
+  "sparkle",
+  "key",
 ]);
 
 export interface ResolvedTagStyle {
@@ -87,6 +107,9 @@ export interface ResolvedTagStyle {
   icon: string;
   ruler: RulerLane;
   fontStyle: FontStyleName;
+  hideFromTree: boolean;
+  opacity: number;
+  border?: string | boolean;
 }
 
 const findBuiltin = (tag: string): BuiltinTag | undefined => {
@@ -121,7 +144,44 @@ export const styleForTag = (
     icon,
     ruler: override.ruler ?? "right",
     fontStyle: override.fontStyle ?? "normal",
+    hideFromTree: override.hideFromTree === true,
+    opacity: typeof override.opacity === "number" ? override.opacity : 1,
+    border: override.border,
   };
+};
+
+export const hideFromTree = (tag: string, styles: Readonly<Record<string, TagStyle>>): boolean => {
+  if (styles[tag]?.hideFromTree === true) {
+    return true;
+  }
+  const found = Object.entries(styles).find(([name]) => name.toLowerCase() === tag.toLowerCase());
+  return found?.[1].hideFromTree === true;
+};
+
+
+const clampOpacity = (value: number): number => Math.min(1, Math.max(0, value));
+
+/** Applies 0–1 opacity to a #rgb, #rrggbb or #rrggbbaa color. */
+export const applyOpacity = (hex: string, opacity: number): string => {
+  const amount = clampOpacity(opacity);
+  const raw = hex.trim();
+  const match = /^#([0-9a-f]{3,8})$/i.exec(raw);
+  if (!match) {
+    return raw;
+  }
+  let value = match[1] ?? "";
+  if (value.length === 3 || value.length === 4) {
+    value = [...value].map((char) => char + char).join("");
+  }
+  const rgb = value.slice(0, 6);
+  const existing = value.length >= 8 ? parseInt(value.slice(6, 8), 16) / 255 : 1;
+  if (amount === 1 && value.length < 8) {
+    return `#${rgb}`;
+  }
+  const alpha = Math.round(existing * amount * 255)
+    .toString(16)
+    .padStart(2, "0");
+  return `#${rgb}${alpha}`;
 };
 
 /** The `contributes.colors` entries for package.json, generated from the palette. */
@@ -158,6 +218,25 @@ export const contributedColors = (): { id: string; description: string; defaults
       description: value.description,
       defaults: { dark: value.dark, light: value.light, highContrast: value.dark, highContrastLight: value.light },
     });
+  }
+  for (const [key, value] of Object.entries(COMMENT_MARKER_COLORS)) {
+    entries.push(
+      {
+        id: `todoforge.${key}Foreground`,
+        description: value.description,
+        defaults: { dark: value.dark, light: value.light, highContrast: value.dark, highContrastLight: value.light },
+      },
+      {
+        id: `todoforge.${key}Background`,
+        description: `Background for ${key} comment markers.`,
+        defaults: {
+          dark: value.darkBackground,
+          light: value.lightBackground,
+          highContrast: "#00000000",
+          highContrastLight: "#00000000",
+        },
+      },
+    );
   }
   return entries;
 };

@@ -9,6 +9,7 @@ export interface TodoTreeSnapshot {
   regex?: unknown;
   caseSensitive?: unknown;
   customHighlight?: unknown;
+  subTagClickUrl?: unknown;
 }
 
 export interface MigrationPatch {
@@ -39,6 +40,55 @@ const tagGroupsOf = (value: unknown): { name: string; tags: string[] }[] | undef
     .filter((group) => group.tags.length > 0);
 };
 
+
+const mapHighlightOverrides = (value: unknown): Record<string, unknown> | undefined => {
+  if (!value || typeof value !== "object" || Array.isArray(value)) {
+    return undefined;
+  }
+  const styles: Record<string, unknown> = {};
+  for (const [tag, raw] of Object.entries(value as Record<string, unknown>)) {
+    if (!raw || typeof raw !== "object") {
+      continue;
+    }
+    const record = raw as Record<string, unknown>;
+    const style: Record<string, unknown> = {};
+    if (typeof record.foreground === "string") {
+      style.foreground = record.foreground;
+    } else if (typeof record.iconColour === "string") {
+      style.foreground = record.iconColour;
+    } else if (typeof record.iconColor === "string") {
+      style.foreground = record.iconColor;
+    }
+    if (typeof record.background === "string") {
+      style.background = record.background;
+    }
+    if (typeof record.icon === "string") {
+      style.icon = record.icon;
+    }
+    if (typeof record.ruler === "string") {
+      style.ruler = record.ruler;
+    }
+    if (typeof record.fontStyle === "string") {
+      style.fontStyle = record.fontStyle;
+    }
+    if (record.hideFromTree === true) {
+      style.hideFromTree = true;
+    }
+    if (typeof record.opacity === "number") {
+      style.opacity = record.opacity;
+    }
+    if (typeof record.border === "string") {
+      style.border = record.border;
+    } else if (typeof record.borderColor === "string") {
+      style.border = record.borderColor;
+    }
+    if (Object.keys(style).length > 0) {
+      styles[tag] = style;
+    }
+  }
+  return Object.keys(styles).length > 0 ? styles : undefined;
+};
+
 export const mapTodoTreeSettings = (input: TodoTreeSnapshot): MigrationPatch => {
   const values: Record<string, unknown> = {};
   const ignored: string[] = [];
@@ -64,8 +114,12 @@ export const mapTodoTreeSettings = (input: TodoTreeSnapshot): MigrationPatch => 
   if (typeof input.caseSensitive === "boolean") {
     values["general.caseSensitive"] = input.caseSensitive;
   }
-  if (input.customHighlight && typeof input.customHighlight === "object") {
-    values["highlighting.tags"] = input.customHighlight;
+  const highlights = mapHighlightOverrides(input.customHighlight);
+  if (highlights) {
+    values["highlighting.tags"] = highlights;
+  }
+  if (typeof input.subTagClickUrl === "string" && input.subTagClickUrl.trim().length > 0) {
+    values["general.ticketUrl"] = input.subTagClickUrl;
   }
   ignored.push(
     "todo-tree.regex.regexMatches",

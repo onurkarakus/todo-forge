@@ -2,7 +2,7 @@
   "name": "todoforge",
   "displayName": "%ext.displayName%",
   "description": "%ext.description%",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "publisher": "onurkarakus",
   "author": {
     "name": "Onur Karakuş"
@@ -208,6 +208,36 @@
         "icon": "$(target)"
       },
       {
+        "command": "todoforge.expandAll",
+        "title": "%command.expandAll%",
+        "category": "TodoForge",
+        "icon": "$(expand-all)"
+      },
+      {
+        "command": "todoforge.collapseAll",
+        "title": "%command.collapseAll%",
+        "category": "TodoForge",
+        "icon": "$(collapse-all)"
+      },
+      {
+        "command": "todoforge.showCurrentFile",
+        "title": "%command.showCurrentFile%",
+        "category": "TodoForge",
+        "icon": "$(file)"
+      },
+      {
+        "command": "todoforge.showAllFiles",
+        "title": "%command.showAllFiles%",
+        "category": "TodoForge",
+        "icon": "$(files)"
+      },
+      {
+        "command": "todoforge.toggleCurrentFile",
+        "title": "%command.toggleCurrentFile%",
+        "category": "TodoForge",
+        "icon": "$(file)"
+      },
+      {
         "command": "todoforge.revealInTree",
         "title": "%command.revealInTree%",
         "category": "TodoForge",
@@ -229,6 +259,12 @@
         "title": "%command.copy%",
         "category": "TodoForge",
         "icon": "$(copy)"
+      },
+      {
+        "command": "todoforge.openTicket",
+        "title": "%command.openTicket%",
+        "category": "TodoForge",
+        "icon": "$(link-external)"
       },
       {
         "command": "todoforge.revealInExplorer",
@@ -356,6 +392,12 @@
         "icon": "$(json)"
       },
       {
+        "command": "todoforge.copyView",
+        "title": "%command.copyView%",
+        "category": "TodoForge",
+        "icon": "$(copy)"
+      },
+      {
         "command": "todoforge.ai.explain",
         "title": "%command.ai.explain%",
         "category": "TodoForge",
@@ -425,6 +467,26 @@
           "group": "navigation@6"
         },
         {
+          "command": "todoforge.showCurrentFile",
+          "when": "view == todoforge.tree && !todoforge.currentFile",
+          "group": "navigation@7"
+        },
+        {
+          "command": "todoforge.showAllFiles",
+          "when": "view == todoforge.tree && todoforge.currentFile",
+          "group": "navigation@7"
+        },
+        {
+          "command": "todoforge.expandAll",
+          "when": "view == todoforge.tree",
+          "group": "navigation@8"
+        },
+        {
+          "command": "todoforge.collapseAll",
+          "when": "view == todoforge.tree",
+          "group": "navigation@9"
+        },
+        {
           "command": "todoforge.openView",
           "when": "view == todoforge.tree",
           "group": "1_views@1"
@@ -458,6 +520,11 @@
           "command": "todoforge.exportMarkdown",
           "when": "view == todoforge.tree",
           "group": "3_export@1"
+        },
+        {
+          "command": "todoforge.copyView",
+          "when": "view == todoforge.tree",
+          "group": "3_export@0"
         },
         {
           "command": "todoforge.exportJson",
@@ -540,6 +607,11 @@
           "command": "todoforge.copy",
           "when": "viewItem =~ /^(match|markdown|code)(-pinned)?$/",
           "group": "4_copy@1"
+        },
+        {
+          "command": "todoforge.openTicket",
+          "when": "viewItem =~ /ticket/",
+          "group": "4_copy@1.5"
         },
         {
           "command": "todoforge.revealInExplorer",
@@ -652,6 +724,18 @@
         {
           "command": "todoforge.showMine",
           "when": "!todoforge.mine"
+        },
+        {
+          "command": "todoforge.showCurrentFile",
+          "when": "!todoforge.currentFile"
+        },
+        {
+          "command": "todoforge.showAllFiles",
+          "when": "todoforge.currentFile"
+        },
+        {
+          "command": "todoforge.toggleCurrentFile",
+          "when": "false"
         }
       ]
     },
@@ -1065,6 +1149,86 @@
           "highContrast": "#8B949E",
           "highContrastLight": "#6E7781"
         }
+      },
+      {
+        "id": "todoforge.commentAlertForeground",
+        "description": "Alert comment markers (`// !`).",
+        "defaults": {
+          "dark": "#FF6B6B",
+          "light": "#C62828",
+          "highContrast": "#FF6B6B",
+          "highContrastLight": "#C62828"
+        }
+      },
+      {
+        "id": "todoforge.commentAlertBackground",
+        "description": "Background for commentAlert comment markers.",
+        "defaults": {
+          "dark": "#FF6B6B24",
+          "light": "#C628281A",
+          "highContrast": "#00000000",
+          "highContrastLight": "#00000000"
+        }
+      },
+      {
+        "id": "todoforge.commentQuestionForeground",
+        "description": "Question comment markers (`// ?`).",
+        "defaults": {
+          "dark": "#82AAFF",
+          "light": "#1F5BB8",
+          "highContrast": "#82AAFF",
+          "highContrastLight": "#1F5BB8"
+        }
+      },
+      {
+        "id": "todoforge.commentQuestionBackground",
+        "description": "Background for commentQuestion comment markers.",
+        "defaults": {
+          "dark": "#82AAFF24",
+          "light": "#1F5BB81A",
+          "highContrast": "#00000000",
+          "highContrastLight": "#00000000"
+        }
+      },
+      {
+        "id": "todoforge.commentHighlightForeground",
+        "description": "Highlight comment markers (`// *`).",
+        "defaults": {
+          "dark": "#C3E88D",
+          "light": "#3B6E12",
+          "highContrast": "#C3E88D",
+          "highContrastLight": "#3B6E12"
+        }
+      },
+      {
+        "id": "todoforge.commentHighlightBackground",
+        "description": "Background for commentHighlight comment markers.",
+        "defaults": {
+          "dark": "#C3E88D24",
+          "light": "#3B6E121A",
+          "highContrast": "#00000000",
+          "highContrastLight": "#00000000"
+        }
+      },
+      {
+        "id": "todoforge.commentStrikethroughForeground",
+        "description": "Strikethrough comment markers (`////`).",
+        "defaults": {
+          "dark": "#8B949E",
+          "light": "#6E7781",
+          "highContrast": "#8B949E",
+          "highContrastLight": "#6E7781"
+        }
+      },
+      {
+        "id": "todoforge.commentStrikethroughBackground",
+        "description": "Background for commentStrikethrough comment markers.",
+        "defaults": {
+          "dark": "#8B949E24",
+          "light": "#6E77811A",
+          "highContrast": "#00000000",
+          "highContrastLight": "#00000000"
+        }
       }
     ],
     "configuration": {
@@ -1138,6 +1302,12 @@
           "default": "(?:#(\\d+)|@([\\w-]+))",
           "markdownDescription": "%config.general.subTagRegex%",
           "order": 5
+        },
+        "todoforge.general.ticketUrl": {
+          "type": "string",
+          "default": "",
+          "markdownDescription": "%config.general.ticketUrl%",
+          "order": 6
         },
         "todoforge.general.labelFormat": {
           "type": "string",
@@ -1266,11 +1436,13 @@
           "type": "string",
           "enum": [
             "tag",
+            "text",
             "comment",
             "line"
           ],
           "enumDescriptions": [
             "%config.highlighting.style.tag%",
+            "%config.highlighting.style.text%",
             "%config.highlighting.style.comment%",
             "%config.highlighting.style.line%"
           ],
@@ -1312,7 +1484,19 @@
                   "circle-slash",
                   "archive",
                   "pin",
-                  "star"
+                  "star",
+                  "check",
+                  "x",
+                  "info",
+                  "lightbulb",
+                  "beaker",
+                  "comment",
+                  "link",
+                  "clock",
+                  "bookmark",
+                  "shield",
+                  "sparkle",
+                  "key"
                 ]
               },
               "ruler": {
@@ -1333,11 +1517,111 @@
                   "bold",
                   "underline"
                 ]
+              },
+              "hideFromTree": {
+                "type": "boolean"
+              },
+              "opacity": {
+                "type": "number",
+                "minimum": 0,
+                "maximum": 1
+              },
+              "border": {
+                "oneOf": [
+                  {
+                    "type": "boolean"
+                  },
+                  {
+                    "type": "string"
+                  }
+                ]
               }
             }
           },
           "markdownDescription": "%config.highlighting.tags%",
           "order": 23
+        },
+        "todoforge.highlighting.gutterIcons": {
+          "type": "boolean",
+          "default": true,
+          "markdownDescription": "%config.highlighting.gutterIcons%",
+          "order": 24
+        },
+        "todoforge.highlighting.opacity": {
+          "type": "number",
+          "default": 1,
+          "minimum": 0,
+          "maximum": 1,
+          "markdownDescription": "%config.highlighting.opacity%",
+          "order": 25
+        },
+        "todoforge.highlighting.border": {
+          "type": "boolean",
+          "default": false,
+          "markdownDescription": "%config.highlighting.border%",
+          "order": 26
+        },
+        "todoforge.commentMarkers.enabled": {
+          "type": "boolean",
+          "default": true,
+          "markdownDescription": "%config.commentMarkers.enabled%",
+          "order": 27
+        },
+        "todoforge.commentMarkers.tags": {
+          "type": "array",
+          "default": [
+            {
+              "tag": "!",
+              "bold": true
+            },
+            {
+              "tag": "?"
+            },
+            {
+              "tag": "*"
+            },
+            {
+              "tag": "//",
+              "strikethrough": true
+            }
+          ],
+          "items": {
+            "type": "object",
+            "required": [
+              "tag"
+            ],
+            "properties": {
+              "tag": {
+                "type": "string"
+              },
+              "color": {
+                "type": "string"
+              },
+              "backgroundColor": {
+                "type": "string"
+              },
+              "bold": {
+                "type": "boolean"
+              },
+              "italic": {
+                "type": "boolean"
+              },
+              "strikethrough": {
+                "type": "boolean"
+              },
+              "underline": {
+                "type": "boolean"
+              }
+            }
+          },
+          "markdownDescription": "%config.commentMarkers.tags%",
+          "order": 28
+        },
+        "todoforge.commentMarkers.multiline": {
+          "type": "boolean",
+          "default": true,
+          "markdownDescription": "%config.commentMarkers.multiline%",
+          "order": 29
         },
         "todoforge.tree.groupBy": {
           "type": "string",
@@ -1375,6 +1659,12 @@
           "default": true,
           "markdownDescription": "%config.tree.showActivityBadge%",
           "order": 26
+        },
+        "todoforge.tree.autoReveal": {
+          "type": "boolean",
+          "default": true,
+          "markdownDescription": "%config.tree.autoReveal%",
+          "order": 32
         },
         "todoforge.markdown.enabled": {
           "type": "boolean",

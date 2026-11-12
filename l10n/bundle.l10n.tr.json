@@ -165,5 +165,9 @@
   "Choose a chat model": "Bir sohbet modeli seçin",
   "Asking {0}…": "{0} yanıtlıyor…",
   "The language model request failed: {0}": "Dil modeli isteği başarısız oldu: {0}",
-  "TodoForge scan failed: {0}": "TodoForge taraması başarısız oldu: {0}"
+  "TodoForge scan failed: {0}": "TodoForge taraması başarısız oldu: {0}",
+  "Current file, filter: {0} — {1} of {2}": "Bu dosya, filtre: {0} — {1}/{2}",
+  "Current file — {0} TODOs": "Bu dosya — {0} TODO",
+  "Copied {0} TODOs as a Markdown checklist.": "{0} TODO Markdown liste olarak kopyalandı.",
+  "This TODO has no ticket link. Set todoforge.general.ticketUrl, for example https://github.com/org/repo/issues/${token} or https://jira.example.com/browse/${token}.": "Bu TODO'nun bilet bağlantısı yok. todoforge.general.ticketUrl ayarını yapın, örneğin https://github.com/org/repo/issues/${token} veya https://jira.example.com/browse/${token}."
 }

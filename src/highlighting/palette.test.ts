@@ -3,7 +3,9 @@ import fs from "node:fs";
 import path from "node:path";
 import { describe, it } from "mocha";
 
-import { BUILTIN_TAGS, contributedColors, styleForTag } from "./palette";
+import { highlightSpan } from "./rangePlan";
+import { applyOpacity, BUILTIN_TAGS, COMMENT_MARKER_COLORS, contributedColors, hideFromTree, styleForTag } from "./palette";
+import type { TodoMatch } from "../types";
 
 const manifest = JSON.parse(fs.readFileSync(path.join(__dirname, "..", "..", "package.json"), "utf8")) as {
   contributes: { colors: { id: string; description: string; defaults: Record<string, string> }[] };
@@ -43,5 +45,40 @@ describe("palette", () => {
     assert.equal(custom.themeKey, undefined);
     assert.equal(custom.icon, "circle");
     assert.notEqual(custom.colors.dark, custom.colors.light);
+  });
+
+  it("hides configured tags from the tree, case-insensitively", () => {
+    assert.equal(hideFromTree("NOTE", { NOTE: { hideFromTree: true } }), true);
+    assert.equal(hideFromTree("note", { NOTE: { hideFromTree: true } }), true);
+    assert.equal(hideFromTree("TODO", { NOTE: { hideFromTree: true } }), false);
+  });
+
+  it("applies opacity to hex colors, including existing alpha", () => {
+    assert.equal(applyOpacity("#ff0000", 0.5).toLowerCase(), "#ff000080");
+    assert.equal(applyOpacity("#fff", 1).toLowerCase(), "#ffffff");
+    assert.equal(applyOpacity("#FF000080", 0.5).toLowerCase(), "#ff000040");
+  });
+
+  it("uses light-theme marker colors with at least 4.5:1 contrast on white", () => {
+    for (const [key, value] of Object.entries(COMMENT_MARKER_COLORS)) {
+      assert.ok(contrastOnWhite(value.light) >= 4.5, `${key} ${value.light}`);
+    }
+  });
+});
+
+describe("highlight spans", () => {
+  const match = {
+    line: 2,
+    column: 3,
+    endColumn: 7,
+    leadColumn: 0,
+    lineLength: 20,
+  } as TodoMatch;
+
+  it("covers the tag, the following text, the comment or the whole line", () => {
+    assert.deepEqual(highlightSpan(match, "tag"), { line: 2, start: 3, end: 7 });
+    assert.deepEqual(highlightSpan(match, "text"), { line: 2, start: 3, end: 20 });
+    assert.deepEqual(highlightSpan(match, "comment"), { line: 2, start: 0, end: 20 });
+    assert.deepEqual(highlightSpan(match, "line"), { line: 2, start: 0, end: 20 });
   });
 });

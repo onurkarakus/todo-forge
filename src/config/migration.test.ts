@@ -2,9 +2,9 @@ import assert from "node:assert/strict";
 import { describe, it } from "mocha";
 
 import { DEFAULT_EXCLUDE_GLOBS, defaultSettings, settingsFromValues } from "./defaults";
-import { mergeTags, parseRiderDotSettings, parseVisualStudioSettings } from "./importers";
+import { mapBetterCommentsTags, mergeTags, parseRiderDotSettings, parseVisualStudioSettings } from "./importers";
 import { mapTodoTreeSettings } from "./migration";
-import { styleForTag } from "../highlighting/palette";
+import { hideFromTree, styleForTag } from "../highlighting/palette";
 
 describe("settings", () => {
   it("uses quiet .NET-aware defaults", () => {
@@ -67,6 +67,26 @@ describe("Todo Tree migration", () => {
     const patch = mapTodoTreeSettings({ tagGroups: { Fixes: ["FIXME", "BUG"] } });
     assert.deepEqual(patch.values["general.tagGroups"], [{ name: "Fixes", tags: ["FIXME", "BUG"] }]);
   });
+
+  it("maps ticket URLs and highlight knobs including hideFromTree", () => {
+    const patch = mapTodoTreeSettings({
+      subTagClickUrl: "https://jira.example.com/browse/${token}",
+      customHighlight: {
+        NOTE: { foreground: "#abc", hideFromTree: true, opacity: 0.5, iconColour: "#ignored-when-foreground-set" },
+        HACK: { iconColour: "#123456", borderColor: "#000" },
+      },
+    });
+    assert.equal(patch.values["general.ticketUrl"], "https://jira.example.com/browse/${token}");
+    const styles = patch.values["highlighting.tags"] as Record<string, Record<string, unknown>>;
+    assert.equal(styles.NOTE.foreground, "#abc");
+    assert.equal(styles.NOTE.hideFromTree, true);
+    assert.equal(styles.NOTE.opacity, 0.5);
+    assert.equal(styles.HACK.foreground, "#123456");
+    assert.equal(styles.HACK.border, "#000");
+    const read = settingsFromValues(patch.values);
+    assert.equal(hideFromTree("NOTE", read.settings.tagStyles), true);
+    assert.equal(hideFromTree("note", read.settings.tagStyles), true);
+  });
 });
 
 describe("IDE importers", () => {
@@ -87,5 +107,26 @@ describe("IDE importers", () => {
 
   it("merges tags without duplicates", () => {
     assert.deepEqual(mergeTags(["TODO", "FIXME"], ["todo", "HACK"]), ["TODO", "FIXME", "HACK"]);
+  });
+});
+
+describe("Better Comments import", () => {
+  it("maps markers and skips TODO words", () => {
+    const mapped = mapBetterCommentsTags(
+      [
+        { tag: "!", color: "#FF2D00", bold: true },
+        { tag: "?", color: "#3498DB" },
+        { tag: "todo", color: "#FF8C00" },
+        { tag: "//", strikethrough: true, color: "#474747" },
+        { tag: "FIXME", color: "#red" },
+      ],
+      ["TODO", "FIXME"],
+    );
+    assert.deepEqual(
+      mapped.markers.map((marker) => marker.tag),
+      ["!", "?", "//"],
+    );
+    assert.equal(mapped.markers[0]?.bold, true);
+    assert.deepEqual(mapped.ignored, ["todo", "FIXME"]);
   });
 });

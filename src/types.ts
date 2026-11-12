@@ -4,7 +4,7 @@ export type GroupBy = "file" | "tag" | "subtag" | "owner" | "flat";
 
 export type SortBy = "location" | "age" | "due" | "priority";
 
-export type HighlightStyle = "tag" | "comment" | "line";
+export type HighlightStyle = "tag" | "text" | "comment" | "line";
 
 /** `tag` is a comment tag, `markdown` a checklist item, `code` a .NET code pattern. */
 export type MatchKind = "tag" | "markdown" | "code";
@@ -27,6 +27,23 @@ export interface TagStyle {
   icon?: string;
   ruler?: RulerLane;
   fontStyle?: FontStyleName;
+  /** Highlight in the editor but do not list this tag in the tree. */
+  hideFromTree?: boolean;
+  /** 0–1, applied to the highlight colors. */
+  opacity?: number;
+  /** A CSS color, or `true` to use the tag foreground as a 1px border. */
+  border?: string | boolean;
+}
+
+/** A Better Comments-style marker drawn only in the editor, not in the tree. */
+export interface CommentMarker {
+  tag: string;
+  color?: string;
+  backgroundColor?: string;
+  bold?: boolean;
+  italic?: boolean;
+  strikethrough?: boolean;
+  underline?: boolean;
 }
 
 export interface TagGroup {
@@ -123,6 +140,14 @@ export interface TodoForgeSettings {
   aiEnabled: boolean;
   chatTools: boolean;
   migrateFromTodoTree: boolean;
+  ticketUrl: string;
+  commentMarkersEnabled: boolean;
+  commentMarkers: CommentMarker[];
+  commentMarkersMultiline: boolean;
+  highlightGutterIcons: boolean;
+  highlightOpacity: number;
+  highlightBorder: boolean;
+  autoReveal: boolean;
 }
 
 export interface SourceLocation {

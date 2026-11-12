@@ -72,3 +72,58 @@ export const parseVisualStudioSettings = (xml: string): string[] => {
 export const mergeTags = (current: readonly string[], incoming: readonly string[]): string[] => {
   return unique([...current, ...incoming]);
 };
+
+export interface MappedCommentMarkers {
+  markers: { tag: string; color?: string; backgroundColor?: string; bold?: boolean; italic?: boolean; strikethrough?: boolean; underline?: boolean }[];
+  ignored: string[];
+}
+
+/**
+ * Maps Better Comments / Better Comments Next `tags` arrays. Tags that are
+ * already TodoForge TODO words (TODO, FIXME, …) are skipped so they stay in
+ * the tree instead of becoming editor-only markers.
+ */
+export const mapBetterCommentsTags = (value: unknown, todoTags: readonly string[] = []): MappedCommentMarkers => {
+  const ignored: string[] = [];
+  const markers: MappedCommentMarkers["markers"] = [];
+  if (!Array.isArray(value)) {
+    return { markers, ignored };
+  }
+  const reserved = new Set(todoTags.map((tag) => tag.toLowerCase()));
+  reserved.add("todo");
+  reserved.add("fixme");
+  for (const entry of value) {
+    if (!entry || typeof entry !== "object") {
+      continue;
+    }
+    const record = entry as Record<string, unknown>;
+    if (typeof record.tag !== "string" || record.tag.length === 0) {
+      continue;
+    }
+    if (reserved.has(record.tag.toLowerCase())) {
+      ignored.push(record.tag);
+      continue;
+    }
+    const marker: MappedCommentMarkers["markers"][number] = { tag: record.tag };
+    if (typeof record.color === "string") {
+      marker.color = record.color;
+    }
+    if (typeof record.backgroundColor === "string" && record.backgroundColor !== "transparent") {
+      marker.backgroundColor = record.backgroundColor;
+    }
+    if (record.bold === true) {
+      marker.bold = true;
+    }
+    if (record.italic === true) {
+      marker.italic = true;
+    }
+    if (record.strikethrough === true) {
+      marker.strikethrough = true;
+    }
+    if (record.underline === true) {
+      marker.underline = true;
+    }
+    markers.push(marker);
+  }
+  return { markers, ignored };
+};

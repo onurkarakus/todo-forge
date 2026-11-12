@@ -17,6 +17,9 @@ export const highlightSpan = (match: TodoMatch, style: HighlightStyle): PlainRan
       end: Math.max(match.lineLength, match.endColumn),
     };
   }
+  if (style === "text") {
+    return { line: match.line, start: match.column, end: Math.max(match.lineLength, match.endColumn) };
+  }
   return { line: match.line, start: match.column, end: match.endColumn };
 };
 

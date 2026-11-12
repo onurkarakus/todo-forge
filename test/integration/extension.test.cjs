@@ -110,11 +110,13 @@ describe("TodoForge in VS Code", function () {
 
   it("offers quick fixes and applies a snooze", async () => {
     const document = await vscode.workspace.openTextDocument(program);
+    await vscode.window.showTextDocument(document);
     const line = document.getText().split("\n").findIndex((text) => text.includes("committed on the branch"));
+    const column = Math.max(0, document.lineAt(line).text.indexOf("FIXME"));
     const actions = await vscode.commands.executeCommand(
       "vscode.executeCodeActionProvider",
       program,
-      new vscode.Range(line, 0, line, 0),
+      new vscode.Range(line, column, line, column + 5),
     );
     const titles = actions.map((action) => action.title);
     assert.ok(titles.some((title) => /Snooze FIXME by 1 week/.test(title)), titles.join(", "));

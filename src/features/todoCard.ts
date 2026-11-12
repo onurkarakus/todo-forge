@@ -2,6 +2,7 @@ import * as vscode from "vscode";
 
 import { dueHint } from "../highlighting/hints";
 import { formatAge, ageInDays } from "../tree/query";
+import { ticketsOf } from "../utils/tickets";
 import type { BlameInfo, TodoMatch } from "../types";
 
 export interface CardContext {
@@ -14,6 +15,8 @@ export interface CardContext {
   pinned?: boolean;
   /** Adds command links (pin, snooze, priority, remove). */
   actions?: boolean;
+  /** Template with ${token}, ${subTag} or ${tag}. Empty means only raw URLs are linked. */
+  ticketUrl?: string;
 }
 
 export const CARD_COMMANDS = [
@@ -25,6 +28,7 @@ export const CARD_COMMANDS = [
   "todoforge.removeTodo",
   "todoforge.revealInTree",
   "todoforge.mute",
+  "todoforge.openTicket",
 ];
 
 const commandLink = (title: string, command: string, args: unknown[]): string => {
@@ -82,7 +86,20 @@ export const todoCard = (match: TodoMatch, context: CardContext): vscode.Markdow
   if (match.meta && match.meta.labels.length > 0) {
     rows.push(`$(tag) ${match.meta.labels.map((label) => `\`#${label}\``).join(" ")}`);
   }
-  if (match.subTag) {
+  const tickets = ticketsOf(match, context.ticketUrl ?? "");
+  if (tickets.length > 0) {
+    const links = tickets.map((ticket) => {
+      const label = escape(ticket.display);
+      if (ticket.url && context.actions) {
+        return `$(link) [${label}](command:todoforge.openTicket?${encodeURIComponent(JSON.stringify([ticket.url]))})`;
+      }
+      if (ticket.url) {
+        return `$(link) [${label}](${ticket.url})`;
+      }
+      return `$(link) ${label}`;
+    });
+    rows.push(links.join("  \n"));
+  } else if (match.subTag) {
     rows.push(`$(link) ${escape(match.subTag)}`);
   }
   const blame = context.blame;

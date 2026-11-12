@@ -20,7 +20,8 @@ import type { Services } from "./features/services";
 import { createStatusBar, summarize } from "./features/statusBar";
 import type { CardContext } from "./features/todoCard";
 import { createGitContext } from "./git/gitContext";
-import { createHighlighter } from "./highlighting/highlighter";
+import { hideFromTree } from "./highlighting/palette";
+import { competingCommentHighlighter, createHighlighter } from "./highlighting/highlighter";
 import { logError, logInfo } from "./logger";
 import { fingerprint, isPinned, pinFromMatch, reorderPins, resolvePin } from "./pins/pins";
 import { todayIso } from "./syntax/metadata";
@@ -33,6 +34,7 @@ import { TodoTreeProvider, type PinEntry, type TreeDecorators } from "./tree/tod
 import type { GroupBy, ScanMode, SortBy, TodoMatch } from "./types";
 import { errorMessage } from "./utils/errors";
 import { folderGlob } from "./utils/paths";
+import { ticketsOf } from "./utils/tickets";
 
 const MIGRATION_KEY = "todoforge.migrationPrompted";
 
@@ -74,7 +76,7 @@ export const createController = (
   const treeView = vscode.window.createTreeView("todoforge.tree", {
     treeDataProvider: provider,
     dragAndDropController: provider,
-    showCollapseAll: true,
+    showCollapseAll: false,
   });
   const changesView = vscode.window.createTreeView("todoforge.changes", {
     treeDataProvider: changes,
@@ -92,12 +94,19 @@ export const createController = (
   let blameRequested = false;
   let cursorOnTodo = false;
   let lastChanges = { uncommitted: 0, branch: 0 };
+  let currentFileOnly = false;
+  let revealTimer: ReturnType<typeof setTimeout> | undefined;
+  let loggedMarkerYield = false;
 
   // ---- derived views -------------------------------------------------------
 
+  const listed = (match: TodoMatch): boolean => {
+    return !hideFromTree(match.kind === "markdown" ? "MARKDOWN" : match.tag, engine.settings.tagStyles);
+  };
+
   const unmuted = (): TodoMatch[] => {
-    const all = engine.index.getAll();
-    return state.muted.size === 0 ? [...all] : all.filter((match) => !state.isMuted(match));
+    const all = engine.index.getAll().filter(listed);
+    return state.muted.size === 0 ? all : all.filter((match) => !state.isMuted(match));
   };
 
   const matchesFor = (uri: string): readonly TodoMatch[] => {
@@ -122,6 +131,10 @@ export const createController = (
 
   const effectiveQuery = (): string => [state.query, state.mine ? "is:mine" : ""].join(" ").trim();
 
+  const ticketUrlOf = (match: TodoMatch): string | undefined => {
+    return ticketsOf(match, engine.settings.ticketUrl).find((ticket) => ticket.url)?.url;
+  };
+
   const card = (match: TodoMatch, actions = false): CardContext => ({
     today: todayIso(),
     nowSeconds: Date.now() / 1000,
@@ -131,11 +144,13 @@ export const createController = (
     isUncommitted: git.isUncommitted(match),
     pinned: isPinned(state.pins, match),
     actions,
+    ticketUrl: engine.settings.ticketUrl,
   });
 
   const decorators: TreeDecorators = {
     card: (match) => card(match),
     isPinned: (match) => isPinned(state.pins, match),
+    ticketUrl: ticketUrlOf,
   };
 
   const services: Services = {
@@ -190,7 +205,9 @@ export const createController = (
     const settings = engine.settings;
     const ctx = queryContext();
     const base = unmuted();
-    visible = sortMatches(filterByQuery(base, effectiveQuery(), ctx), settings.sortBy, ctx);
+    const activeUri = vscode.window.activeTextEditor?.document.uri.toString();
+    const treeBase = currentFileOnly ? (activeUri ? base.filter((match) => match.uri === activeUri) : []) : base;
+    visible = sortMatches(filterByQuery(treeBase, effectiveQuery(), ctx), settings.sortBy, ctx);
     root = groupMatches(visible, {
       groupBy: settings.groupBy,
       labelFormat: labelFormat(),
@@ -209,12 +226,22 @@ export const createController = (
     const filtered = effectiveQuery().length > 0;
     treeView.badge =
       settings.showActivityBadge && base.length > 0
-        ? { value: filtered ? visible.length : base.length, tooltip: vscode.l10n.t("{0} TODOs", base.length) }
+        ? { value: filtered || currentFileOnly ? visible.length : base.length, tooltip: vscode.l10n.t("{0} TODOs", base.length) }
         : undefined;
-    treeView.message = filtered
-      ? vscode.l10n.t("Filter: {0} — {1} of {2}", effectiveQuery(), visible.length, base.length)
-      : undefined;
-    treeView.description = settings.scanMode === "workspace" ? undefined : scanModeLabel(settings.scanMode);
+    if (filtered && currentFileOnly) {
+      treeView.message = vscode.l10n.t("Current file, filter: {0} — {1} of {2}", effectiveQuery(), visible.length, treeBase.length);
+    } else if (filtered) {
+      treeView.message = vscode.l10n.t("Filter: {0} — {1} of {2}", effectiveQuery(), visible.length, base.length);
+    } else if (currentFileOnly) {
+      treeView.message = vscode.l10n.t("Current file — {0} TODOs", visible.length);
+    } else {
+      treeView.message = undefined;
+    }
+    treeView.description = currentFileOnly
+      ? vscode.l10n.t("Current file")
+      : settings.scanMode === "workspace"
+        ? undefined
+        : scanModeLabel(settings.scanMode);
 
     const uncommitted = base.filter((match) => git.isUncommitted(match));
     const branch = base.filter((match) => !git.isUncommitted(match) && git.isOnBranch(match));
@@ -232,6 +259,7 @@ export const createController = (
       settings.statusbarEnabled,
     );
     setContext("todoforge.filtered", filtered);
+    setContext("todoforge.currentFile", currentFileOnly);
     setContext("todoforge.mine", state.mine);
     setContext("todoforge.hasPins", state.pins.length > 0);
     setContext("todoforge.hasMuted", state.muted.size > 0);
@@ -244,6 +272,7 @@ export const createController = (
     lensEmitter.fire();
     insights.update();
     ensureBlameIfNeeded();
+    scheduleReveal();
   };
 
   const schedulePublish = (delay = 60): void => {
@@ -260,8 +289,21 @@ export const createController = (
       settings.highlightStyle,
       settings.tagStyles,
       settings.tags,
+      settings.highlightGutterIcons,
+      settings.highlightOpacity,
+      settings.highlightBorder,
+      settings.commentMarkersEnabled,
+      settings.commentMarkers,
+      settings.commentMarkersMultiline,
       [...engine.index.countsByTag().keys()].sort(),
     ]);
+    const competing = competingCommentHighlighter();
+    if (competing && settings.commentMarkersEnabled && !loggedMarkerYield) {
+      loggedMarkerYield = true;
+      logInfo(
+        `Comment markers are off because ${competing} is installed. Set todoforge.commentMarkers.enabled to true if you want TodoForge to draw them instead.`,
+      );
+    }
     if (key !== decorationKey) {
       decorationKey = key;
       highlighter.refresh();
@@ -391,6 +433,51 @@ export const createController = (
     }
     const key = fingerprint(match);
     await state.setPins(state.pins.filter((item) => fingerprint(item) !== key));
+  };
+
+
+  const scheduleReveal = (): void => {
+    if (revealTimer) {
+      clearTimeout(revealTimer);
+    }
+    revealTimer = setTimeout(() => {
+      revealTimer = undefined;
+      void revealActiveFile(false);
+    }, 150);
+  };
+
+  const revealActiveFile = async (focus: boolean): Promise<boolean> => {
+    if (!engine.settings.autoReveal && !focus) {
+      return false;
+    }
+    if (!focus && (currentFileOnly || !treeView.visible)) {
+      return false;
+    }
+    const editor = vscode.window.activeTextEditor;
+    if (!editor || editor.document.uri.scheme !== "file" || !root) {
+      return false;
+    }
+    const id = findFileNodeId(root, editor.document.uri.toString());
+    const element = id ? provider.findElement(id) : undefined;
+    if (!element) {
+      return false;
+    }
+    await treeView.reveal(element, { select: true, focus, expand: true });
+    return true;
+  };
+
+  const expandAll = async (): Promise<void> => {
+    const walk = async (element?: TreeElement): Promise<void> => {
+      const children = provider.getChildren(element);
+      for (const child of children) {
+        const item = provider.getTreeItem(child);
+        if (item.collapsibleState !== vscode.TreeItemCollapsibleState.None) {
+          await treeView.reveal(child, { expand: true, focus: false, select: false });
+          await walk(child);
+        }
+      }
+    };
+    await vscode.window.withProgress({ location: { viewId: "todoforge.tree" } }, () => walk());
   };
 
   // ---- live filter ---------------------------------------------------------
@@ -540,17 +627,24 @@ export const createController = (
   register("todoforge.goToNext", () => move(1));
   register("todoforge.goToPrevious", () => move(-1));
   register("todoforge.revealFile", async () => {
-    const uri = vscode.window.activeTextEditor?.document.uri.toString();
-    if (!uri || !root) {
-      return;
-    }
-    const id = findFileNodeId(root, uri);
-    const element = id ? provider.findElement(id) : undefined;
-    if (!element) {
+    const found = await revealActiveFile(true);
+    if (!found) {
       void vscode.window.showInformationMessage(vscode.l10n.t("This file has no TODOs in the current view."));
-      return;
     }
-    await treeView.reveal(element, { select: true, focus: true, expand: true });
+  });
+  register("todoforge.expandAll", () => expandAll());
+  register("todoforge.collapseAll", () => vscode.commands.executeCommand("workbench.actions.treeView.todoforge.tree.collapseAll"));
+  register("todoforge.showCurrentFile", () => {
+    currentFileOnly = true;
+    schedulePublish(0);
+  });
+  register("todoforge.showAllFiles", () => {
+    currentFileOnly = false;
+    schedulePublish(0);
+  });
+  register("todoforge.toggleCurrentFile", () => {
+    currentFileOnly = !currentFileOnly;
+    schedulePublish(0);
   });
   register("todoforge.revealInTree", async (arg: unknown) => {
     const match = requireMatch(arg);
@@ -776,6 +870,29 @@ export const createController = (
   register("todoforge.showInsights", () => insights.show());
   register("todoforge.importSettings", () => importSettings(engine.settings.tags));
   register("todoforge.exportMarkdown", () => (root ? saveExport(treeToMarkdown(root), "md") : undefined));
+  register("todoforge.copyView", async () => {
+    if (!root) {
+      return;
+    }
+    await vscode.env.clipboard.writeText(treeToMarkdown(root));
+    void vscode.window.showInformationMessage(vscode.l10n.t("Copied {0} TODOs as a Markdown checklist.", visible.length));
+  });
+  register("todoforge.openTicket", async (arg: unknown) => {
+    let url: string | undefined;
+    if (typeof arg === "string" && /^https?:\/\//i.test(arg)) {
+      url = arg;
+    } else {
+      const match = matchFromArg(arg);
+      url = match ? ticketUrlOf(match) : undefined;
+    }
+    if (!url) {
+      void vscode.window.showInformationMessage(
+        vscode.l10n.t("This TODO has no ticket link. Set todoforge.general.ticketUrl, for example https://github.com/org/repo/issues/${token} or https://jira.example.com/browse/${token}."),
+      );
+      return;
+    }
+    await vscode.env.openExternal(vscode.Uri.parse(url));
+  });
   register("todoforge.exportJson", () => saveExport(treeToJson(visible), "json"));
   register("todoforge.ai.explain", async (arg: unknown) => {
     if (!engine.settings.aiEnabled) {
@@ -853,7 +970,14 @@ export const createController = (
         }
       })();
     }),
-    vscode.window.onDidChangeActiveTextEditor(() => schedulePublish()),
+    vscode.window.onDidChangeActiveTextEditor(() => {
+      if (currentFileOnly) {
+        schedulePublish(0);
+      } else {
+        schedulePublish();
+        scheduleReveal();
+      }
+    }),
     vscode.window.onDidChangeTextEditorSelection((event) => {
       const line = event.selections[0]?.active.line;
       const onTodo =
@@ -951,6 +1075,9 @@ export const createController = (
       clearTimeout(migrationTimer);
       if (publishTimer) {
         clearTimeout(publishTimer);
+      }
+      if (revealTimer) {
+        clearTimeout(revealTimer);
       }
       lensSubscription?.dispose();
       for (const disposable of disposables) {

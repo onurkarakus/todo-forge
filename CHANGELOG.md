@@ -2,6 +2,21 @@
 
 All notable changes to TodoForge. Dates are in the Europe/Istanbul time zone.
 
+## [1.1.0] - Unreleased
+
+### Added
+
+- **Comment markers** in the editor, Better Comments style: `// !` alert, `// ?` question, `// *` highlight and `////` strikethrough, plus your own markers (`todoforge.commentMarkers.*`). They are decorations only and stay out of the TODO tree unless the comment also has a real TODO/FIXME tag. Colors follow the theme and `workbench.colorCustomizations`. If Better Comments or Better Comments Next is also installed, TodoForge leaves the markers to that extension until you set `todoforge.commentMarkers.enabled` yourself.
+- **Current file** toggle in the tree toolbar. It focuses the tree on the active editor without changing `todoforge.scanning.mode`. **Expand all** and **Collapse all** commands and toolbar buttons. **Reveal current file** can run automatically (`todoforge.tree.autoReveal`, on by default).
+- **Clickable tickets**: `#123`, `FIXME[JIRA-123]` and `PROJ-123` in the hover card and the tree open your browser when `todoforge.general.ticketUrl` is set (placeholders `${token}`, `${subTag}`, `${tag}`). Raw `https://` links in the comment are always clickable. No API and no issue sync.
+- **Import Settings** also reads Better Todo Tree, Better Comments and Better Comments Next. Ticket URL templates and highlight knobs such as `hideFromTree` are copied when they exist.
+- **Copy View as Markdown Checklist** copies the currently filtered tree to the clipboard.
+- Highlight knobs: per-tag `hideFromTree` (color in the editor, skip the tree), `todoforge.highlighting.style` value `text` (tag plus the text after it), global and per-tag opacity, a border, a gutter icon toggle, and more built-in icons.
+
+### Changed
+
+- README and listing comparison now covers Better Todo Tree (maintained Todo Tree fork, GPL-3.0) and TODO Lens (git blame, My TODOs and export are paid there; they stay free in TodoForge).
+
 ## [1.0.0] - 2026-11-04
 
 First Marketplace release. TodoForge 1.0 is an editor-only release for individual developers: offline, no account, no telemetry, no network.
