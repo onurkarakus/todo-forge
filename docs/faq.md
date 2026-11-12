@@ -4,11 +4,15 @@
 
 **Do I need to configure anything?** No. The defaults skip build output (`bin/`, `obj/`, `.vs/`, `node_modules/`, generated C#, minified files) and honor `.gitignore`, `files.exclude` and `search.exclude`.
 
-**I use Todo Tree. Can I keep my settings?** Run **TodoForge: Import Settings** and pick Todo Tree. Tags, tag groups, include/exclude globs, the custom regex, case sensitivity and custom highlights are copied after you confirm. See [migration-from-todo-tree.md](migration-from-todo-tree.md).
+**I use Todo Tree or Better Todo Tree. Can I keep my settings?** Run **TodoForge: Import Settings** and pick the source. Tags, tag groups, include/exclude globs, the custom regex, case sensitivity, custom highlights and ticket URL templates are copied after you confirm. See [migration-from-todo-tree.md](migration-from-todo-tree.md). The same command also imports Better Comments / Better Comments Next markers.
 
 **I come from Rider or Visual Studio.** The same command reads a Rider/ReSharper `.DotSettings` file or a Visual Studio `.vssettings` export and adds their TODO tokens. You can also add their default lists (`TODO, BUG` / `TODO, HACK, UNDONE`).
 
 **Can both Todo Tree and TodoForge run?** Yes, but you will see two highlights. Turn one off per workspace if that bothers you.
+
+**I also use Better Comments.** TodoForge can color `// !`, `// ?`, `// *` and `////` itself (`todoforge.commentMarkers.enabled`). If Better Comments or Better Comments Next is installed, TodoForge leaves those markers alone until you set that setting to `true` in your user or workspace settings, so the two do not fight. You can also turn one of them off.
+
+**How do ticket links work?** Set `todoforge.general.ticketUrl`, for example `https://github.com/org/repo/issues/${token}` or `https://jira.example.com/browse/${token}`. Tokens such as `#123`, `FIXME[JIRA-123]` and `PROJ-123` then become links in the hover card and the tree. Clicking one opens your browser. TodoForge does not call any issue tracker API. Raw `https://` URLs in the comment are always clickable.
 
 ## Finding TODOs
 
@@ -20,7 +24,7 @@
 4. The file is not excluded or larger than `todoforge.scanning.maxFileSizeKb` (1024 KB).
 5. The **TodoForge** channel in the Output panel lists scan errors.
 
-**Too many results.** Add globs to `todoforge.scanning.excludeGlobs`, right-click a folder in the tree and choose **Hide Folder from Scans**, or mute single TODOs.
+**Too many results.** Add globs to `todoforge.scanning.excludeGlobs`, right-click a folder in the tree and choose **Hide Folder from Scans**, mute single TODOs, or set `"hideFromTree": true` on a tag in `todoforge.highlighting.tags` so it stays colored in the editor but is left out of the tree.
 
 **Does it read unsaved changes?** Yes. Open editors are parsed as you type.
 

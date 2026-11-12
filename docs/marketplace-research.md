@@ -1,6 +1,6 @@
 # What makes a VS Code extension impressive – research and how TodoForge applies it
 
-Research date: 2026-11-03. Sources are listed at the end; numbers are as reported by those sources on that date.
+Research date: 2026-11-03, with Marketplace install counts and Todo Tree issue status re-checked on 2026-11-12. Sources are listed at the end; numbers are as reported by those sources on the date given.
 
 ## Summary
 
@@ -20,7 +20,7 @@ People decide in the first screen of the listing and the first minute after inst
 
 ### 2. What the category leader teaches
 
-Todo Tree (Gruntfuggly) is #1 for "todo" on the Marketplace with about **7.9M installs and 4.71★ from 217 ratings**, but its last release is **0.0.226 from April 2023**. [6] Its open issues in 2026 are dominated by **ripgrep not found / ripgrep errors after VS Code updates**, commands not found, and "does not work out of the box". [7] A community fork ("Better Todo Tree") appeared because companies block unmaintained extensions. [8]
+Todo Tree (Gruntfuggly) is #1 for "todo" on the Marketplace with about **7.9M installs** (re-checked 12 November 2026: 7,920,230 installs, last update 12 April 2023, version 0.0.226). [6] Its open issues in 2026 are still dominated by **ripgrep not found / ripgrep errors after VS Code 1.122** ([#928](https://github.com/Gruntfuggly/todo-tree/issues/928) still open, 44 comments, last activity 30 September 2026) and commands not found ([#925](https://github.com/Gruntfuggly/todo-tree/issues/925) still open). [7] **Better Todo Tree** (FanaticPythoner.better-todo-tree) is the maintained fork: about **48,000 Marketplace installs** as of 12 November 2026 (version 1.3.4, last update 17 July 2026), licensed **GPL-3.0-only**. [8] **TODO Lens** (branchline.todo-lens) sells git blame age/author, My TODOs and Markdown export as Pro (one-time license after a 7-day trial). Those features stay free in TodoForge. Better Comments remains very large (~10.8M, still updated in November 2026); TODO Highlight (~6.2M) last released in 2021.
 
 Takeaways:
 
@@ -53,17 +53,16 @@ Takeaways:
 | Trust | No network, no telemetry, no account; AI opt-in with consent; strict CSP webview; untrusted-workspace limited mode; `SECURITY.md`. |
 | Wow moments | Inline `TODO(owner, date, !prio, #label)` with overdue hints; hover with git blame; Ctrl+. snooze; Changes view for your branch; Insights. |
 | Listing | Name + job in `displayName`; 30 keywords; PNG icon + dark banner `#14232E`; GIF first, then screenshots per feature in dark and light; comparison table; settings table; privacy and FAQ. |
-| Switching cost | One **Import Settings** command for Todo Tree, Rider and Visual Studio. |
+| Switching cost | One **Import Settings** command for Todo Tree, Better Todo Tree, Better Comments, Rider and Visual Studio. |
 | Accessibility | Light-theme colors tested at ≥ 4.5:1 contrast; theme colors overridable via `workbench.colorCustomizations`. |
 | Locale | English and Turkish for UI, manifest and walkthrough. |
 | Alive | Dated CHANGELOG, release notes, CONTRIBUTING, docs. |
 
-## Open items before the first public release
+## Open items
 
-1. Make the repo public or host `media/` and package with `--baseImagesUrl` (images will not load otherwise).
-2. Consider a muted MP4 next to the GIF for accessibility (VS Code supports `<video>` in READMEs; absolute URLs needed).
-3. Set up Trusted Publishing for publisher `onurkarakus`; claim the Open VSX namespace.
-4. Ship a pre-release (`1.1.x`) first if you want early feedback without affecting stable users.
+1. Repo is public; README images load from GitHub. A muted looping `demo.mp4` now sits next to the GIF in the README (added 12 November 2026).
+2. Set up Trusted Publishing for publisher `onurkarakus` when the next Marketplace upload is done from CI.
+3. The Open VSX namespace claim for `onurkarakus` was still pending on 12 November 2026 (`open-vsx.org/api/onurkarakus/todoforge` returned 404). Do not add a live Open VSX badge until the listing exists.
 
 ## Sources
 

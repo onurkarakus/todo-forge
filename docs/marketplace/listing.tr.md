@@ -38,7 +38,7 @@ Mağaza aramaları İngilizce yapıldığı için `package.json` içindeki 30 İ
 >
 > Copilot Chat mi kullanıyorsunuz? “Geciken TODO'larımdan hangileri bende?” ya da “Bu dalda hangi TODO'ları ekledim?” diye sorun: `todoforge.ai.chatTools` ayarını açtığınızda TodoForge yerel dizininden salt okunur sohbet araçlarıyla (`#todos`, `#todoChanges`, `#todo`) yanıt verir. Varsayılan olarak kapalıdır.
 >
-> Todo Tree, Rider ya da Visual Studio'dan mı geliyorsunuz? Tek komutla etiketlerinizi içe aktarın.
+> Todo Tree, Better Todo Tree, Better Comments, Rider ya da Visual Studio'dan mı geliyorsunuz? Tek komutla etiketlerinizi ve işaretlerinizi içe aktarın.
 
 ## Öne çıkanlar
 
@@ -51,7 +51,9 @@ Mağaza aramaları İngilizce yapıldığı için `package.json` içindeki 30 İ
 - İçgörüler paneli: etikete, klasöre, sahibe ve yaşa göre; gecikenler ve en eskiler
 - Açık temada erişilebilir kontrastlı tema renkleri
 - .NET uyumlu: derleme çıktısını atlar, NotImplementedException ve [Obsolete] satırlarını bulur
-- Todo Tree, Rider veya Visual Studio'dan içe aktarma
+- Todo Tree, Better Todo Tree, Better Comments, Rider veya Visual Studio'dan içe aktarma
+- Better Comments tarzı işaretler (`// !`, `// ?`, `// *`, `////`) editörde
+- Tıklanabilir bilet bağlantıları, yalnızca bu dosya düğmesi, görünümü Markdown liste olarak kopyalama
 - Copilot Chat araçları: #todos, #todoChanges ve #todo ile TODO'larınızı sorun (salt okunur, isteğe bağlı)
 - Türkçe ve İngilizce arayüz
 - Çevrimdışı, telemetri yok, hesap yok
@@ -60,7 +62,7 @@ Mağaza aramaları İngilizce yapıldığı için `package.json` içindeki 30 İ
 
 | Dosya | Açıklama |
 | --- | --- |
-| `demo.gif` | Sahibi, tarihi ve önceliği olan bir TODO yazın; ağaçta son tarih ipucuyla görünür; hızlı düzeltmeyle erteleyin. |
+| `demo.mp4` / `demo.gif` | Sahibi, tarihi ve önceliği olan bir TODO yazın; ağaçta son tarih ipucuyla görünür; hızlı düzeltmeyle erteleyin. |
 | `01-overview-dark.png` | Etikete göre gruplanmış TODO ağacı, vurgular, satır sonu ipucu, durum çubuğu sayacı. |
 | `07-overview-light.png` | Açık tema: gecikmiş bir HACK, bir BUG ve NotImplementedException. |
 | `02-hover-dark.png` | Açılır kart: sahip, son tarih, öncelik, etiket, git blame, eylemler. |

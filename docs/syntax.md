@@ -94,3 +94,21 @@ They must be real code, not text in a comment or a string.
 ## Custom regex
 
 `todoforge.regex.custom` replaces the language-aware matcher with your regex. Put `$TAGS` where the tag alternatives go. Metadata, strict tags and comment detection do not apply to custom matches. The setting is ignored in untrusted workspaces.
+
+## Comment markers
+
+These are **not** TODOs. They are colored only in the editor (`todoforge.commentMarkers.enabled`, on by default):
+
+```ts
+// ! alert
+// ? question
+// * highlight
+//// struck through
+```
+
+They must sit in a comment, just like tags. A comment such as `// ! TODO: fix this` is still a TODO and is listed in the tree; the marker is not applied on that line. Add your own markers in `todoforge.commentMarkers.tags`. Recolor the built-ins with `workbench.colorCustomizations` (`todoforge.commentAlertForeground`, and so on).
+
+## Ticket tokens
+
+After a tag, `#123`, `[JIRA-123]` or a bare `PROJ-123` can be turned into a link with `todoforge.general.ticketUrl`. The template accepts `${token}` (the id), `${subTag}` (as written) and `${tag}`. Clicking the link opens the browser; nothing is fetched in the background.
+

@@ -35,12 +35,12 @@ file watcher / editor edits ──► core/engine ──┤  index of TodoMatch 
 | `git/` | `diffParse`, `blameParse` (pure); `gitService` runs `git` with safe flags; `gitContext` caches change sets and blame and watches `.git/HEAD` | `gitContext` only |
 | `core/` | `engine` (scan, watch, debounce, multi-root, scan modes, progress on the view), `state` (pins, mute in workspace state; saved views in global state) | yes |
 | `tree/` | `query` (filter language), `grouping`, `elements`, providers for the TODO tree and Changes view, export | providers only |
-| `highlighting/` | `palette` (built-in tag colors per theme, contributed colors), `hints`, `decorationFactory`, `highlighter` | yes |
+| `highlighting/` | `palette` (built-in tag colors per theme, contributed colors), `commentMarkers` (Better Comments-style decorations, pure), `hints`, `decorationFactory`, `highlighter` | yes (except `commentMarkers`, `rangePlan`, `palette`, `hints`) |
 | `features/` | hover card, code actions, completion, diagnostics, status bar, insights panel, AI, import settings, editing helpers, checkbox toggle | yes |
 | `tools/` | `todoTools`: input → query, filters, records and size-capped rendering for the chat tools | no |
 | `pins/` | fingerprints that survive line moves, resolution, ordering | no |
 | `insights/` | `model` (counts, ages, lists) and `render` (CSP HTML) | no |
-| `config/` | settings reader and writer, defaults, migration, importers for Todo Tree, Rider and Visual Studio | `settings` only |
+| `config/` | settings reader and writer, defaults, migration, importers for Todo Tree, Better Todo Tree, Better Comments, Rider and Visual Studio | `settings` only |
 
 ## Matching
 
