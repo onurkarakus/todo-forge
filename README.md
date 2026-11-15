@@ -39,7 +39,7 @@
 
 Tags are colored in the editor, the gutter and the overview ruler, with separate light and dark colors that pass WCAG AA contrast on the light theme. Recolor built-in tags from your theme with `workbench.colorCustomizations` (`todoforge.todoForeground`, `todoforge.fixmeForeground`, …). You can highlight only the tag, the tag and the text after it, the whole comment or the line; turn the gutter icon off, lower the opacity or add a border. Set `hideFromTree` on a tag (for example `NOTE`) to keep the color in the editor but leave it out of the tree.
 
-TodoForge can also replace [Better Comments](https://marketplace.visualstudio.com/items?itemName=aaron-bond.better-comments): `// !` is an alert, `// ?` a question, `// *` a highlight and `////` is struck through. Those markers stay in the editor and do not appear in the TODO tree unless the comment also has a real TODO or FIXME tag. If Better Comments is also installed, turn one of them off so the colors do not stack.
+TodoForge can also replace [Better Comments](https://marketplace.visualstudio.com/items?itemName=aaron-bond.better-comments): `// !` is an alert, `// ?` a question, `// *` a highlight and `////` is struck through. Those markers stay in the editor and do not appear in the TODO tree unless the comment also has a real TODO or FIXME tag. If Better Comments or Better Comments Next is installed, TodoForge leaves the markers to it until you set `todoforge.commentMarkers.enabled` yourself, so the colors do not stack.
 
 ![The light theme: a HACK comment with an "overdue 6d" hint, a BUG and a NotImplementedException](media/screenshots/07-overview-light.png)
 
@@ -102,6 +102,10 @@ Ask “which overdue TODOs are mine?”, “what TODOs did I add on this branch?
 
 The tools read the index TodoForge already has. They never read surrounding code and make no network request. They run only when you chat and the model calls them, and VS Code shows each call. They are off in untrusted workspaces. Without Copilot or another chat extension, or on VS Code older than 1.95, nothing changes.
 
+### Explain a TODO with AI
+
+Turn on `todoforge.ai.enabled`, then right-click a TODO in the tree, or put the cursor on a TODO and open **TodoForge** in the editor's right-click menu, and pick **Explain TODO with AI…** (also in the Command Palette). The first time, TodoForge asks for your consent. It then sends the TODO and up to 40 lines around it to a chat model you already have in VS Code, such as GitHub Copilot (you pick one if there are several). The answer streams into a Markdown tab beside your code: what the TODO asks for, a short plan, a code sketch and open questions. Off by default and off in untrusted workspaces.
+
 ### Get started in a minute
 
 ![The Get Started walkthrough in the light theme](media/screenshots/09-walkthrough-light.png)
@@ -157,7 +161,7 @@ TodoForge has hide-from-tree, text-after-tag highlights, opacity, borders, a gut
 | Import Settings… | Command Palette, tree menu |
 | Copy View as Markdown Checklist / Export View as Markdown… or JSON… | Command Palette, tree menu |
 | Open Ticket | hover, tree menu |
-| Explain TODO with AI… | Command Palette, after you opt in |
+| Explain TODO with AI… | tree and editor right-click menu, Command Palette, after you opt in |
 
 ## Settings
 
