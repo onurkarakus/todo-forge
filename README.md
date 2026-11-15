@@ -98,6 +98,10 @@ TodoForge adds three read-only tools for Copilot Chat and agent mode (VS Code 1.
 | TODO Changes | `#todoChanges` | TODOs you have not committed and TODOs added on this branch |
 | TODO Details | `#todo` | One TODO with its metadata and git blame |
 
+| | |
+| --- | --- |
+| ![Copilot Chat in agent mode calls the TodoForge todos tool for "which overdue TODOs are mine?" and answers from the local index](media/screenshots/10-chat-tools-overdue-dark.png) | ![Copilot Chat builds a table of every TODO with file, line, tag, text, author and age from the TodoForge tools, plus a summary by tag](media/screenshots/11-chat-tools-report-dark.png) |
+
 Ask “which overdue TODOs are mine?”, “what TODOs did I add on this branch?” or “plan the FIXMEs in `src/api`”. Results are capped (50 by default, 200 at most) so a large repo does not flood the chat.
 
 The tools read the index TodoForge already has. They never read surrounding code and make no network request. They run only when you chat and the model calls them, and VS Code shows each call. They are off in untrusted workspaces. Without Copilot or another chat extension, or on VS Code older than 1.95, nothing changes.
