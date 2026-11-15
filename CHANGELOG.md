@@ -2,21 +2,34 @@
 
 All notable changes to TodoForge. Dates are in the Europe/Istanbul time zone.
 
-## [1.1.0] - Unreleased
+## [1.1.0] - 2026-11-15
+
+Comment colors in the editor, clickable tickets, a focus mode for the current file and easier moves from other TODO extensions. Still offline, no account, no telemetry.
 
 ### Added
 
-- **Comment markers** in the editor, Better Comments style: `// !` alert, `// ?` question, `// *` highlight and `////` strikethrough, plus your own markers (`todoforge.commentMarkers.*`). They are decorations only and stay out of the TODO tree unless the comment also has a real TODO/FIXME tag. Colors follow the theme and `workbench.colorCustomizations`. If Better Comments or Better Comments Next is also installed, TodoForge leaves the markers to that extension until you set `todoforge.commentMarkers.enabled` yourself.
-- **Current file** toggle in the tree toolbar. It focuses the tree on the active editor without changing `todoforge.scanning.mode`. **Expand all** and **Collapse all** commands and toolbar buttons. **Reveal current file** can run automatically (`todoforge.tree.autoReveal`, on by default).
-- **Clickable tickets**: `#123`, `FIXME[JIRA-123]` and `PROJ-123` in the hover card and the tree open your browser when `todoforge.general.ticketUrl` is set (placeholders `${token}`, `${subTag}`, `${tag}`). Raw `https://` links in the comment are always clickable. No API and no issue sync.
-- **Import Settings** also reads Better Todo Tree, Better Comments and Better Comments Next. Ticket URL templates and highlight knobs such as `hideFromTree` are copied when they exist.
-- **Copy View as Markdown Checklist** copies the currently filtered tree to the clipboard.
-- Highlight knobs: per-tag `hideFromTree` (color in the editor, skip the tree), `todoforge.highlighting.style` value `text` (tag plus the text after it), global and per-tag opacity, a border, a gutter icon toggle, and more built-in icons.
+- **Comment markers**, Better Comments style: `// !` alert, `// ?` question, `// *` highlight and `////` strikethrough, plus your own markers (`todoforge.commentMarkers.*`). They only color the editor and stay out of the TODO tree unless the comment also has a real TODO or FIXME tag. Colors follow the theme and `workbench.colorCustomizations`. If Better Comments or Better Comments Next is installed, TodoForge leaves the markers to that extension until you set `todoforge.commentMarkers.enabled` yourself.
+- **Current file** toggle in the tree toolbar. It focuses the tree on the active editor without changing `todoforge.scanning.mode`.
+- **Expand All** and **Collapse All** in the tree toolbar and the Command Palette.
+- The tree can follow the file you are in (`todoforge.tree.autoReveal`, on by default).
+- **Clickable tickets**: `#123`, `FIXME[JIRA-123]` and `PROJ-123` open in your browser from the hover card and the tree when `todoforge.general.ticketUrl` is set (placeholders `${token}`, `${subTag}`, `${tag}`). Raw `https://` links in a comment are always clickable. No API and no issue sync.
+- **Copy View as Markdown Checklist** copies the filtered tree to the clipboard.
+- Highlight options:
+  - per-tag `hideFromTree`: keep the color in the editor, leave the tag out of the tree
+  - `todoforge.highlighting.style` value `text`: the tag plus the text after it
+  - global and per-tag opacity, and an optional border
+  - a gutter icon toggle (`todoforge.highlighting.gutterIcons`) and more built-in icons
+- **Import Settings** also reads Better Todo Tree, Better Comments and Better Comments Next, including ticket URL templates and `hideFromTree` when they exist.
 
 ### Changed
 
-- **Show Insights** moved from the `…` menu to the tree toolbar. **Refresh** moved into the `…` menu, since the tree refreshes on its own.
-- README and listing comparison now covers Better Todo Tree (maintained Todo Tree fork, GPL-3.0) and TODO Lens (git blame, My TODOs and export are paid there; they stay free in TodoForge).
+- **Show Insights** is now in the tree toolbar instead of the `…` menu. **Refresh** moved into the `…` menu, since the tree refreshes on its own.
+
+### Documentation
+
+- README: a section on **Explain TODO with AI**, screenshots of the Copilot chat tools, and a demo video.
+- The comparison table now covers Better Todo Tree (the maintained Todo Tree fork, GPL-3.0) and TODO Lens, where git blame, My TODOs and export are paid features. They stay free in TodoForge.
+- Contributors: the Run and Debug view has configurations for unit tests, integration tests and the sample projects in `test/fixtures` (see `CONTRIBUTING.md`).
 
 ## [1.0.0] - 2026-11-04
 
