@@ -4,7 +4,9 @@
     {
       "type": "npm",
       "script": "watch:esbuild",
-      "dependsOn": ["npm: watch:tsc"],
+      "dependsOn": [
+        "npm: watch:tsc"
+      ],
       "problemMatcher": "$esbuild-watch",
       "isBackground": true,
       "label": "npm: watch:esbuild",
@@ -36,6 +38,25 @@
         "reveal": "never",
         "panel": "dedicated"
       }
+    },
+    {
+      "type": "npm",
+      "script": "compile",
+      "label": "npm: compile",
+      "group": "build",
+      "problemMatcher": [
+        "$tsc"
+      ]
+    },
+    {
+      "type": "npm",
+      "script": "test",
+      "label": "npm: test",
+      "group": {
+        "kind": "test",
+        "isDefault": true
+      },
+      "problemMatcher": []
     }
   ]
 }
