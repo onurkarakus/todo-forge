@@ -464,7 +464,7 @@
         {
           "command": "todoforge.refresh",
           "when": "view == todoforge.tree",
-          "group": "navigation@6"
+          "group": "2_tools@1"
         },
         {
           "command": "todoforge.showCurrentFile",
@@ -504,7 +504,7 @@
         {
           "command": "todoforge.showInsights",
           "when": "view == todoforge.tree",
-          "group": "2_tools@1"
+          "group": "navigation@6"
         },
         {
           "command": "todoforge.setScanMode",

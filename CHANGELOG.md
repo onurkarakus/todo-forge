@@ -15,6 +15,7 @@ All notable changes to TodoForge. Dates are in the Europe/Istanbul time zone.
 
 ### Changed
 
+- **Show Insights** moved from the `…` menu to the tree toolbar. **Refresh** moved into the `…` menu, since the tree refreshes on its own.
 - README and listing comparison now covers Better Todo Tree (maintained Todo Tree fork, GPL-3.0) and TODO Lens (git blame, My TODOs and export are paid there; they stay free in TodoForge).
 
 ## [1.0.0] - 2026-11-04

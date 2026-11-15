@@ -153,7 +153,7 @@ TodoForge has hide-from-tree, text-after-tag highlights, opacity, borders, a gut
 | Show Current File Only / Show All Files | Command Palette, tree toolbar |
 | Expand All / Collapse All | Command Palette, tree toolbar |
 | Open Saved View… / Save Current View… | Command Palette, tree menu |
-| Show Insights | Command Palette, tree menu |
+| Show Insights | Command Palette, tree toolbar |
 | Import Settings… | Command Palette, tree menu |
 | Copy View as Markdown Checklist / Export View as Markdown… or JSON… | Command Palette, tree menu |
 | Open Ticket | hover, tree menu |
