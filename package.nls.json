@@ -128,7 +128,7 @@
   "tool.get.displayName": "Get TODO Details",
   "tool.get.userDescription": "Details of one TODO: owner, due date, priority, labels, git author and age, and whether it is new.",
   "ext.displayName": "TodoForge – TODO Tree, Highlights & Due Dates",
-  "ext.description": "Fast, offline TODO and FIXME tree with theme-aware highlights, owners and due dates, quick fixes, a Changes view for your branch and first-class .NET support. No account, no telemetry.",
+  "ext.description": "TODO and FIXME tree with owners and due dates in the comment, a Changes view for your branch, and theme-aware highlights. Offline, no account, no telemetry. Built for large .NET and web repos.",
   "ext.untrusted": "In untrusted workspaces TodoForge scans and highlights, but does not run git, ignores a workspace custom regex and turns AI help and chat tools off.",
   "ext.virtual": "TodoForge runs ripgrep and git on local files.",
   "command.expandAll": "Expand All",

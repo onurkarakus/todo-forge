@@ -9,7 +9,7 @@ TodoForge – TODO Tree, Highlights & Due Dates
 ## Short description (search card, ~200 characters)
 
 ```
-Fast, offline TODO and FIXME tree with theme-aware highlights, owners and due dates, quick fixes, a Changes view for your branch and first-class .NET support. No account, no telemetry.
+TODO and FIXME tree with owners and due dates in the comment, a Changes view for your branch, and theme-aware highlights. Offline, no account, no telemetry. Built for large .NET and web repos.
 ```
 
 Alternative, shorter (Open VSX card, social previews):
@@ -25,9 +25,9 @@ Every TODO in one tree, with owners, due dates and a Changes view for your branc
 ## Keywords (30, the Marketplace limit)
 
 ```
-todo, fixme, todo tree, todo-tree, todo highlight, hack, bug, xxx, comments, highlight,
-task list, tasks, due date, deadline, owner, dotnet, csharp, c#, rider, visual studio,
-ripgrep, markdown, checklist, git, branch, blame, offline, privacy, productivity, copilot
+todo, fixme, todo tree, todo-tree, todo highlight, todo comments, comment highlight, comments,
+highlight, annotations, tasks, task list, due date, deadline, overdue, owner, priority, hack, bug,
+csharp, c#, dotnet, markdown, checklist, git, offline, privacy, productivity, copilot, comment tags
 ```
 
 ## Long description
@@ -36,11 +36,10 @@ The Marketplace and Open VSX pages show `README.md`. Its structure, top to botto
 
 1. Icon, name, one-line promise: *Every TODO in your code, in one tree, with owners, due dates and a Changes view for your branch.*
 2. Trust line: *Fast on big .NET and web repos. Offline. No account. No telemetry.*
-3. Demo video (`demo.mp4`, muted, looping) with the GIF as a fallback (typing a TODO → tree → snooze).
+3. Marketplace badges (version, installs, rating, MIT license) and the demo GIF at the top (typing a TODO → tree → snooze). Images use absolute `raw.githubusercontent.com` URLs.
 4. **Why TodoForge** – five bullets: works on install, TODOs that carry meaning, see what you are adding, act from the line, private by design.
 5. **Features** with a screenshot each: tree, highlights (dark + light), owners/dates/priorities (hover + quick fix), Changes, live filter (query table), Insights, Copilot Chat tools (`#todos`, `#todoChanges`, `#todo`), Get Started and import.
-6. **TodoForge and the alternatives** comparison table (Todo Tree, Better Todo Tree, TODO Lens, plus a note on Better Comments and TODO Highlight).
-7. **Commands and keys**, **Settings** (20 most used), **Privacy**, **FAQ**, **Feedback**.
+6. **Commands and keys**, **Settings** (20 most used), **Privacy**, **FAQ**, **Feedback**. The listing describes what TodoForge offers; it does not name or compare other extensions.
 
 ### Plain-text version (for Open VSX "description" fields, newsletters, Product Hunt-style posts)
 
@@ -56,7 +55,7 @@ The Marketplace and Open VSX pages show `README.md`. Its structure, top to botto
 >
 > Using Copilot Chat? Ask “which overdue TODOs are mine?” or “what TODOs did I add on this branch?”: turn on `todoforge.ai.chatTools` and TodoForge answers through read-only chat tools (`#todos`, `#todoChanges`, `#todo`) from its local index. Off by default.
 >
-> Coming from Todo Tree, Better Todo Tree, Better Comments, Rider or Visual Studio? One command imports your tags and markers.
+> If you already have tags and markers set up, **Import Settings** can bring them over, including from Visual Studio and Rider settings files.
 
 ## Feature bullets (for galleries, stores with bullet fields)
 
@@ -69,8 +68,8 @@ The Marketplace and Open VSX pages show `README.md`. Its structure, top to botto
 - Insights panel: by tag, folder, owner, age; overdue and oldest
 - Theme colors with accessible light-theme contrast
 - .NET aware: excludes build output, finds NotImplementedException and [Obsolete]
-- Import from Todo Tree, Better Todo Tree, Better Comments, Rider or Visual Studio
-- Better Comments-style markers (`// !`, `// ?`, `// *`, `////`) in the editor
+- Import Settings: bring over tags, excludes and markers, including from Visual Studio and Rider
+- Comment markers (`// !`, `// ?`, `// *`, `////`) in the editor
 - Clickable ticket links, Current file toggle, copy the view as a Markdown checklist
 - Copilot Chat tools: ask about your TODOs with #todos, #todoChanges and #todo (read-only, opt-in)
 - English and Turkish
@@ -78,12 +77,12 @@ The Marketplace and Open VSX pages show `README.md`. Its structure, top to botto
 
 ## Q&A setting
 
-Marketplace Q&A: link to GitHub issues (`https://github.com/onurkarakus/todo-forge/issues`) so questions land in one place.
+`package.json` `qna` points to GitHub issues (`https://github.com/onurkarakus/todo-forge/issues`) so questions land in one place.
 
 ## Open VSX specifics
 
-- Namespace: `onurkarakus` (the claim was still pending last checked on 12 November 2026; do not treat the listing as live until it appears on open-vsx.org).
-- Open VSX uses the same `package.json` and `README.md`; publish the universal VSIX or each platform VSIX.
+- Namespace: `onurkarakus` — already created and verified ([EclipseFdn/open-vsx.org#15275](https://github.com/EclipseFdn/open-vsx.org/issues/15275), granted 5 November 2026). The TodoForge extension is not published there yet.
+- Open VSX uses the same `package.json` and `README.md`; publish the universal VSIX (`npm run publish:openvsx` after `npm run package:vsix`, with `OVSX_PAT` set).
 - License: MIT (from `LICENSE`).
 
 ## Social / announcement post (≤ 280 characters)

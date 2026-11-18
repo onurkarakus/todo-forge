@@ -20,7 +20,7 @@ Ready-to-paste texts for the **Visual Studio Marketplace** and **Open VSX**, in 
 | Categories | `package.json` `categories` | `Other`, `Visualization`. |
 | Icon, banner | `media/icon.png`, `galleryBanner` `#14232E` dark | PNG only. |
 | Changelog tab | `CHANGELOG.md` | |
-| Q&A | Marketplace publisher page setting | Point to GitHub issues (see listing). |
+| Q&A | `package.json` `qna` | GitHub issues (`https://github.com/onurkarakus/todo-forge/issues`). |
 
 Both stores render README images from **public https URLs**. While the GitHub repo is private, see [../release.md](../release.md#3-readme-images).
 
@@ -28,7 +28,7 @@ Both stores render README images from **public https URLs**. While the GitHub re
 
 | File | Caption |
 | --- | --- |
-| `media/screenshots/demo.mp4` (GIF fallback: `demo.gif`) | Type a TODO with an owner, date and priority; it appears in the tree with a due hint; snooze it with a quick fix. |
+| `media/screenshots/demo.gif` | Type a TODO with an owner, date and priority; it appears in the tree with a due hint; snooze it with a quick fix. |
 | `01-overview-dark.png` | The TODO tree grouped by tag, highlighted tags, inline due hint, status bar counter. |
 | `07-overview-light.png` | Light theme: an overdue HACK, a BUG and a NotImplementedException. |
 | `02-hover-dark.png` | Hover card: owner, due date, priority, label, git blame, actions. |

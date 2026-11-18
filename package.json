@@ -2,7 +2,7 @@
   "name": "todoforge",
   "displayName": "%ext.displayName%",
   "description": "%ext.description%",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "publisher": "onurkarakus",
   "author": {
     "name": "Onur Karakuş"
@@ -14,6 +14,23 @@
     "color": "#14232E",
     "theme": "dark"
   },
+  "badges": [
+    {
+      "url": "https://img.shields.io/visual-studio-marketplace/v/onurkarakus.todoforge",
+      "href": "https://marketplace.visualstudio.com/items?itemName=onurkarakus.todoforge",
+      "description": "Visual Studio Marketplace version"
+    },
+    {
+      "url": "https://img.shields.io/visual-studio-marketplace/i/onurkarakus.todoforge",
+      "href": "https://marketplace.visualstudio.com/items?itemName=onurkarakus.todoforge",
+      "description": "Visual Studio Marketplace installs"
+    },
+    {
+      "url": "https://img.shields.io/visual-studio-marketplace/r/onurkarakus.todoforge",
+      "href": "https://marketplace.visualstudio.com/items?itemName=onurkarakus.todoforge",
+      "description": "Visual Studio Marketplace rating"
+    }
+  ],
   "homepage": "https://github.com/onurkarakus/todo-forge#readme",
   "repository": {
     "type": "git",
@@ -22,7 +39,7 @@
   "bugs": {
     "url": "https://github.com/onurkarakus/todo-forge/issues"
   },
-  "qna": "marketplace",
+  "qna": "https://github.com/onurkarakus/todo-forge/issues",
   "engines": {
     "vscode": "^1.90.0"
   },
@@ -36,31 +53,31 @@
     "todo tree",
     "todo-tree",
     "todo highlight",
-    "hack",
-    "bug",
-    "xxx",
+    "todo comments",
+    "comment highlight",
     "comments",
     "highlight",
-    "task list",
+    "annotations",
     "tasks",
+    "task list",
     "due date",
     "deadline",
+    "overdue",
     "owner",
-    "dotnet",
+    "priority",
+    "hack",
+    "bug",
     "csharp",
     "c#",
-    "rider",
-    "visual studio",
-    "ripgrep",
+    "dotnet",
     "markdown",
     "checklist",
     "git",
-    "branch",
-    "blame",
     "offline",
     "privacy",
     "productivity",
-    "copilot"
+    "copilot",
+    "comment tags"
   ],
   "l10n": "./l10n",
   "capabilities": {
@@ -1969,6 +1986,7 @@
     "watch:tsc": "tsc --noEmit --watch --project tsconfig.json",
     "package": "npm run check-types && npm run lint && node esbuild.js --production",
     "package:vsix": "node ./scripts/package.mjs universal",
+    "publish:openvsx": "npx ovsx publish ./vsix/todoforge-universal-$npm_package_version.vsix",
     "check-types": "tsc --noEmit",
     "lint": "eslint src",
     "test": "mocha --require tsx --timeout 20000 \"src/**/*.test.ts\"",

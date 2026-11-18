@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="media/icon.png" width="96" alt="TodoForge icon">
+  <img src="https://raw.githubusercontent.com/onurkarakus/todo-forge/main/media/icon.png" width="96" alt="TodoForge icon">
 </p>
 
 <h1 align="center">TodoForge</h1>
@@ -9,9 +9,16 @@
   Fast on big .NET and web repos. Offline. No account. No telemetry.
 </p>
 
-<video src="media/screenshots/demo.mp4" autoplay loop muted playsinline width="1100">
-  <img src="media/screenshots/demo.gif" alt="TodoForge: type a TODO with an owner, a date and a priority, see it in the tree, snooze it with a quick fix">
-</video>
+<p align="center">
+  <a href="https://marketplace.visualstudio.com/items?itemName=onurkarakus.todoforge"><img src="https://img.shields.io/visual-studio-marketplace/v/onurkarakus.todoforge?label=Marketplace&color=007ACC" alt="Marketplace version"></a>
+  <a href="https://marketplace.visualstudio.com/items?itemName=onurkarakus.todoforge"><img src="https://img.shields.io/visual-studio-marketplace/i/onurkarakus.todoforge?label=Installs" alt="Marketplace installs"></a>
+  <a href="https://marketplace.visualstudio.com/items?itemName=onurkarakus.todoforge"><img src="https://img.shields.io/visual-studio-marketplace/r/onurkarakus.todoforge?label=Rating" alt="Marketplace rating"></a>
+  <a href="https://github.com/onurkarakus/todo-forge/blob/main/LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue" alt="MIT license"></a>
+</p>
+
+<p align="center">
+  <img src="https://raw.githubusercontent.com/onurkarakus/todo-forge/main/media/screenshots/demo.gif" alt="TodoForge: type a TODO with an owner, a date and a priority, see it in the tree, snooze it with a quick fix" width="1100">
+</p>
 
 ## Why TodoForge
 
@@ -25,7 +32,7 @@
 
 ### A tree of every TODO
 
-![The TODO tree grouped by tag next to a C# file with highlighted TODOs, an inline due-date hint and the status bar counter](media/screenshots/01-overview-dark.png)
+![The TODO tree grouped by tag next to a C# file with highlighted TODOs, an inline due-date hint and the status bar counter](https://raw.githubusercontent.com/onurkarakus/todo-forge/main/media/screenshots/01-overview-dark.png)
 
 - Group by **tag**, **file**, **owner**, **label** or a flat list. Sort by location, priority, due date or age. Expand or collapse the whole tree, or toggle **Current file** to focus the active editor without changing the scan mode. The tree can follow the file you are in (`todoforge.tree.autoReveal`).
 - Finds `TODO FIXME HACK BUG XXX UNDONE NOTE REVIEW OPTIMIZE` and your own tags. `NOTE`, `BUG`, `REVIEW` and `OPTIMIZE` only count with a `:` or `(`, so “// Note that…” is not a TODO.
@@ -39,9 +46,9 @@
 
 Tags are colored in the editor, the gutter and the overview ruler, with separate light and dark colors that pass WCAG AA contrast on the light theme. Recolor built-in tags from your theme with `workbench.colorCustomizations` (`todoforge.todoForeground`, `todoforge.fixmeForeground`, …). You can highlight only the tag, the tag and the text after it, the whole comment or the line; turn the gutter icon off, lower the opacity or add a border. Set `hideFromTree` on a tag (for example `NOTE`) to keep the color in the editor but leave it out of the tree.
 
-TodoForge can also replace [Better Comments](https://marketplace.visualstudio.com/items?itemName=aaron-bond.better-comments): `// !` is an alert, `// ?` a question, `// *` a highlight and `////` is struck through. Those markers stay in the editor and do not appear in the TODO tree unless the comment also has a real TODO or FIXME tag. If Better Comments or Better Comments Next is installed, TodoForge leaves the markers to it until you set `todoforge.commentMarkers.enabled` yourself, so the colors do not stack.
+TodoForge can also color `// !` (alert), `// ?` (question), `// *` (highlight) and `////` (strikethrough) markers. Those stay in the editor and do not appear in the TODO tree unless the comment also has a real TODO or FIXME tag. If those markers are already being colored in the editor, TodoForge leaves them alone until you set `todoforge.commentMarkers.enabled` yourself, so the colors do not stack.
 
-![The light theme: a HACK comment with an "overdue 6d" hint, a BUG and a NotImplementedException](media/screenshots/07-overview-light.png)
+![The light theme: a HACK comment with an "overdue 6d" hint, a BUG and a NotImplementedException](https://raw.githubusercontent.com/onurkarakus/todo-forge/main/media/screenshots/07-overview-light.png)
 
 ### Owners, due dates and priorities
 
@@ -58,17 +65,17 @@ TodoForge can also replace [Better Comments](https://marketplace.visualstudio.co
 
 | Hover card | Quick fixes |
 | --- | --- |
-| ![Hover card with owner, due date, priority, label, git blame and action links](media/screenshots/02-hover-dark.png) | ![Quick fix menu: Snooze 1 day, 1 week, 1 month, set due date, set priority, remove, pin, mute](media/screenshots/03-quick-fix-dark.png) |
+| ![Hover card with owner, due date, priority, label, git blame and action links](https://raw.githubusercontent.com/onurkarakus/todo-forge/main/media/screenshots/02-hover-dark.png) | ![Quick fix menu: Snooze 1 day, 1 week, 1 month, set due date, set priority, remove, pin, mute](https://raw.githubusercontent.com/onurkarakus/todo-forge/main/media/screenshots/03-quick-fix-dark.png) |
 
 ### Changes: TODOs on your branch
 
-![The Changes view: one uncommitted FIXME and two TODOs added on feature/checkout since main](media/screenshots/04-changes-dark.png)
+![The Changes view: one uncommitted FIXME and two TODOs added on feature/checkout since main](https://raw.githubusercontent.com/onurkarakus/todo-forge/main/media/screenshots/04-changes-dark.png)
 
 TodoForge runs read-only local git commands (`git diff`, `git ls-files`, `git merge-base`, `git blame`) to split TODOs into **Uncommitted** and **This branch**. The base branch is detected (`origin/HEAD`, `main`, `master`, `develop`) or set with `todoforge.git.baseBranch`. Nothing is fetched.
 
 ### Filter as you type
 
-![Live filter with is:mine applied: 5 of 18 TODOs](media/screenshots/05-live-filter-dark.png)
+![Live filter with is:mine applied: 5 of 18 TODOs](https://raw.githubusercontent.com/onurkarakus/todo-forge/main/media/screenshots/05-live-filter-dark.png)
 
 | Query | Shows |
 | --- | --- |
@@ -84,7 +91,7 @@ Save any filter as a **view**. Built-in views: My TODOs, Overdue, Due dates, New
 
 ### Insights
 
-![Insights: totals, overdue, stale, new on this branch, counts by tag, folder and owner, age from git blame, overdue and oldest lists](media/screenshots/06-insights-dark.png)
+![Insights: totals, overdue, stale, new on this branch, counts by tag, folder and owner, age from git blame, overdue and oldest lists](https://raw.githubusercontent.com/onurkarakus/todo-forge/main/media/screenshots/06-insights-dark.png)
 
 Counts by tag, folder and owner, age from git blame, and the overdue and oldest TODOs. It is a local webview with a strict content security policy: no scripts or styles from the network.
 
@@ -100,7 +107,7 @@ TodoForge adds three read-only tools for Copilot Chat and agent mode (VS Code 1.
 
 | | |
 | --- | --- |
-| ![Copilot Chat in agent mode calls the TodoForge todos tool for "which overdue TODOs are mine?" and answers from the local index](media/screenshots/10-chat-tools-overdue-dark.png) | ![Copilot Chat builds a table of every TODO with file, line, tag, text, author and age from the TodoForge tools, plus a summary by tag](media/screenshots/11-chat-tools-report-dark.png) |
+| ![Copilot Chat in agent mode calls the TodoForge todos tool for "which overdue TODOs are mine?" and answers from the local index](https://raw.githubusercontent.com/onurkarakus/todo-forge/main/media/screenshots/10-chat-tools-overdue-dark.png) | ![Copilot Chat builds a table of every TODO with file, line, tag, text, author and age from the TodoForge tools, plus a summary by tag](https://raw.githubusercontent.com/onurkarakus/todo-forge/main/media/screenshots/11-chat-tools-report-dark.png) |
 
 Ask “which overdue TODOs are mine?”, “what TODOs did I add on this branch?” or “plan the FIXMEs in `src/api`”. Results are capped (50 by default, 200 at most) so a large repo does not flood the chat.
 
@@ -112,41 +119,11 @@ Turn on `todoforge.ai.enabled`, then right-click a TODO in the tree, or put the 
 
 ### Get started in a minute
 
-![The Get Started walkthrough in the light theme](media/screenshots/09-walkthrough-light.png)
+![The Get Started walkthrough in the light theme](https://raw.githubusercontent.com/onurkarakus/todo-forge/main/media/screenshots/09-walkthrough-light.png)
 
-The walkthrough opens from **TodoForge: Get Started**. Coming from Todo Tree, Better Todo Tree, Better Comments, JetBrains Rider/ReSharper or Visual Studio? **TodoForge: Import Settings** brings your tags, excludes and comment markers in one step.
+The walkthrough opens from **TodoForge: Get Started**. If you already have tags, excludes or comment markers set up, **TodoForge: Import Settings** can bring them over. The same command also reads Visual Studio (`.vssettings`) and Rider (`.DotSettings`) files.
 
-![Completion inside a comment offering TODO and TODO(owner, date)](media/screenshots/08-snippet-light.png)
-
-## TodoForge and the alternatives
-
-[Todo Tree](https://marketplace.visualstudio.com/items?itemName=Gruntfuggly.todo-tree) is the extension most people know (about 7.9 million Marketplace installs). Its latest release is still 0.0.226 from April 2023, and after VS Code 1.122 many people report it no longer starts ([ripgrep errors](https://github.com/Gruntfuggly/todo-tree/issues/928), [commands missing](https://github.com/Gruntfuggly/todo-tree/issues/925)). **[Better Todo Tree](https://marketplace.visualstudio.com/items?itemName=FanaticPythoner.better-todo-tree)** is the maintained fork (about 48,000 Marketplace installs as of 12 November 2026). It is licensed **GPL-3.0**; TodoForge is **MIT**.
-
-**[TODO Lens](https://marketplace.visualstudio.com/items?itemName=branchline.todo-lens)** combines comment colors with a TODO tree. Git blame age and author, My TODOs and Markdown export are Pro features there (a paid, one-time license after a trial). They are free in TodoForge.
-
-[Better Comments](https://marketplace.visualstudio.com/items?itemName=aaron-bond.better-comments) (about 10.8 million installs, still maintained) colors `// !`, `// ?`, `// *` and `////`. [TODO Highlight](https://marketplace.visualstudio.com/items?itemName=wayou.vscode-todo-highlight) (about 6.2 million installs) last released in 2021. TodoForge can take over those editor colors so you do not need a second extension for them.
-
-| | TodoForge | Todo Tree | Better Todo Tree | TODO Lens |
-| --- | --- | --- | --- | --- |
-| Maintained (as of November 2026) | ✓ | last release April 2023 | ✓ | ✓ |
-| License | MIT | MIT | GPL-3.0 | source-available, no derivatives |
-| Tree of TODOs, editor highlights, custom tags | ✓ | ✓ | ✓ | ✓ |
-| Works without extra setup on .NET (`bin/`, `obj/`, generated files) | ✓ | needs exclude globs | needs exclude globs | – |
-| Ships its own ripgrep | ✓ per-platform build | uses the one inside VS Code | uses the one inside VS Code | uses the one inside VS Code |
-| Comment-aware matching (not in strings or names) | ✓ per language | one regex for all files | one regex for all files | – |
-| Owner, due date, priority, labels in the comment | ✓ | – | – | – |
-| Hover card, quick fixes, snippet | ✓ | – | – | – |
-| Changes view (uncommitted / this branch) | ✓ | – | – | – |
-| Git blame age and author, `is:mine`, stale | ✓ free | – | – | Pro |
-| Pins, mute, saved views, live filter query | ✓ | filter text only | filter text only | My TODOs is Pro |
-| Better Comments-style markers (`// !`, `// ?`, `// *`, `////`) | ✓ | – | – | ✓ |
-| Theme colors with light-theme contrast | ✓ | custom colors | custom colors | custom colors |
-| Insights panel | ✓ | – | – | – |
-| Export / copy the current view as Markdown | ✓ free | export | export | export is Pro |
-| Import from Todo Tree, Better Todo Tree, Better Comments, Rider, Visual Studio | ✓ | – | imports Todo Tree | – |
-| Offline, no account, no telemetry | ✓ | ✓ | ✓ | Pro license for some features |
-
-TodoForge has hide-from-tree, text-after-tag highlights, opacity, borders, a gutter toggle and a wider built-in icon set. Todo Tree and Better Todo Tree still have more highlight knobs (per-tag regexes, large icon packs). If you rely on one TodoForge does not have, tell us in an issue.
+![Completion inside a comment offering TODO and TODO(owner, date)](https://raw.githubusercontent.com/onurkarakus/todo-forge/main/media/screenshots/08-snippet-light.png)
 
 ## Commands and keys
 
@@ -184,7 +161,7 @@ The defaults are meant to be left alone. The ones people change most:
 | `todoforge.highlighting.inlineHints` | `true` | `overdue 3d` after the line. |
 | `todoforge.highlighting.tags` | `{}` | Per-tag colors, icons, ruler, `hideFromTree`, opacity, border. |
 | `todoforge.highlighting.gutterIcons` | `true` | Gutter icon next to each TODO. |
-| `todoforge.commentMarkers.enabled` | `true` | Better Comments-style `// !`, `// ?`, `// *`, `////` in the editor. |
+| `todoforge.commentMarkers.enabled` | `true` | Color `// !`, `// ?`, `// *` and `////` markers in the editor. |
 | `todoforge.general.ticketUrl` | `""` | URL template for `#123` / `JIRA-123`. Opens in the browser on click. |
 | `todoforge.tree.autoReveal` | `true` | Reveal the active file in the tree without taking focus. |
 | `todoforge.dotnet.codePatterns` | `true` | `NotImplementedException`, `[Obsolete]`, `#warning`. |
@@ -210,11 +187,11 @@ All 50 settings are listed in the Settings editor under **TodoForge** (**TodoFor
 - **Chat tools are opt-in.** Off by default; turn on `todoforge.ai.chatTools`. When they are on and you chat with Copilot (or another chat model in VS Code) and the model calls a TodoForge tool, the tool returns TODO lines and their metadata (path, line, tag, text, owner, dates, labels, blame author) from TodoForge's local index to that chat. That chat model, and its provider's terms, then see that data, as with any file you attach. TodoForge makes no request itself, never sends surrounding code, and does nothing when you do not chat.
 - **Untrusted workspaces.** Scanning and highlights work; git, the workspace's custom regex, AI and the chat tools stay off.
 
-See [SECURITY.md](SECURITY.md) for how to report a problem.
+See [SECURITY.md](https://github.com/onurkarakus/todo-forge/blob/main/SECURITY.md) for how to report a problem.
 
 ## FAQ
 
-**Does it work with Todo Tree or Better Comments installed?** Yes. Both can run; turn one off if highlights stack. If Better Comments (or Better Comments Next) is installed, TodoForge leaves comment markers to that extension until you set `todoforge.commentMarkers.enabled` yourself. **Import Settings** copies tags, excludes and markers from Todo Tree, Better Todo Tree, Better Comments, Rider and Visual Studio.
+**Does it work alongside other TODO or comment-highlighting extensions?** Yes. They can run together; turn one off if highlights stack. If another extension is already coloring `// !`, `// ?`, `// *` or `////` markers, TodoForge leaves those markers to it until you set `todoforge.commentMarkers.enabled` yourself. **Import Settings** can copy tags, excludes and markers from other TODO and comment-highlighting extensions, and from Rider and Visual Studio.
 
 **My TODO is not found.** Check that it is in a comment, that the tag is in `todoforge.general.tags`, and that the file is not excluded (`.gitignore`, `files.exclude`, `todoforge.scanning.excludeGlobs`). Strict tags (`NOTE`, `BUG`, …) need a `:` or `(`. The **TodoForge** channel in the Output panel has the details.
 
@@ -224,10 +201,10 @@ See [SECURITY.md](SECURITY.md) for how to report a problem.
 
 **Where do pins and saved views go?** VS Code's storage for this workspace (pins, mute) and for you (saved views). Not in your repo.
 
-More answers in [docs/faq.md](docs/faq.md).
+More answers in [docs/faq.md](https://github.com/onurkarakus/todo-forge/blob/main/docs/faq.md).
 
 ## Feedback
 
-Found a bug or missing something? [Open an issue](https://github.com/onurkarakus/todo-forge/issues). Release notes are in [CHANGELOG.md](CHANGELOG.md).
+Found a bug or missing something? [Open an issue](https://github.com/onurkarakus/todo-forge/issues). Release notes are in [CHANGELOG.md](https://github.com/onurkarakus/todo-forge/blob/main/CHANGELOG.md).
 
 TodoForge is MIT licensed.

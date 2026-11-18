@@ -2,6 +2,19 @@
 
 All notable changes to TodoForge. Dates are in the Europe/Istanbul time zone.
 
+## [1.1.1] - 2026-11-18
+
+Marketplace listing and documentation. Same features as 1.1.0.
+
+### Changed
+
+- Sharper short description and keywords for Marketplace search.
+- README: version, installs and rating badges, the demo GIF at the top, and absolute image URLs.
+
+### Documentation
+
+- The README now leads with what TodoForge offers. Q&A on the Marketplace page points to GitHub issues.
+
 ## [1.1.0] - 2026-11-15
 
 Comment colors in the editor, clickable tickets, a focus mode for the current file and easier moves from other TODO extensions. Still offline, no account, no telemetry.

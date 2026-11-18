@@ -128,7 +128,7 @@
   "tool.get.displayName": "TODO Ayrıntılarını Getir",
   "tool.get.userDescription": "Tek bir TODO'nun ayrıntıları: sahip, son tarih, öncelik, etiketler, git yazarı ve yaşı, yeni olup olmadığı.",
   "ext.displayName": "TodoForge – TODO Ağacı, Vurgular ve Son Tarihler",
-  "ext.description": "Hızlı ve çevrimdışı TODO/FIXME ağacı: temaya uyan vurgular, sahip ve son tarih, hızlı düzeltmeler, dalınız için Değişiklikler görünümü ve birinci sınıf .NET desteği. Hesap yok, telemetri yok.",
+  "ext.description": "Yorumdaki sahip ve son tarihler, dalınız için Değişiklikler görünümü ve temaya uyan vurgularla TODO ve FIXME ağacı. Çevrimdışı, hesap yok, telemetri yok. Büyük .NET ve web repoları için.",
   "ext.untrusted": "Güvenilmeyen çalışma alanlarında TodoForge tarar ve vurgular; ancak git çalıştırmaz, çalışma alanındaki özel düzenli ifadeyi yok sayar, yapay zekâ yardımını ve sohbet araçlarını kapatır.",
   "ext.virtual": "TodoForge yerel dosyalarda ripgrep ve git çalıştırır.",
   "command.expandAll": "Tümünü Aç",

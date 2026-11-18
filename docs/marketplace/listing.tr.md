@@ -11,7 +11,7 @@ TodoForge – TODO Ağacı, Vurgular ve Son Tarihler
 ## Kısa açıklama
 
 ```
-Hızlı ve çevrimdışı TODO/FIXME ağacı: temaya uyan vurgular, sahip ve son tarih, hızlı düzeltmeler, dalınız için Değişiklikler görünümü ve birinci sınıf .NET desteği. Hesap yok, telemetri yok.
+Yorumdaki sahip ve son tarihler, dalınız için Değişiklikler görünümü ve temaya uyan vurgularla TODO ve FIXME ağacı. Çevrimdışı, hesap yok, telemetri yok. Büyük .NET ve web repoları için.
 ```
 
 Daha kısa sürüm:
@@ -38,7 +38,7 @@ Mağaza aramaları İngilizce yapıldığı için `package.json` içindeki 30 İ
 >
 > Copilot Chat mi kullanıyorsunuz? “Geciken TODO'larımdan hangileri bende?” ya da “Bu dalda hangi TODO'ları ekledim?” diye sorun: `todoforge.ai.chatTools` ayarını açtığınızda TodoForge yerel dizininden salt okunur sohbet araçlarıyla (`#todos`, `#todoChanges`, `#todo`) yanıt verir. Varsayılan olarak kapalıdır.
 >
-> Todo Tree, Better Todo Tree, Better Comments, Rider ya da Visual Studio'dan mı geliyorsunuz? Tek komutla etiketlerinizi ve işaretlerinizi içe aktarın.
+> Etiketleriniz ve işaretleriniz zaten varsa **Import Settings** onları alabilir; Visual Studio ve Rider ayar dosyaları da dahildir.
 
 ## Öne çıkanlar
 
@@ -51,8 +51,8 @@ Mağaza aramaları İngilizce yapıldığı için `package.json` içindeki 30 İ
 - İçgörüler paneli: etikete, klasöre, sahibe ve yaşa göre; gecikenler ve en eskiler
 - Açık temada erişilebilir kontrastlı tema renkleri
 - .NET uyumlu: derleme çıktısını atlar, NotImplementedException ve [Obsolete] satırlarını bulur
-- Todo Tree, Better Todo Tree, Better Comments, Rider veya Visual Studio'dan içe aktarma
-- Better Comments tarzı işaretler (`// !`, `// ?`, `// *`, `////`) editörde
+- Import Settings: etiket, dışlama ve işaretleri içe aktarma (Visual Studio ve Rider dahil)
+- Yorum işaretleri (`// !`, `// ?`, `// *`, `////`) editörde
 - Tıklanabilir bilet bağlantıları, yalnızca bu dosya düğmesi, görünümü Markdown liste olarak kopyalama
 - Copilot Chat araçları: #todos, #todoChanges ve #todo ile TODO'larınızı sorun (salt okunur, isteğe bağlı)
 - Türkçe ve İngilizce arayüz
