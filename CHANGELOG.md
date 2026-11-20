@@ -2,6 +2,18 @@
 
 All notable changes to TodoForge. Dates are in the Europe/Istanbul time zone.
 
+## [1.1.2] - 2026-11-20
+
+Listing fix only. Same features as 1.1.0.
+
+### Fixed
+
+- Marketplace version and installs badges showed "retired badge". They now come from vsmarketplacebadges.dev.
+
+### Added
+
+- Open VSX version badge. TodoForge is now also published on Open VSX.
+
 ## [1.1.1] - 2026-11-18
 
 Marketplace listing and documentation. Same features as 1.1.0.

@@ -10,9 +10,9 @@
 </p>
 
 <p align="center">
-  <a href="https://marketplace.visualstudio.com/items?itemName=onurkarakus.todoforge"><img src="https://img.shields.io/visual-studio-marketplace/v/onurkarakus.todoforge?label=Marketplace&color=007ACC" alt="Marketplace version"></a>
-  <a href="https://marketplace.visualstudio.com/items?itemName=onurkarakus.todoforge"><img src="https://img.shields.io/visual-studio-marketplace/i/onurkarakus.todoforge?label=Installs" alt="Marketplace installs"></a>
-  <a href="https://marketplace.visualstudio.com/items?itemName=onurkarakus.todoforge"><img src="https://img.shields.io/visual-studio-marketplace/r/onurkarakus.todoforge?label=Rating" alt="Marketplace rating"></a>
+  <a href="https://marketplace.visualstudio.com/items?itemName=onurkarakus.todoforge"><img src="https://vsmarketplacebadges.dev/version-short/onurkarakus.todoforge.svg?label=Marketplace&color=007ACC" alt="Marketplace version"></a>
+  <a href="https://marketplace.visualstudio.com/items?itemName=onurkarakus.todoforge"><img src="https://vsmarketplacebadges.dev/installs-short/onurkarakus.todoforge.svg?label=Installs" alt="Marketplace installs"></a>
+  <a href="https://open-vsx.org/extension/onurkarakus/todoforge"><img src="https://img.shields.io/open-vsx/v/onurkarakus/todoforge?label=Open%20VSX" alt="Open VSX version"></a>
   <a href="https://github.com/onurkarakus/todo-forge/blob/main/LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue" alt="MIT license"></a>
 </p>
 

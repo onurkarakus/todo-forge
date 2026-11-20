@@ -36,7 +36,7 @@ The Marketplace and Open VSX pages show `README.md`. Its structure, top to botto
 
 1. Icon, name, one-line promise: *Every TODO in your code, in one tree, with owners, due dates and a Changes view for your branch.*
 2. Trust line: *Fast on big .NET and web repos. Offline. No account. No telemetry.*
-3. Marketplace badges (version, installs, rating, MIT license) and the demo GIF at the top (typing a TODO → tree → snooze). Images use absolute `raw.githubusercontent.com` URLs.
+3. Badges (Marketplace version and installs from vsmarketplacebadges.dev, Open VSX version, MIT license) and the demo GIF at the top (typing a TODO → tree → snooze). Images use absolute `raw.githubusercontent.com` URLs.
 4. **Why TodoForge** – five bullets: works on install, TODOs that carry meaning, see what you are adding, act from the line, private by design.
 5. **Features** with a screenshot each: tree, highlights (dark + light), owners/dates/priorities (hover + quick fix), Changes, live filter (query table), Insights, Copilot Chat tools (`#todos`, `#todoChanges`, `#todo`), Get Started and import.
 6. **Commands and keys**, **Settings** (20 most used), **Privacy**, **FAQ**, **Feedback**. The listing describes what TodoForge offers; it does not name or compare other extensions.

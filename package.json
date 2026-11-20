@@ -2,7 +2,7 @@
   "name": "todoforge",
   "displayName": "%ext.displayName%",
   "description": "%ext.description%",
-  "version": "1.1.1",
+  "version": "1.1.2",
   "publisher": "onurkarakus",
   "author": {
     "name": "Onur Karakuş"
@@ -16,19 +16,19 @@
   },
   "badges": [
     {
-      "url": "https://img.shields.io/visual-studio-marketplace/v/onurkarakus.todoforge",
+      "url": "https://vsmarketplacebadges.dev/version-short/onurkarakus.todoforge.svg",
       "href": "https://marketplace.visualstudio.com/items?itemName=onurkarakus.todoforge",
       "description": "Visual Studio Marketplace version"
     },
     {
-      "url": "https://img.shields.io/visual-studio-marketplace/i/onurkarakus.todoforge",
+      "url": "https://vsmarketplacebadges.dev/installs-short/onurkarakus.todoforge.svg",
       "href": "https://marketplace.visualstudio.com/items?itemName=onurkarakus.todoforge",
       "description": "Visual Studio Marketplace installs"
     },
     {
-      "url": "https://img.shields.io/visual-studio-marketplace/r/onurkarakus.todoforge",
-      "href": "https://marketplace.visualstudio.com/items?itemName=onurkarakus.todoforge",
-      "description": "Visual Studio Marketplace rating"
+      "url": "https://img.shields.io/open-vsx/v/onurkarakus/todoforge?label=Open%20VSX",
+      "href": "https://open-vsx.org/extension/onurkarakus/todoforge",
+      "description": "Open VSX version"
     }
   ],
   "homepage": "https://github.com/onurkarakus/todo-forge#readme",

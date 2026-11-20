@@ -62,7 +62,7 @@ Takeaways:
 
 1. Repo is public; README images load from GitHub. A muted looping `demo.mp4` now sits next to the GIF in the README (added 12 November 2026).
 2. Set up Trusted Publishing for publisher `onurkarakus` when the next Marketplace upload is done from CI.
-3. The Open VSX namespace claim for `onurkarakus` was still pending on 12 November 2026 (`open-vsx.org/api/onurkarakus/todoforge` returned 404). Do not add a live Open VSX badge until the listing exists.
+3. The extension is live on Open VSX since 1.1.1 (`open-vsx.org/extension/onurkarakus/todoforge`). shields.io retired its `visual-studio-marketplace` badges, so Marketplace badges use vsmarketplacebadges.dev instead.
 
 ## Sources
 
