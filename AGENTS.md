@@ -29,7 +29,7 @@ Single test: `npm test -- --grep "describe name"`
 Integration tests: `npm run test:integration` (real VS Code; on Linux run under `xvfb-run -a`; set `VSCODE_EXECUTABLE` to reuse a local build)  
 Performance: `npm run perf`  
 Localization: `npm run l10n` after changing any `vscode.l10n.t` string, then update `l10n/bundle.l10n.tr.json`  
-VSIX: `node scripts/package.mjs linux-x64` (one target) or `npm run package:platforms` (all). Publishing is a manual maintainer step (see [docs/release.md](docs/release.md)).
+VSIX: `node scripts/package.mjs linux-x64` (one target), `npm run package:platforms` (all platforms + universal) or `npm run package:vsix` (universal only); output in `vsix/<version>/`. Never run `vsce package --no-dependencies` by hand: the script stages ripgrep. Publishing is a manual maintainer step (see [docs/release.md](docs/release.md)).
 
 ## Code Style
 
@@ -61,11 +61,11 @@ export const scanWorkspace = async (
 
 ```
 /src
-  /scanning       -> ripgrep runner, line parser, path filter, index, line shifting
-  /syntax         -> comment syntax per language, inline metadata, TODO removal
+  /scanning       -> ripgrep runner, line parser, path filter, index, saved index, line shifting
+  /syntax         -> comment syntax per language, inline metadata, relative dates, TODO removal
   /git            -> local git (diff/blame parsing, service, context with caches)
   /core           -> engine (scan, watch, live edits), state (pins, mute, views)
-  /tree           -> TODO tree and Changes tree providers, grouping, query language
+  /tree           -> TODO tree and Changes tree providers, grouping, query language, tree diff
   /highlighting   -> palette (theme colors), decorations, comment markers, inline hints, icons
   /features       -> hover, quick fixes, completion, diagnostics, status bar, insights panel, AI, import
   /tools          -> chat tool logic: filters, limits, rendering (pure)
@@ -91,6 +91,9 @@ export const scanWorkspace = async (
 - Respect `.gitignore` and user exclude globs by default.
 - Default excludes for .NET: `bin/`, `obj/`, `.vs/`, `packages/`.
 - Debounce file change events (recommended 300–500ms).
+- Tree updates refresh changed rows only (`tree/treeDiff`). Do not fire a full tree refresh for index updates; keep one element object per node id in the provider.
+- Multi-root scans run with bounded concurrency (`SCAN_CONCURRENCY`). Keep results in root order.
+- The saved index (`scanning/indexCache`) is versioned and keyed by everything that changes scan results. Bump `INDEX_CACHE_VERSION` when `TodoMatch` changes shape; keep the size limits.
 
 ## Boundaries
 
@@ -106,7 +109,9 @@ export const scanWorkspace = async (
 - Integration tests for scanning behavior using fixture projects.
 - Always test large-file and multi-root scenarios.
 - Mock VS Code APIs; do not require a full VS Code instance for unit tests.
-- Integration tests in `test/integration/` run in a real VS Code against a temporary git workspace made by `scripts/run-integration.mjs`, once trusted and once in Restricted Mode (`untrusted.test.cjs`).
+- Integration tests in `test/integration/` run in a real VS Code against a temporary git workspace made by `scripts/run-integration.mjs`: trusted, then a reload of the same workspace (`reload.test.cjs`, saved index), then Restricted Mode (`untrusted.test.cjs`). Run `npm run compile` first; the tests load `dist/`.
+- Commands that act on TODOs must accept a tree multi-selection (`matchesFromArgs(arg, selection)`).
+- Due dates written into comments are always ISO dates. Relative input (`+7d`, `friday`) is resolved when inserted or by the quick fix, never at scan time.
 - Marketplace screenshots come from `scripts/screenshots/` (demo workspace + Playwright driver). Re-run them when the UI changes.
 
 ## Git

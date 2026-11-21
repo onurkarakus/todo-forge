@@ -2,6 +2,33 @@
 
 All notable changes to TodoForge. Dates are in the Europe/Istanbul time zone.
 
+## [1.2.0] - 2026-11-21
+
+Faster to open, quicker to triage, smaller to download.
+
+### Added
+
+- Relative due dates. Inside `TODO(…)`, `+7d`, `+2w`, `+1m`, `today`, `tomorrow` and English weekday names (`monday` … `sunday`) complete to the ISO date they mean today. `TODO(me, +7d)` already in a comment gets a **Convert +7d to 2026-11-28** quick fix, a **Convert all relative due dates in this file** quick fix and the **TodoForge: Convert Relative Due Dates in This File** command. The comment always ends up with a fixed date. Until converted, a relative value is neither the owner nor a due date.
+- Bulk actions in the TODO tree. Select several TODOs (`Ctrl`/`Shift`-click) and Snooze, Set Due Date, Set Priority, Assign to Me, Assign Owner…, Pin, Unpin or Mute them all at once. File edits are one undo step.
+- **Assign Owner…**: set any owner on one or many TODOs (tree and editor menus, Command Palette).
+- Instant tree after a reload. The last scan is saved in VS Code's storage for this workspace (`index-v1.json`, versioned, at most 20,000 TODOs and 8 MB) and shown as soon as the window opens; a fresh scan then runs in the background. A change to tags, excludes, scan mode, folders, trust or the extension version starts clean.
+
+### Changed
+
+- The TODO tree redraws only the rows that changed instead of the whole tree, so the selection and scroll position stay put while you edit.
+- Multi-root workspaces scan up to three folders in parallel (four folders of 5,000 files: about 48 ms instead of about 77 ms).
+- File watching is scoped to each workspace folder and is off in the open-files and current-file scan modes. Deleting a folder updates the index without walking every TODO.
+- Platform-specific packages: the Marketplace and Open VSX serve a VSIX with only your platform's ripgrep binary (about 2–3 MB instead of about 15 MB). A universal package is still built. Package files go to `vsix/<version>/`.
+- README: Open VSX downloads badge and a "New in 1.2" section.
+
+### Fixed
+
+- An edit made just before a file was deleted or its editor closed could bring the file's TODOs back until the next full scan.
+
+### Repository
+
+- Issue templates for bug reports and feature requests.
+
 ## [1.1.2] - 2026-11-20
 
 Listing fix only. Same features as 1.1.0.

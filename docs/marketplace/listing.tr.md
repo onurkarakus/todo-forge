@@ -28,11 +28,13 @@ Mağaza aramaları İngilizce yapıldığı için `package.json` içindeki 30 İ
 
 > **TodoForge**, çalışma alanınızdaki tüm TODO, FIXME, HACK ve BUG yorumlarını bulur, tek bir ağaçta toplar ve editörde temanıza uyan renklerle vurgular.
 >
-> `TODO(onur, 2026-12-01, !high, #perf): bunu önbelleğe al` yazdığınızda TODO'nun bir sahibi, tarihi geçince kırmızıya dönen bir son tarihi, bir önceliği ve bir etiketi olur. Üzerine geldiğinizde kimin ne zaman yazdığını görürsünüz; Ctrl+. ile erteleyebilir, tarih verebilir ya da silebilirsiniz.
+> `TODO(onur, 2026-12-01, !high, #perf): bunu önbelleğe al` yazdığınızda TODO'nun bir sahibi, tarihi geçince kırmızıya dönen bir son tarihi, bir önceliği ve bir etiketi olur. Üzerine geldiğinizde kimin ne zaman yazdığını görürsünüz; Ctrl+. ile erteleyebilir, tarih verebilir ya da silebilirsiniz. Tarihi hesaplamakla uğraşmayın: `+7d`, `+2w`, `tomorrow` ya da `friday` yazın, TodoForge gerçek tarihi yoruma yazsın.
+>
+> Ağaçta birden fazla TODO seçip hepsini tek seferde erteleyebilir, tarih ya da öncelik verebilir, birine atayabilir, sabitleyebilir veya sessize alabilirsiniz.
 >
 > **Değişiklikler** görünümü, henüz commit etmediğiniz ve dalınızda eklediğiniz TODO'ları yerel git'ten okuyarak listeler; böylece bir TODO farkında olmadan pull request'e girmez. Canlı filtre (`is:mine`, `is:overdue`, `@ayse`, `#perf`), sabitleme, kayıtlı görünümler ve İçgörüler paneli listeyi kısa tutmanıza yardım eder.
 >
-> TodoForge büyük .NET ve web depoları için tasarlandı: `bin/`, `obj/`, `node_modules/` ve üretilmiş dosyaları kutudan çıktığı gibi atlar, 70'ten fazla dosya türünde gerçek yorumları okur, C#'ta `NotImplementedException`, `[Obsolete]` ve `#warning` satırlarını da listeler. 20.000 dosyalık bir deponun tam taraması yaklaşık 50 ms sürer.
+> TodoForge büyük .NET ve web depoları için tasarlandı: `bin/`, `obj/`, `node_modules/` ve üretilmiş dosyaları kutudan çıktığı gibi atlar, 70'ten fazla dosya türünde gerçek yorumları okur, C#'ta `NotImplementedException`, `[Obsolete]` ve `#warning` satırlarını da listeler. 20.000 dosyalık bir deponun tam taraması 100 ms'nin altında sürer; pencere yeniden açıldığında ağaç son taramayla hemen dolar ve indirdiğiniz paket yalnızca platformunuza ait, 2–3 MB'lık bir pakettir.
 >
 > Gizlilik baştan tasarımda: ağ isteği yok, telemetri yok, hesap yok. Yapay zekâ desteği isteğe bağlıdır ve VS Code'da zaten kullandığınız bir modeli kullanır.
 >
@@ -44,6 +46,9 @@ Mağaza aramaları İngilizce yapıldığı için `package.json` içindeki 30 İ
 
 - TODO, FIXME, HACK, BUG, XXX, UNDONE, NOTE, REVIEW, OPTIMIZE ve kendi etiketleriniz için tek ağaç
 - Yorumun içinde sahip, son tarih, öncelik ve etiket
+- Göreli son tarihler (`+7d`, `+2w`, `+1m`, `tomorrow`, `friday`) yoruma gerçek tarih olarak yazılır
+- Ağaçta çoklu seçim: birçok TODO'yu tek seferde ertele, tarih ver, öncelik ver, ata, sabitle ya da sessize al
+- Yeniden açılışta anında dolan ağaç; yalnızca değişen satırlar yenilenir
 - Git blame bilgili açılır kart; tek tıkla Ertele, Son tarih, Öncelik
 - Hızlı düzeltmeler ve yeni TODO için kod parçacığı
 - Değişiklikler görünümü: commit edilmemiş ve bu dalda eklenen TODO'lar
@@ -74,6 +79,14 @@ Mağaza aramaları İngilizce yapıldığı için `package.json` içindeki 30 İ
 | `08-snippet-light.png` | Yorum içinde kod parçacığı önerisi. |
 
 ## Sosyal medya duyurusu
+
+1.2.0:
+
+```
+TodoForge 1.2 VS Code için yayında: TODO(me, +7d) yazın, gerçek tarih yoruma girsin; ağaçta birden fazla TODO seçip tek seferde erteleyin ya da atayın; yeniden açılışta anında dolan ağaç ve platformunuza özel 2–3 MB'lık paket. Çevrimdışı, hesap yok, telemetri yok.
+```
+
+1.0.0:
 
 ```
 TodoForge 1.0 VS Code için yayında: koddaki tüm TODO'lar tek ağaçta; sahip, son tarih ve dalınız için Değişiklikler görünümü. Git blame için üzerine gelin, ertelemek için Ctrl+. Büyük .NET depolarında hızlı. Çevrimdışı, hesap yok, telemetri yok.

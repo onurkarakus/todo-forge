@@ -13,9 +13,12 @@
 Pure modules have tests next to them:
 
 - `scanning/parseLine.test.ts` – per-language matrix, strict tags, metadata, .NET markers, strings and identifiers that must not match
-- `scanning/scanner.test.ts` – ripgrep runner on fixtures, multi-root, excludes, large files
+- `scanning/scanner.test.ts` – ripgrep runner on fixtures, multi-root (in parallel, results in root order), excludes, large files
 - `scanning/pathFilter.test.ts` – excludes, includes, `.gitignore`-style patterns
 - `syntax/syntax.test.ts` – comment syntax, metadata, removal plans
+- `syntax/relativeDate.test.ts` – `+7d`, `+2w`, `+1m`, `tomorrow`, weekdays, month clamping, rewriting a relative token
+- `scanning/indexCache.test.ts` – saved index round trip, key and version checks, size limits, atomic write
+- `tree/treeDiff.test.ts` – which tree rows refresh after an edit, an added TODO or a top-level change
 - `tree/query.test.ts`, `tree/grouping.test.ts` – filter language, grouping, tag order
 - `git/git.test.ts` – diff and blame parsing plus a temporary git repo
 - `pins/pins.test.ts`, `insights/insights.test.ts`, `features/statusText.test.ts`
@@ -40,12 +43,18 @@ npm test -- --grep "grouping"
 - the Changes view splits uncommitted and branch TODOs
 - the filter query language
 - hover card actions, quick fixes (snooze edits the file), snippet completion
+- relative due dates: completion inserts the ISO date, the quick fix and the file command rewrite the comment
+- bulk pin, unpin and mute with a multi-item selection
+- a live edit refreshes only changed tree rows (no full repaint)
+- the index is saved to workspace storage
 - pin and unpin, next TODO navigation, a TODO typed into an open editor
 - the Insights panel opens
 - the Changes view stays right while a file has unsaved edits, and after revert
 - the chat tools are registered, filter and cap results, and are off by default and work once `todoforge.ai.chatTools` is turned on (through `vscode.lm.invokeTool`, no Copilot needed)
 
-A second run, `test/integration/untrusted.test.cjs`, opens a copy of the workspace in Restricted Mode. `runTests` always passes `--disable-workspace-trust`, so the script starts VS Code itself with workspace trust on and a workspace `.vscode/settings.json` that sets `todoforge.regex.custom` and `todoforge.git.baseBranch`. User settings turn the chat tools on, so their refusal is about trust. It checks that scanning works, git stays off, the custom regex is ignored and the chat tools refuse.
+A second run, `test/integration/reload.test.cjs`, opens the same workspace with the same user data and checks that the saved index is shown before the first scan finishes and matches the scan.
+
+A third run, `test/integration/untrusted.test.cjs`, opens a copy of the workspace in Restricted Mode. `runTests` always passes `--disable-workspace-trust`, so the script starts VS Code itself with workspace trust on and a workspace `.vscode/settings.json` that sets `todoforge.regex.custom` and `todoforge.git.baseBranch`. User settings turn the chat tools on, so their refusal is about trust. It checks that scanning works, git stays off, the custom regex is ignored and the chat tools refuse.
 
 On Linux without a display:
 
@@ -55,7 +64,9 @@ xvfb-run -a npm run test:integration
 
 To reuse a downloaded VS Code instead of fetching one, set `VSCODE_EXECUTABLE=/path/to/code`.
 
-The extension returns a small API from `activate()` for these tests (`all`, `visible`, `changes`, `pins`, `query`, `scanned`, `refresh`). It is not a public API.
+Integration tests load `dist/extension.js`, so run `npm run compile` first.
+
+The extension returns a small API from `activate()` for these tests (`all`, `visible`, `changes`, `pins`, `muted`, `query`, `scanned`, `refresh`, `cache`, `saveCache`, `treeRefreshes`). It is not a public API.
 
 ## Performance
 

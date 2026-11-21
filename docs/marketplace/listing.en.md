@@ -36,20 +36,23 @@ The Marketplace and Open VSX pages show `README.md`. Its structure, top to botto
 
 1. Icon, name, one-line promise: *Every TODO in your code, in one tree, with owners, due dates and a Changes view for your branch.*
 2. Trust line: *Fast on big .NET and web repos. Offline. No account. No telemetry.*
-3. Badges (Marketplace version and installs from vsmarketplacebadges.dev, Open VSX version, MIT license) and the demo GIF at the top (typing a TODO → tree → snooze). Images use absolute `raw.githubusercontent.com` URLs.
+3. Badges (Marketplace version and installs from vsmarketplacebadges.dev, Open VSX version and downloads, MIT license) and the demo GIF at the top (typing a TODO → tree → snooze). Images use absolute `raw.githubusercontent.com` URLs.
 4. **Why TodoForge** – five bullets: works on install, TODOs that carry meaning, see what you are adding, act from the line, private by design.
-5. **Features** with a screenshot each: tree, highlights (dark + light), owners/dates/priorities (hover + quick fix), Changes, live filter (query table), Insights, Copilot Chat tools (`#todos`, `#todoChanges`, `#todo`), Get Started and import.
-6. **Commands and keys**, **Settings** (20 most used), **Privacy**, **FAQ**, **Feedback**. The listing describes what TodoForge offers; it does not name or compare other extensions.
+5. **New in 1.2** – relative due dates, bulk actions in the tree, instant tree after a reload, smoother updates, smaller platform packages, parallel multi-root scans.
+6. **Features** with a screenshot each: tree, highlights (dark + light), owners/dates/priorities (hover + quick fix), Changes, live filter (query table), Insights, Copilot Chat tools (`#todos`, `#todoChanges`, `#todo`), Get Started and import.
+7. **Commands and keys**, **Settings** (20 most used), **Privacy**, **FAQ**, **Feedback**. The listing describes what TodoForge offers; it does not name or compare other extensions.
 
 ### Plain-text version (for Open VSX "description" fields, newsletters, Product Hunt-style posts)
 
 > **TodoForge** finds every TODO, FIXME, HACK and BUG comment in your workspace and puts them in one tree, with highlights that follow your theme.
 >
-> Write `TODO(onur, 2026-12-01, !high, #perf): cache this` and the TODO gets an owner, a due date that turns red when it passes, a priority and a label. Hover it to see who wrote it and when; press Ctrl+. to snooze it, set a date or remove it.
+> Write `TODO(onur, 2026-12-01, !high, #perf): cache this` and the TODO gets an owner, a due date that turns red when it passes, a priority and a label. Hover it to see who wrote it and when; press Ctrl+. to snooze it, set a date or remove it. Short on time? Type `+7d`, `+2w`, `tomorrow` or `friday` and TodoForge writes the real date into the comment.
+>
+> Select several TODOs in the tree to snooze, date, prioritize, assign, pin or mute them in one go.
 >
 > The **Changes** view shows the TODOs you have not committed and the ones you added on your branch, from local git, so they do not slip into a pull request by accident. A live filter (`is:mine`, `is:overdue`, `@ayse`, `#perf`), pins, saved views and an Insights panel help you keep the list short.
 >
-> TodoForge is built for large .NET and web repos: it skips `bin/`, `obj/`, `node_modules/` and generated files out of the box, reads real comments in 70+ file types, and also lists `NotImplementedException`, `[Obsolete]` and `#warning` in C#. A full scan of 20,000 files takes about 50 ms.
+> TodoForge is built for large .NET and web repos: it skips `bin/`, `obj/`, `node_modules/` and generated files out of the box, reads real comments in 70+ file types, and also lists `NotImplementedException`, `[Obsolete]` and `#warning` in C#. A full scan of 20,000 files takes well under 100 ms, the tree shows the last scan instantly after a reload, and the download is a 2–3 MB package built for your platform.
 >
 > Private by design: no network, no telemetry, no account. AI help is opt-in and uses a model you already have in VS Code.
 >
@@ -61,6 +64,9 @@ The Marketplace and Open VSX pages show `README.md`. Its structure, top to botto
 
 - One tree for TODO, FIXME, HACK, BUG, XXX, UNDONE, NOTE, REVIEW, OPTIMIZE and your own tags
 - Owners, due dates, priorities and labels inside the comment
+- Relative due dates (`+7d`, `+2w`, `+1m`, `tomorrow`, `friday`) written as real dates
+- Multi-select in the tree: snooze, date, prioritize, assign, pin or mute many TODOs at once
+- Instant tree after a reload; only changed rows redraw
 - Hover card with git blame, one-click Snooze, Due date, Priority
 - Quick fixes and a snippet for new TODOs
 - Changes view: uncommitted TODOs and TODOs on your branch
@@ -81,11 +87,19 @@ The Marketplace and Open VSX pages show `README.md`. Its structure, top to botto
 
 ## Open VSX specifics
 
-- Namespace: `onurkarakus` — already created and verified ([EclipseFdn/open-vsx.org#15275](https://github.com/EclipseFdn/open-vsx.org/issues/15275), granted 5 November 2026). The TodoForge extension is not published there yet.
-- Open VSX uses the same `package.json` and `README.md`; publish the universal VSIX (`npm run publish:openvsx` after `npm run package:vsix`, with `OVSX_PAT` set).
+- Namespace: `onurkarakus` — created and verified ([EclipseFdn/open-vsx.org#15275](https://github.com/EclipseFdn/open-vsx.org/issues/15275), granted 5 November 2026). TodoForge is published there: https://open-vsx.org/extension/onurkarakus/todoforge
+- Open VSX uses the same `package.json` and `README.md`. From 1.2.0 each platform gets its own package (`npm run package:platforms`, files in `vsix/<version>/`); the universal package stays available as a fallback for other platforms.
 - License: MIT (from `LICENSE`).
 
 ## Social / announcement post (≤ 280 characters)
+
+1.2.0:
+
+```
+TodoForge 1.2 for VS Code: write TODO(me, +7d) and get a real date, select many TODOs to snooze or assign at once, an instant tree after reload and a 2–3 MB download for your platform. Offline, no account, no telemetry.
+```
+
+1.0.0:
 
 ```
 TodoForge 1.0 for VS Code: every TODO in one tree, with owners, due dates and a Changes view for your branch. Hover for git blame, Ctrl+. to snooze. Fast on big .NET repos. Offline, no account, no telemetry.

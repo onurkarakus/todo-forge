@@ -13,6 +13,7 @@
   <a href="https://marketplace.visualstudio.com/items?itemName=onurkarakus.todoforge"><img src="https://vsmarketplacebadges.dev/version-short/onurkarakus.todoforge.svg?label=Marketplace&color=007ACC" alt="Marketplace version"></a>
   <a href="https://marketplace.visualstudio.com/items?itemName=onurkarakus.todoforge"><img src="https://vsmarketplacebadges.dev/installs-short/onurkarakus.todoforge.svg?label=Installs" alt="Marketplace installs"></a>
   <a href="https://open-vsx.org/extension/onurkarakus/todoforge"><img src="https://img.shields.io/open-vsx/v/onurkarakus/todoforge?label=Open%20VSX" alt="Open VSX version"></a>
+  <a href="https://open-vsx.org/extension/onurkarakus/todoforge"><img src="https://img.shields.io/open-vsx/dt/onurkarakus/todoforge?label=Open%20VSX%20downloads" alt="Open VSX downloads"></a>
   <a href="https://github.com/onurkarakus/todo-forge/blob/main/LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue" alt="MIT license"></a>
 </p>
 
@@ -28,6 +29,15 @@
 - **Act from the line.** Hover a TODO for who wrote it and when, then Snooze, set a date, set a priority, pin or remove it with one click or **Ctrl+.**
 - **Private by design.** Nothing leaves your machine. No sign-in, no telemetry, no network calls. AI help and the Copilot chat tools are off unless you turn them on.
 
+## New in 1.2
+
+- **Relative due dates.** Write `TODO(me, +7d)`, `+2w`, `+1m`, `tomorrow` or `friday` and pick the completion, or use the **Convert +7d to 2026-11-28** quick fix. The comment always gets a fixed ISO date, so it means the same thing next week.
+- **Bulk actions in the tree.** Select several TODOs with `Ctrl`/`Shift` (`Cmd`/`Shift` on macOS) and snooze, set a due date or priority, assign to yourself or to someone else, pin, unpin or mute them all at once. Edits to files are one undo step.
+- **Instant tree after a reload.** The last scan is saved in VS Code's storage for this workspace and shown right away when the window opens; a fresh scan then runs in the background.
+- **Smoother updates.** When a file changes, only the changed rows of the tree are redrawn, so the selection and scroll position stay put.
+- **Smaller download.** The Marketplace and Open VSX now serve a package built for your platform with only its own ripgrep binary: about 2–3 MB instead of about 15 MB.
+- **Faster multi-root scans.** Workspace folders are scanned in parallel (three at a time).
+
 ## Features
 
 ### A tree of every TODO
@@ -41,6 +51,8 @@
 - Markdown checklists (`- [ ]`) get their own group; tick them from the tree.
 - **Pins** keep the TODOs you care about at the top, and follow the line when the file changes. Drag to reorder.
 - **Mute** a TODO you never want to see again in this workspace.
+- **Select many** with `Ctrl`/`Shift`-click and snooze, set a date or priority, assign, pin, unpin or mute them in one go.
+- Opens instantly after a reload with the last scan, then refreshes in the background. Only changed rows are redrawn, so your selection and scroll position stay where they were.
 
 ### Highlights that follow your theme
 
@@ -59,6 +71,13 @@ TodoForge can also color `// !` (alert), `// ?` (question), `// *` (highlight) a
 ```
 
 - Overdue and due-soon TODOs show a hint at the end of the line (`overdue 6d`, `due in 3d · !high`).
+- **Relative dates.** Inside `TODO(…)`, type `+7d`, `+2w`, `+1m`, `today`, `tomorrow` or a weekday name (`monday` … `sunday`, English) and accept the completion to insert the real date. Already wrote `TODO(me, +7d)`? The **Convert +7d to 2026-11-28** quick fix (`Ctrl+.`) or **TodoForge: Convert Relative Due Dates in This File** writes the ISO date into the comment. A weekday means the next one, never today; `+1m` keeps the day of the month (Jan 31 + 1m is the last day of February).
+
+```csharp
+// TODO(onur, +7d): …        →  TODO(onur, 2026-11-28): …
+// FIXME(friday, !high): …   →  FIXME(2026-11-27, !high): …
+```
+
 - Type `todo` in a comment and pick **TODO(owner, date)** to get the snippet.
 - Your name comes from `todoforge.syntax.owner` or your local `git config user.name`.
 - Ticket tokens such as `#123` or `FIXME[JIRA-123]` become links in the hover card when you set `todoforge.general.ticketUrl` (for example `https://github.com/org/repo/issues/${token}` or `https://jira.example.com/browse/${token}`). Clicking them opens your browser. TodoForge itself makes no request.
@@ -133,6 +152,8 @@ The walkthrough opens from **TodoForge: Get Started**. If you already have tags,
 | Go to Previous TODO in File | `Ctrl+Alt+PageUp` (`Cmd+Alt+PageUp`) |
 | Filter… (when the tree has focus) | `Ctrl+Alt+F` (`Cmd+Alt+F`) |
 | Quick fixes on a TODO | `Ctrl+.` (`Cmd+.`) |
+| Snooze / Set Due Date / Set Priority / Assign to Me / Assign Owner… / Pin / Mute on many TODOs | select them in the tree, right-click |
+| Convert Relative Due Dates in This File | Command Palette, editor right-click menu |
 | Go to TODO… | Command Palette |
 | Show My TODOs / Show All TODOs | Command Palette, tree toolbar |
 | Show Current File Only / Show All Files | Command Palette, tree toolbar |
@@ -182,7 +203,7 @@ All 50 settings are listed in the Settings editor under **TodoForge** (**TodoFor
 
 - **No network.** TodoForge makes no HTTP requests. Scanning uses the bundled ripgrep; git features run local, read-only git commands. Ticket links and raw URLs open in your browser only when you click them.
 - **No telemetry, no account, no sign-in.**
-- **Your data stays in VS Code.** Pins, muted TODOs and saved views live in VS Code's workspace and global state. Nothing is written to your repo unless you edit a TODO (snooze, set a date, remove) or export a view.
+- **Your data stays in VS Code.** Pins, muted TODOs and saved views live in VS Code's workspace and global state. The last scan result (TODO lines and their metadata, at most 20,000 TODOs) is kept in VS Code's storage for this workspace so the tree opens instantly; it is never written to your repo. Nothing is written to your repo unless you edit a TODO (snooze, set a date, remove) or export a view.
 - **AI is opt-in.** With `todoforge.ai.enabled` on, **Explain TODO with AI** asks for consent once, then sends only the TODO and nearby lines to a chat model you already have in VS Code (for example GitHub Copilot). Off by default, and off in untrusted workspaces.
 - **Chat tools are opt-in.** Off by default; turn on `todoforge.ai.chatTools`. When they are on and you chat with Copilot (or another chat model in VS Code) and the model calls a TodoForge tool, the tool returns TODO lines and their metadata (path, line, tag, text, owner, dates, labels, blame author) from TodoForge's local index to that chat. That chat model, and its provider's terms, then see that data, as with any file you attach. TodoForge makes no request itself, never sends surrounding code, and does nothing when you do not chat.
 - **Untrusted workspaces.** Scanning and highlights work; git, the workspace's custom regex, AI and the chat tools stay off.
@@ -195,7 +216,7 @@ See [SECURITY.md](https://github.com/onurkarakus/todo-forge/blob/main/SECURITY.m
 
 **My TODO is not found.** Check that it is in a comment, that the tag is in `todoforge.general.tags`, and that the file is not excluded (`.gitignore`, `files.exclude`, `todoforge.scanning.excludeGlobs`). Strict tags (`NOTE`, `BUG`, …) need a `:` or `(`. The **TodoForge** channel in the Output panel has the details.
 
-**How fast is it?** Activation takes about 50 ms and does not wait for the scan. On a 20,000-file test repo a full scan takes about 50 ms and one changed file about 7 ms.
+**How fast is it?** Activation does not wait for the scan, and after a reload the tree shows the saved index within a few dozen milliseconds. On a 20,000-file test repo a full scan takes about 55–80 ms and one changed file about 7–10 ms. Four workspace folders of 5,000 files each scan in about 50 ms instead of about 77 ms one by one. Details in [docs/perf-notes.md](https://github.com/onurkarakus/todo-forge/blob/main/docs/perf-notes.md).
 
 **Does it support Remote SSH, WSL, Dev Containers and Codespaces?** Yes, it runs where your files are. It does not support virtual workspaces (such as vscode.dev with a GitHub repo) because it needs ripgrep and git.
 

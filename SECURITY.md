@@ -9,7 +9,7 @@ Please do not open a public issue for a security problem. Use GitHub's private r
 - Runs the bundled `ripgrep` binary to read files in your workspace.
 - Runs local, read-only `git` commands (`diff`, `ls-files`, `merge-base`, `blame`, `check-ignore`) with `execFile`, never through a shell. It never fetches, pulls or pushes.
 - Writes to your files only when you ask: toggle a checklist item, snooze, set a date or priority, assign, remove a TODO, add a TODO, or export a view.
-- Stores pins, muted TODOs, the filter and saved views in VS Code's extension storage.
+- Stores pins, muted TODOs, the filter, saved views and the last scan result (TODO lines and their metadata, so the tree opens instantly) in VS Code's extension storage, outside your repository.
 
 ## What it does not do
 

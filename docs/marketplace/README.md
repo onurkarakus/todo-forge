@@ -8,6 +8,8 @@ Ready-to-paste texts for the **Visual Studio Marketplace** and **Open VSX**, in 
 | [listing.tr.md](listing.tr.md) | The same in Turkish |
 | [release-notes-1.0.0.en.md](release-notes-1.0.0.en.md) | 1.0.0 release notes for the store, GitHub release and social posts |
 | [release-notes-1.0.0.tr.md](release-notes-1.0.0.tr.md) | Türkçe sürüm notları |
+| [release-notes-1.2.0.en.md](release-notes-1.2.0.en.md) | 1.2.0 release notes for the store, GitHub release and social posts |
+| [release-notes-1.2.0.tr.md](release-notes-1.2.0.tr.md) | 1.2.0 Türkçe sürüm notları |
 
 ## Where each text lives
 

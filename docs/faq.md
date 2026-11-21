@@ -58,6 +58,12 @@
 
 ## Data
 
-**Where are pins and saved views stored?** In VS Code's storage: pins, muted TODOs and the current filter per workspace; saved views per user. Nothing is added to your repo.
+**Where are pins and saved views stored?** In VS Code's storage: pins, muted TODOs and the current filter per workspace; saved views per user. The last scan result is kept in the extension's storage for the workspace so the tree opens instantly after a reload. Nothing is added to your repo.
+
+**Can I write "next Friday" as a due date?** Inside `TODO(…)` type `+7d`, `+2w`, `+1m`, `today`, `tomorrow` or an English weekday name and accept the completion, or use the **Convert … to YYYY-MM-DD** quick fix. TodoForge always writes the ISO date into the comment, so the TODO does not drift. Until it is converted, a relative value is not treated as a due date.
+
+**Can I change many TODOs at once?** Yes. Select them in the tree with `Ctrl`/`Shift`-click and use the right-click menu: Snooze, Set Due Date, Set Priority, Assign to Me, Assign Owner…, Pin, Unpin, Mute.
+
+**Why is the VSIX smaller in 1.2?** Each platform gets its own package with only its ripgrep binary (about 2–3 MB). A universal package with every binary is still built for other platforms.
 
 **What happened to My Tasks from 0.1?** It was replaced by Pins in 1.0. Pin the TODOs you want at the top of the tree.

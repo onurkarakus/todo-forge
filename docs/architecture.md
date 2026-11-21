@@ -30,11 +30,11 @@ file watcher / editor edits ──► core/engine ──┤  index of TodoMatch 
 
 | Folder | Role | VS Code API |
 | --- | --- | --- |
-| `scanning/` | ripgrep runner, `parseLine`, path filter (picomatch), index store, line shifting on edits | no (except `rgPath` file lookup) |
-| `syntax/` | comment syntax for 70+ file types, comment-context detection, inline metadata `TODO(owner, date, !prio, #label)`, TODO removal plans | no |
+| `scanning/` | ripgrep runner (roots in parallel), `parseLine`, path filter (picomatch), index store, saved index (`indexCache`), line shifting on edits | no (except `rgPath` file lookup) |
+| `syntax/` | comment syntax for 70+ file types, comment-context detection, inline metadata `TODO(owner, date, !prio, #label)`, relative dates (`+7d`, `friday`), TODO removal plans | no |
 | `git/` | `diffParse`, `blameParse` (pure); `gitService` runs `git` with safe flags; `gitContext` caches change sets and blame and watches `.git/HEAD` | `gitContext` only |
 | `core/` | `engine` (scan, watch, debounce, multi-root, scan modes, progress on the view), `state` (pins, mute in workspace state; saved views in global state) | yes |
-| `tree/` | `query` (filter language), `grouping`, `elements`, providers for the TODO tree and Changes view, export | providers only |
+| `tree/` | `query` (filter language), `grouping`, `elements`, `treeDiff` (which rows changed), providers for the TODO tree and Changes view, export | providers only |
 | `highlighting/` | `palette` (built-in tag colors per theme, contributed colors), `commentMarkers` (Better Comments-style decorations, pure), `hints`, `decorationFactory`, `highlighter` | yes (except `commentMarkers`, `rangePlan`, `palette`, `hints`) |
 | `features/` | hover card, code actions, completion, diagnostics, status bar, insights panel, AI, import settings, editing helpers, checkbox toggle | yes |
 | `tools/` | `todoTools`: input → query, filters, records and size-capped rendering for the chat tools | no |
@@ -70,10 +70,19 @@ The base branch is `todoforge.git.baseBranch` or the first of `origin/HEAD`, `ma
 | What | Where |
 | --- | --- |
 | Pins, muted TODOs, current filter, My TODOs toggle | `ExtensionContext.workspaceState` |
+| Last scan result (`index-v1.json`, at most 20,000 TODOs and 8 MB) | `ExtensionContext.storageUri` (per workspace, outside the repo) |
 | Saved views, AI consent | `ExtensionContext.globalState` |
 | Settings | VS Code settings (`todoforge.*`) |
 
 Nothing is written to the repository unless the user edits a TODO or exports a view.
+
+## Saved index
+
+`scanning/indexCache` writes the index to `index-v1.json` in the extension's workspace storage, atomically (temp file + rename), 5 seconds after the last change and on deactivate. The file carries a format version and a key: a hash of the extension version, parse options, scan mode, include/exclude globs, `.gitignore` use, size limit, workspace folders and trust. On start the engine reads it before the first scan; if the key matches, the tree shows it immediately and the scan replaces it. Any other key, a malformed entry, more than 20,000 TODOs or more than 8 MB means no restore. Only workspace scan modes are saved.
+
+## Tree updates
+
+The controller rebuilds the grouped tree on every update, but `TodoTreeProvider` does not repaint all of it. `tree/treeDiff` signs every node (its rendered content and its child ids) and compares with the previous tree: only nodes whose content or children changed are refreshed, and a refreshed node's subtree is not listed again. The provider keeps one element object per node id and swaps the node inside it, because VS Code identifies tree elements by object identity. A full refresh is used when the top level changes, settings change, the size bucket that decides expanded/collapsed defaults changes, or more than 300 nodes changed. Multi-select (`canSelectMany`) passes the clicked item and the selection to commands; `controller.matchesFromArgs` applies the command to every selected TODO, and metadata edits go through one `WorkspaceEdit`.
 
 ## Webview
 
@@ -81,7 +90,7 @@ The Insights panel builds a full HTML string with a nonce-based CSP (`default-sr
 
 ## Packaging
 
-`scripts/package.mjs` builds one VSIX per VS Code target and copies only that platform's ripgrep into `bin/<platform>-<arch>/`. `scanning/rgPath` looks there first, then in `node_modules/@vscode/ripgrep-*` during development. See [release.md](release.md).
+`scripts/package.mjs` builds one VSIX per VS Code target into `vsix/<version>/` and copies only that platform's ripgrep into `bin/<platform>-<arch>/`. There is no `web` target: TodoForge needs ripgrep and git on a real file system. `scanning/rgPath` looks there first, then in `node_modules/@vscode/ripgrep-*` during development. See [release.md](release.md).
 
 ## Chat tools
 

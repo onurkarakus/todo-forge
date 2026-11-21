@@ -19,13 +19,39 @@ Use `major.EVEN_MINOR.patch` for stable releases and `major.ODD_MINOR.patch` for
 ## 2. Build the VSIX files
 
 ```sh
-npm run package:platforms           # all targets + universal into vsix/
+npm run package:platforms           # all targets + universal into vsix/<version>/
 node scripts/package.mjs win32-x64  # one target
 ```
 
 Targets: `win32-x64`, `win32-arm64`, `linux-x64`, `linux-arm64`, `linux-armhf`, `alpine-x64`, `alpine-arm64`, `darwin-x64`, `darwin-arm64`, plus `universal` (all ripgrep binaries, for Open VSX users on other platforms). Each platform VSIX is about 2–3 MB because it carries one ripgrep binary in `bin/<platform>-<arch>/`.
 
-Smoke-test one: `code --install-extension vsix/todoforge-linux-x64-1.0.0.vsix`.
+1.2.0 sizes:
+
+| VSIX | Size | ripgrep |
+| --- | --- | --- |
+| `linux-x64`, `alpine-x64` | 3.09 MB | `bin/linux-x64/rg` (static) |
+| `win32-x64` | 2.85 MB | `bin/win32-x64/rg.exe` |
+| `linux-arm64`, `alpine-arm64` | 2.83 MB | `bin/linux-arm64/rg` (static) |
+| `darwin-x64` | 2.71 MB | `bin/darwin-x64/rg` |
+| `win32-arm64` | 2.71 MB | `bin/win32-arm64/rg.exe` |
+| `darwin-arm64` | 2.66 MB | `bin/darwin-arm64/rg` |
+| `linux-armhf` | 2.49 MB | `bin/linux-arm/rg` |
+| `universal` | 14.94 MB | all seven |
+
+There is no `web` target: TodoForge needs ripgrep and git on a real file system.
+
+To run the integration tests against a built package instead of the source tree, unpack it and point the runner at it:
+
+```sh
+mkdir /tmp/tf && unzip -q vsix/1.2.0/todoforge-linux-x64-1.2.0.vsix -d /tmp/tf
+TODOFORGE_IT_EXTENSION=/tmp/tf/extension xvfb-run -a npm run test:integration
+```
+
+`npm run package:vsix` builds only the universal VSIX. Do not package with `--no-dependencies` by hand: the script stages the ripgrep binaries, a plain package would ship without them.
+
+Check a package before publishing: `unzip -l vsix/1.2.0/todoforge-linux-x64-1.2.0.vsix | grep bin/` must list exactly one `rg` (or `rg.exe`) for that platform.
+
+Smoke-test one: `code --install-extension vsix/1.2.0/todoforge-linux-x64-1.2.0.vsix`.
 
 ## 3. README images
 
@@ -56,8 +82,8 @@ Note: TodoForge itself has no CI features. A release workflow is maintainer tool
 
 ```sh
 npx ovsx create-namespace onurkarakus -p <token>   # once
-npx ovsx publish vsix/todoforge-linux-x64-1.0.0.vsix -p <token>
-# repeat for each target, or publish the universal VSIX
+npx ovsx publish vsix/1.2.0/todoforge-linux-x64-1.2.0.vsix -p <token>
+# repeat for each platform target; the target is read from the VSIX
 ```
 
 The namespace must be claimed (verified) to remove the "unverified" warning.
@@ -68,6 +94,6 @@ The blue check on the Marketplace needs a verified domain and a publisher that h
 
 ## 5. After a release
 
-- Tag: `git tag v1.0.0 && git push --tags` (maintainer decision).
+- Tag and GitHub release: `gh release create v1.2.0 vsix/1.2.0/*.vsix --title "TodoForge 1.2.0" --notes-file <notes>` (maintainer decision).
 - Check the Marketplace page renders the GIF and screenshots.
 - Watch the Q&A and issues for the first week.

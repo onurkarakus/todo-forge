@@ -31,6 +31,7 @@ TAG(owner, YYYY-MM-DD, !priority, #label, #label2): text
 | --- | --- | --- |
 | owner | `onur`, `@onur` | first bare word; `@` optional |
 | due date | `2026-12-01` | ISO date; overdue turns red, within 7 days shows "due in Nd" |
+| relative due date | `+7d`, `+2w`, `+1m`, `today`, `tomorrow`, `monday` … `sunday` | written as an ISO date by completion or a quick fix (see below) |
 | priority | `!high`, `!medium`, `!low` (also `!h`, `!m`, `!l`, `!1`–`!3`) | used by sort and the hint |
 | labels | `#perf`, `#a11y` | filter with `#perf`; `#123` stays a sub-tag (issue number) |
 
@@ -49,6 +50,32 @@ Examples:
 ```python
 # TODO(!low): tidy up
 ```
+
+## Relative due dates
+
+A due date in the comment is always an ISO date, so a TODO means the same thing next month. To avoid counting days, write a relative value and let TodoForge turn it into a date:
+
+| You write | Means (today is Saturday 2026-11-21) |
+| --- | --- |
+| `+3d` | 3 days from today → `2026-11-24` |
+| `+2w` | 14 days → `2026-12-05` |
+| `+1m` | same day next month → `2026-12-21` (Jan 31 + 1m is the last day of February) |
+| `today`, `tomorrow` | `2026-11-21`, `2026-11-22` |
+| `friday`, `Monday` | the next such day, never today → `2026-11-27`, `2026-11-23` |
+
+Offsets go up to three digits (`+999d`). Weekday names are English and case-insensitive; abbreviations (`fri`) are not recognized, so they never take an owner's place.
+
+Three ways to get the date into the comment:
+
+- **Completion.** Inside `TODO(…)`, type `+` or `+7` and the list opens; after a word such as `tom` or `fri`, press `Ctrl+Space`. Pick an item such as `+7d  2026-11-28` and the ISO date is inserted.
+- **Quick fix.** A TODO that already says `TODO(me, +7d)` offers **Convert +7d to 2026-11-28** (`Ctrl+.`). With several in the file, **Convert all relative due dates in this file** is offered too.
+- **Command.** **TodoForge: Convert Relative Due Dates in This File**.
+
+```ts
+// TODO(me, +7d, !high): before   →   // TODO(me, 2026-11-28, !high): after
+```
+
+Until it is converted, a relative value is kept as written: it is not the owner and not a label, but it is not a due date either, so `is:due`, `is:overdue` and the due hint ignore it.
 
 ## Sub-tags
 
