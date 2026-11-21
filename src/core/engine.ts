@@ -7,6 +7,7 @@ import { readSettings } from "../config/settings";
 import { createGitRunner, ignoredPaths } from "../git/gitService";
 import { logError, logInfo } from "../logger";
 import { enabledExcludeGlobs, mergeExcludes } from "../scanning/excludes";
+import { INDEX_CACHE_FILE, indexCacheKey, readIndexCache, writeIndexCache } from "../scanning/indexCache";
 import { createIndex, type IndexStore } from "../scanning/indexStore";
 import { accumulateWindows, applyLineChanges, changeFromEdit, type LineWindow } from "../scanning/lineShift";
 import type { ParseOptions } from "../scanning/parseLine";
@@ -22,7 +23,21 @@ export interface ScanStats {
   lastScanMs: number;
   lastScanAt?: Date;
   files: number;
+  /** Matches shown from the saved index before the first scan finished. */
+  restoredFromCache: number;
+  /** Time from start() to the restored tree data, in ms. */
+  restoreMs?: number;
 }
+
+export interface EngineOptions {
+  /** Workspace storage folder for the saved index. No folder, no cache. */
+  storageDir?: string;
+  /** Extension version; a new version never reads an older cache. */
+  version?: string;
+}
+
+/** Saves are debounced so bursts of edits write the cache once. */
+const CACHE_SAVE_DELAY_MS = 5_000;
 
 export interface Engine {
   readonly index: IndexStore;
@@ -35,6 +50,10 @@ export interface Engine {
   onDidUpdate: vscode.Event<void>;
   onDidChangeSettings: vscode.Event<TodoForgeSettings>;
   start: () => void;
+  /** Path of the saved index, when the workspace has storage. */
+  readonly cacheFile: string | undefined;
+  /** Writes the saved index now (tests and shutdown). */
+  saveCache: () => Promise<void>;
   dispose: () => void;
 }
 
@@ -136,7 +155,7 @@ const SCAN_SECTIONS = [
 
 const tick = (): Promise<void> => new Promise((resolve) => setImmediate(resolve));
 
-export const createEngine = (gitAllowed: () => boolean): Engine => {
+export const createEngine = (gitAllowed: () => boolean, engineOptions: EngineOptions = {}): Engine => {
   const index = createIndex();
   const updateEmitter = new vscode.EventEmitter<void>();
   const settingsEmitter = new vscode.EventEmitter<TodoForgeSettings>();
@@ -153,7 +172,12 @@ export const createEngine = (gitAllowed: () => boolean): Engine => {
   let headWatchers: vscode.Disposable[] = [];
   const editTimers = new Map<string, ReturnType<typeof setTimeout>>();
   const pendingWindows = new Map<string, LineWindow>();
-  const stats: ScanStats = { lastScanMs: 0, files: 0 };
+  const stats: ScanStats = { lastScanMs: 0, files: 0, restoredFromCache: 0 };
+  const cacheFile = engineOptions.storageDir ? path.join(engineOptions.storageDir, INDEX_CACHE_FILE) : undefined;
+  let cacheTimer: ReturnType<typeof setTimeout> | undefined;
+  let savedVersion = -1;
+  let scannedOnce = false;
+  let disposed = false;
   const disposables: vscode.Disposable[] = [updateEmitter, settingsEmitter];
 
   const fireUpdate = (): void => {
@@ -165,6 +189,71 @@ export const createEngine = (gitAllowed: () => boolean): Engine => {
       updateQueued = false;
       updateEmitter.fire();
     });
+  };
+
+  /** Only workspace scans are cached; open-file and current-file modes change with every tab. */
+  const cacheable = (): boolean =>
+    cacheFile !== undefined && (settings.scanMode === "workspace" || settings.scanMode === "workspaceAndOpen");
+
+  const cacheKey = (): string =>
+    indexCacheKey({
+      version: engineOptions.version ?? "",
+      options: parseOptionsOf(settings),
+      scanMode: settings.scanMode,
+      excludes: excludesOf(settings),
+      includes: settings.includeGlobs,
+      useGitignore: settings.useGitignore,
+      maxFileSizeKb: settings.maxFileSizeKb,
+      folders: (vscode.workspace.workspaceFolders ?? []).map((folder) => folder.uri.toString()),
+      trusted: gitAllowed(),
+    });
+
+  const saveCache = async (): Promise<void> => {
+    if (cacheTimer) {
+      clearTimeout(cacheTimer);
+      cacheTimer = undefined;
+    }
+    if (!cacheFile || !scannedOnce || index.version === savedVersion) {
+      return;
+    }
+    if (!cacheable()) {
+      await fs.rm(cacheFile, { force: true });
+      return;
+    }
+    const version = index.version;
+    try {
+      await writeIndexCache(cacheFile, cacheKey(), index.getAll());
+      savedVersion = version;
+    } catch (error) {
+      logError("Could not save the TODO index", error);
+    }
+  };
+
+  const scheduleSave = (): void => {
+    if (!cacheFile || disposed || cacheTimer) {
+      return;
+    }
+    cacheTimer = setTimeout(() => {
+      cacheTimer = undefined;
+      void saveCache();
+    }, CACHE_SAVE_DELAY_MS);
+  };
+
+  /** Shows the saved index until the first scan finishes. A scan that already finished wins. */
+  const restoreCache = async (started: number): Promise<void> => {
+    if (!cacheFile || !cacheable()) {
+      return;
+    }
+    const cached = await readIndexCache(cacheFile, cacheKey());
+    if (!cached || cached.length === 0 || scannedOnce || disposed || index.version !== 0) {
+      return;
+    }
+    index.replaceAll(cached);
+    await overlayDirty();
+    stats.restoredFromCache = cached.length;
+    stats.restoreMs = Math.round(performance.now() - started);
+    logInfo(`Restored ${cached.length} TODOs from the saved index in ${stats.restoreMs}ms; scanning in the background`);
+    fireUpdate();
   };
 
   const inScope = (uri: vscode.Uri): boolean => {
@@ -242,6 +331,8 @@ export const createEngine = (gitAllowed: () => boolean): Engine => {
       stats.lastScanMs = Math.round(performance.now() - started);
       stats.lastScanAt = new Date();
       stats.files = new Set(output.matches.map((match) => match.uri)).size;
+      scannedOnce = true;
+      scheduleSave();
       logInfo(`Scan finished in ${stats.lastScanMs}ms with ${index.total()} matches in ${stats.files} files`);
     } catch (error) {
       logError("Scan failed", error);
@@ -337,6 +428,7 @@ export const createEngine = (gitAllowed: () => boolean): Engine => {
       logError(output.errors.join("\n"));
     }
     fireUpdate();
+    scheduleSave();
   };
 
   const scheduleFullScan = (): void => {
@@ -370,6 +462,19 @@ export const createEngine = (gitAllowed: () => boolean): Engine => {
       watcher.dispose();
     }
     headWatchers = [];
+    // One recursive watcher per workspace folder, and none at all when only open
+    // or current files are scanned (editor events cover those).
+    if (settings.scanMode === "workspace" || settings.scanMode === "workspaceAndOpen") {
+      for (const folder of vscode.workspace.workspaceFolders ?? []) {
+        const files = vscode.workspace.createFileSystemWatcher(new vscode.RelativePattern(folder, "**/*"));
+        headWatchers.push(
+          files,
+          files.onDidCreate(onFileEvent),
+          files.onDidChange(onFileEvent),
+          files.onDidDelete(onFileDelete),
+        );
+      }
+    }
     for (const folder of vscode.workspace.workspaceFolders ?? []) {
       const head = vscode.workspace.createFileSystemWatcher(new vscode.RelativePattern(folder, ".git/HEAD"));
       headWatchers.push(
@@ -396,27 +501,26 @@ export const createEngine = (gitAllowed: () => boolean): Engine => {
     coalescer?.push(uri.fsPath);
   };
 
-  const fileWatcher = vscode.workspace.createFileSystemWatcher("**/*");
+  const onFileDelete = (uri: vscode.Uri): void => {
+    if (uri.scheme !== "file") {
+      return;
+    }
+    const deleted = uri.toString();
+    for (const [pending, timer] of editTimers) {
+      if (pending === deleted || pending.startsWith(`${deleted}/`)) {
+        clearTimeout(timer);
+        editTimers.delete(pending);
+        pendingWindows.delete(pending);
+      }
+    }
+    const removed = index.removeUnder(deleted);
+    if (removed > 0) {
+      fireUpdate();
+      scheduleSave();
+    }
+  };
+
   disposables.push(
-    fileWatcher,
-    fileWatcher.onDidCreate(onFileEvent),
-    fileWatcher.onDidChange(onFileEvent),
-    fileWatcher.onDidDelete((uri) => {
-      if (uri.scheme !== "file") {
-        return;
-      }
-      const prefix = uri.toString();
-      let removed = false;
-      for (const match of index.getAll()) {
-        if (match.uri === prefix || match.uri.startsWith(`${prefix}/`)) {
-          index.removeFile(match.uri);
-          removed = true;
-        }
-      }
-      if (removed) {
-        fireUpdate();
-      }
-    }),
     vscode.workspace.onDidChangeTextDocument((event) => {
       const document = event.document;
       if (event.contentChanges.length === 0 || !inScope(document.uri)) {
@@ -441,7 +545,8 @@ export const createEngine = (gitAllowed: () => boolean): Engine => {
           const slice = pendingWindows.get(uri);
           pendingWindows.delete(uri);
           editTimers.delete(uri);
-          if (!slice) {
+          // A buffer closed or a file deleted since the edit must not add its TODOs back.
+          if (!slice || document.isClosed) {
             return;
           }
           const lines: string[] = [];
@@ -455,6 +560,7 @@ export const createEngine = (gitAllowed: () => boolean): Engine => {
             scanLineSlice(lines, slice.start, locationFor(document), parseOptionsOf(settings)),
           );
           fireUpdate();
+          scheduleSave();
         }, Math.min(LIVE_EDIT_DEBOUNCE_MS, 150)),
       );
       fireUpdate();
@@ -520,13 +626,29 @@ export const createEngine = (gitAllowed: () => boolean): Engine => {
     findMatch: (id) => index.getAll().find((match) => match.id === id),
     onDidUpdate: updateEmitter.event,
     onDidChangeSettings: settingsEmitter.event,
+    get cacheFile() {
+      return cacheFile;
+    },
+    saveCache,
     start: () => {
+      const started = performance.now();
       bindWatchers();
-      startup = setTimeout(() => {
-        void refresh();
-      }, 0);
+      // The saved index is read first (a few ms) so the tree is never empty while the scan runs.
+      void restoreCache(started)
+        .catch((error: unknown) => logError("Could not read the saved TODO index", error))
+        .finally(() => {
+          if (!disposed) {
+            startup = setTimeout(() => {
+              void refresh();
+            }, 0);
+          }
+        });
     },
     dispose: () => {
+      disposed = true;
+      if (cacheTimer) {
+        clearTimeout(cacheTimer);
+      }
       if (startup) {
         clearTimeout(startup);
       }

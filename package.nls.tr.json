@@ -27,6 +27,8 @@
   "command.setDueDate": "Son Tarih Belirle…",
   "command.setPriority": "Öncelik Belirle…",
   "command.assignToMe": "Bana Ata",
+  "command.assignOwner": "Sahip Ata…",
+  "command.resolveRelativeDates": "Bu Dosyadaki Göreli Son Tarihleri Dönüştür",
   "command.removeTodo": "TODO Yorumunu Sil",
   "command.addTodo": "Buraya TODO Ekle",
   "command.saveView": "Görünümü Kaydet…",

@@ -58,6 +58,10 @@ export const parseMetadata = (after: string): MetaParse => {
       meta.due ??= token;
       continue;
     }
+    if (isRelativeDate(token)) {
+      meta.relativeDue ??= token;
+      continue;
+    }
     if (token.startsWith("!")) {
       const priority = parsePriority(token);
       if (priority) {
@@ -85,6 +89,8 @@ export const serializeMetadata = (meta: TodoMeta): string => {
   }
   if (meta.due) {
     parts.push(meta.due);
+  } else if (meta.relativeDue) {
+    parts.push(meta.relativeDue);
   }
   if (meta.priority) {
     parts.push(`!${meta.priority}`);
@@ -108,6 +114,7 @@ const applyPatch = (meta: TodoMeta, patch: MetaPatch): TodoMeta => {
   }
   if (patch.due !== undefined) {
     next.due = patch.due ?? undefined;
+    next.relativeDue = undefined;
   }
   if (patch.priority !== undefined) {
     next.priority = patch.priority ?? undefined;
@@ -157,6 +164,56 @@ export const addDays = (iso: string, days: number): string => {
   const date = new Date(year ?? 1970, (month ?? 1) - 1, day ?? 1);
   date.setDate(date.getDate() + days);
   return toIso(date);
+};
+
+export const addMonths = (iso: string, months: number): string => {
+  const [year, month, day] = iso.split("-").map((part) => Number(part));
+  const first = new Date(year ?? 1970, (month ?? 1) - 1 + months, 1);
+  const lastDay = new Date(first.getFullYear(), first.getMonth() + 1, 0).getDate();
+  first.setDate(Math.min(day ?? 1, lastDay));
+  return toIso(first);
+};
+
+const WEEKDAYS = ["sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday"];
+
+/** Keywords accepted as relative due dates, in the order completion offers them. */
+export const RELATIVE_KEYWORDS: readonly string[] = ["today", "tomorrow", ...WEEKDAYS.slice(1), "sunday"];
+
+const RELATIVE_OFFSET = /^\+(\d{1,3})([dwm])$/i;
+
+/** `+7d`, `+2w`, `+1m`, `today`, `tomorrow` or an English weekday name (case-insensitive). */
+export const isRelativeDate = (token: string): boolean => {
+  const value = token.trim().toLowerCase();
+  return RELATIVE_OFFSET.test(value) || value === "today" || value === "tomorrow" || WEEKDAYS.includes(value);
+};
+
+/**
+ * Resolves a relative due date against `today` (YYYY-MM-DD).
+ * Weekday names mean the next such day, never today. Months keep the day of
+ * the month and clamp to the last day (Jan 31 + 1m is the end of February).
+ */
+export const resolveRelativeDate = (token: string, today: string): string | undefined => {
+  const value = token.trim().toLowerCase();
+  if (value === "today") {
+    return today;
+  }
+  if (value === "tomorrow") {
+    return addDays(today, 1);
+  }
+  const offset = RELATIVE_OFFSET.exec(value);
+  if (offset) {
+    const amount = Number(offset[1]);
+    const unit = offset[2];
+    return unit === "m" ? addMonths(today, amount) : addDays(today, unit === "w" ? amount * 7 : amount);
+  }
+  const weekday = WEEKDAYS.indexOf(value);
+  if (weekday < 0) {
+    return undefined;
+  }
+  const [year, month, day] = today.split("-").map((part) => Number(part));
+  const current = new Date(year ?? 1970, (month ?? 1) - 1, day ?? 1).getDay();
+  const ahead = (weekday - current + 7) % 7 || 7;
+  return addDays(today, ahead);
 };
 
 /** Snoozing moves the due date forward from today or from the current due date, whichever is later. */

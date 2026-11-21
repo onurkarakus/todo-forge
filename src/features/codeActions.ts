@@ -1,8 +1,8 @@
 import * as vscode from "vscode";
 
-import { snoozeDate, todayIso } from "../syntax/metadata";
+import { resolveRelativeDate, snoozeDate, todayIso } from "../syntax/metadata";
 import type { TodoMatch } from "../types";
-import { metadataEdit, removalEdit } from "./editing";
+import { metadataEdit, relativeDateEdits, removalEdit } from "./editing";
 import type { Services } from "./services";
 
 const quickFix = vscode.CodeActionKind.QuickFix.append("todoforge");
@@ -17,6 +17,13 @@ export const registerCodeActions = (services: Services): vscode.Disposable => {
       const actions: vscode.CodeAction[] = [];
       for (const match of matches.slice(0, 3)) {
         actions.push(...actionsFor(document, match, services));
+      }
+      const relative = services.matchesFor(document.uri.toString()).filter((match) => match.meta?.relativeDue);
+      if (relative.length > 1 && matches.some((match) => match.meta?.relativeDue)) {
+        const all = new vscode.CodeAction(vscode.l10n.t("Convert all relative due dates in this file"), quickFix);
+        all.edit = new vscode.WorkspaceEdit();
+        all.edit.set(document.uri, relativeDateEdits(document, relative, todayIso()));
+        actions.push(all);
       }
       return actions;
     },
@@ -51,6 +58,19 @@ const actionsFor = (document: vscode.TextDocument, match: TodoMatch, services: S
   const label = `${match.tag}`;
   if (match.kind === "tag") {
     const today = todayIso();
+    const relative = match.meta?.relativeDue;
+    const resolved = relative && !match.meta?.due ? resolveRelativeDate(relative, today) : undefined;
+    if (relative && resolved) {
+      const convert = withEdit(
+        vscode.l10n.t("Convert {0} to {1}", relative, resolved),
+        document,
+        metadataEdit(document, match, { due: resolved }),
+      );
+      if (convert) {
+        convert.isPreferred = true;
+      }
+      actions.push(convert);
+    }
     for (const [days, title] of [
       [1, vscode.l10n.t("Snooze {0} by 1 day", label)],
       [7, vscode.l10n.t("Snooze {0} by 1 week", label)],

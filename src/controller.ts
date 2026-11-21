@@ -12,7 +12,7 @@ import { setCheckboxLine } from "./features/checkbox";
 import { registerCodeActions } from "./features/codeActions";
 import { registerCompletion } from "./features/completion";
 import { createProblems } from "./features/diagnostics";
-import { applyMetadata, insertTodo, pickDueDate, pickPriority, removeTodo, snooze } from "./features/editing";
+import { applyMetadataToAll, insertTodo, pickDueDate, pickPriority, relativeDateEdits, removeTodo } from "./features/editing";
 import { registerHover } from "./features/hover";
 import { importSettings, todoTreePatch } from "./features/importSettings";
 import { createInsightsPanel } from "./features/insightsPanel";
@@ -24,14 +24,14 @@ import { hideFromTree } from "./highlighting/palette";
 import { competingCommentHighlighter, createHighlighter } from "./highlighting/highlighter";
 import { logError, logInfo } from "./logger";
 import { fingerprint, isPinned, pinFromMatch, reorderPins, resolvePin } from "./pins/pins";
-import { todayIso } from "./syntax/metadata";
+import { snoozeDate, todayIso } from "./syntax/metadata";
 import { ChangesProvider } from "./tree/changesProvider";
 import { isTreeElement, type TreeElement } from "./tree/elements";
 import { treeToJson, treeToMarkdown } from "./tree/exportTree";
 import { findFileNodeId, groupMatches, type ViewNode } from "./tree/grouping";
 import { filterByQuery, queryNeedsBlame, sortMatches, type QueryContext } from "./tree/query";
 import { TodoTreeProvider, type PinEntry, type TreeDecorators } from "./tree/todoTreeProvider";
-import type { GroupBy, ScanMode, SortBy, TodoMatch } from "./types";
+import type { GroupBy, PinnedTodo, ScanMode, SortBy, TodoMatch } from "./types";
 import { errorMessage } from "./utils/errors";
 import { folderGlob } from "./utils/paths";
 import { ticketsOf } from "./utils/tickets";
@@ -62,13 +62,23 @@ export interface TodoForgeTestApi {
   query: (query: string) => number;
   scanned: () => boolean;
   refresh: () => Promise<void>;
+  muted: () => number;
+  unmuteAll: () => Promise<void>;
+  /** Saved index: file path, how many TODOs were restored from it, and a way to write it now. */
+  cache: () => { file: string | undefined; restored: number; restoreMs?: number };
+  saveCache: () => Promise<void>;
+  /** Tree refresh counters: full repaints vs. refreshes of changed items only. */
+  treeRefreshes: () => { full: number; partial: number; skipped: number };
 }
 
 export const createController = (
   context: vscode.ExtensionContext,
-): { dispose: () => void; api: TodoForgeTestApi } => {
+): { dispose: () => void; flush: () => Promise<void>; api: TodoForgeTestApi } => {
   const gitAllowed = (): boolean => vscode.workspace.isTrusted;
-  const engine = createEngine(gitAllowed);
+  const engine = createEngine(gitAllowed, {
+    storageDir: context.storageUri?.fsPath,
+    version: String((context.extension.packageJSON as { version?: unknown }).version ?? ""),
+  });
   const state = createStateStore(context);
   const git = createGitContext(() => engine.settings, gitAllowed);
   const provider = new TodoTreeProvider();
@@ -77,6 +87,7 @@ export const createController = (
     treeDataProvider: provider,
     dragAndDropController: provider,
     showCollapseAll: false,
+    canSelectMany: true,
   });
   const changesView = vscode.window.createTreeView("todoforge.changes", {
     treeDataProvider: changes,
@@ -371,6 +382,33 @@ export const createController = (
     return match;
   };
 
+  /**
+   * The TODOs a command applies to. With several items selected in the tree,
+   * VS Code passes the clicked item and the whole selection; every selected
+   * TODO is used. Otherwise this is the single TODO from `arg`.
+   */
+  const matchesFromArgs = (arg: unknown, selection: unknown, editable = false): TodoMatch[] => {
+    if (isTreeElement(arg) && Array.isArray(selection) && selection.length > 1) {
+      const seen = new Set<string>();
+      const picked: TodoMatch[] = [];
+      for (const element of selection) {
+        if (!isTreeElement(element)) {
+          continue;
+        }
+        const match = element.type === "view" ? element.node.match : element.type === "pin" ? element.match : undefined;
+        if (match && !seen.has(match.id) && (!editable || match.kind === "tag")) {
+          seen.add(match.id);
+          picked.push(match);
+        }
+      }
+      if (picked.length > 0) {
+        return picked;
+      }
+    }
+    const single = requireMatch(arg, editable);
+    return single ? [single] : [];
+  };
+
   const scanModeLabel = (mode: ScanMode): string => {
     switch (mode) {
       case "openFiles":
@@ -415,14 +453,35 @@ export const createController = (
     await vscode.workspace.applyEdit(edit);
   };
 
-  const pin = async (match: TodoMatch): Promise<void> => {
-    if (isPinned(state.pins, match)) {
-      return;
+  const pinAll = async (matches: readonly TodoMatch[]): Promise<void> => {
+    const added: PinnedTodo[] = [];
+    for (const match of matches) {
+      if (!isPinned(state.pins, match) && !added.some((pinned) => fingerprint(pinned) === fingerprint(match))) {
+        added.push(pinFromMatch(match));
+      }
     }
-    await state.setPins([...state.pins, pinFromMatch(match)]);
+    if (added.length > 0) {
+      await state.setPins([...state.pins, ...added]);
+    }
   };
 
-  const unpin = async (arg: unknown): Promise<void> => {
+  const unpin = async (arg: unknown, selection?: unknown): Promise<void> => {
+    if (isTreeElement(arg) && Array.isArray(selection) && selection.length > 1) {
+      const ids = new Set<string>();
+      const keys = new Set<string>();
+      for (const element of selection) {
+        if (!isTreeElement(element)) {
+          continue;
+        }
+        if (element.type === "pin") {
+          ids.add(element.pin.id);
+        } else if (element.type === "view" && element.node.match) {
+          keys.add(fingerprint(element.node.match));
+        }
+      }
+      await state.setPins(state.pins.filter((item) => !ids.has(item.id) && !keys.has(fingerprint(item))));
+      return;
+    }
     if (isTreeElement(arg) && arg.type === "pin") {
       await state.setPins(state.pins.filter((item) => item.id !== arg.pin.id));
       return;
@@ -708,29 +767,29 @@ export const createController = (
       await setMarkdownChecked(match, !match.markdownChecked);
     }
   });
-  register("todoforge.pin", async (arg: unknown) => {
-    const match = requireMatch(arg);
-    if (match) {
-      await pin(match);
-    }
+  register("todoforge.pin", async (arg: unknown, selection: unknown) => {
+    await pinAll(matchesFromArgs(arg, selection));
   });
-  register("todoforge.unpin", (arg: unknown) => unpin(arg));
+  register("todoforge.unpin", (arg: unknown, selection: unknown) => unpin(arg, selection));
   register("todoforge.clearMissingPins", async () => {
     await state.setPins(state.pins.filter((item) => resolvePin(item, matchesFor(item.uri)) !== undefined));
   });
-  register("todoforge.mute", async (arg: unknown) => {
-    const match = requireMatch(arg);
-    if (!match) {
+  register("todoforge.mute", async (arg: unknown, selection: unknown) => {
+    const matches = matchesFromArgs(arg, selection);
+    const first = matches[0];
+    if (!first) {
       return;
     }
-    await state.mute(match);
+    await state.mute(matches);
     const undo = vscode.l10n.t("Undo");
     const choice = await vscode.window.showInformationMessage(
-      vscode.l10n.t("Muted \"{0}\" in this workspace.", `${match.tag}: ${match.text}`.slice(0, 80)),
+      matches.length === 1
+        ? vscode.l10n.t("Muted \"{0}\" in this workspace.", `${first.tag}: ${first.text}`.slice(0, 80))
+        : vscode.l10n.t("Muted {0} TODOs in this workspace.", matches.length),
       undo,
     );
     if (choice === undo) {
-      await state.unmute([fingerprint(match)]);
+      await state.unmute(matches.map((match) => fingerprint(match)));
     }
   });
   register("todoforge.manageMuted", async () => {
@@ -751,8 +810,8 @@ export const createController = (
     }
   });
   register("todoforge.snooze", async (arg: unknown, days: unknown) => {
-    const match = requireMatch(arg, true);
-    if (!match) {
+    const matches = matchesFromArgs(arg, days, true);
+    if (matches.length === 0) {
       return;
     }
     let amount = typeof days === "number" ? days : undefined;
@@ -763,37 +822,48 @@ export const createController = (
           { label: vscode.l10n.t("1 week"), days: 7 },
           { label: vscode.l10n.t("1 month"), days: 30 },
         ],
-        { placeHolder: vscode.l10n.t("Snooze by") },
+        {
+          placeHolder:
+            matches.length === 1 ? vscode.l10n.t("Snooze by") : vscode.l10n.t("Snooze {0} TODOs by", matches.length),
+        },
       );
       amount = picked?.days;
     }
     if (amount !== undefined) {
-      await snooze(match, amount);
+      const by = amount;
+      const today = todayIso();
+      await applyMetadataToAll(matches, (match) => ({ due: snoozeDate(match.meta?.due, by, today) }));
     }
   });
-  register("todoforge.setDueDate", async (arg: unknown) => {
-    const match = requireMatch(arg, true);
-    if (!match) {
+  register("todoforge.setDueDate", async (arg: unknown, selection: unknown) => {
+    const matches = matchesFromArgs(arg, selection, true);
+    if (matches.length === 0) {
       return;
     }
-    const due = await pickDueDate(match.meta?.due);
+    const due = await pickDueDate(matches.length === 1 ? matches[0]?.meta?.due : undefined);
     if (due !== undefined) {
-      await applyMetadata(match, { due });
+      await applyMetadataToAll(matches, () => ({ due }));
     }
   });
-  register("todoforge.setPriority", async (arg: unknown) => {
-    const match = requireMatch(arg, true);
-    if (!match) {
+  register("todoforge.setPriority", async (arg: unknown, selection: unknown) => {
+    const matches = matchesFromArgs(arg, selection, true);
+    if (matches.length === 0) {
       return;
     }
-    const priority = await pickPriority(match.meta?.priority);
+    const priority = await pickPriority(matches.length === 1 ? matches[0]?.meta?.priority : undefined);
     if (priority !== undefined) {
-      await applyMetadata(match, { priority });
+      await applyMetadataToAll(matches, () => ({ priority }));
     }
   });
-  register("todoforge.assignToMe", async (arg: unknown) => {
-    const match = requireMatch(arg, true);
-    if (!match) {
+  const assignOwner = async (matches: readonly TodoMatch[], owner: string): Promise<void> => {
+    const pending = matches.filter((match) => match.meta?.owner !== owner);
+    if (pending.length > 0) {
+      await applyMetadataToAll(pending, () => ({ owner }));
+    }
+  };
+  register("todoforge.assignToMe", async (arg: unknown, selection: unknown) => {
+    const matches = matchesFromArgs(arg, selection, true);
+    if (matches.length === 0) {
       return;
     }
     let owner = gitOwner();
@@ -804,7 +874,41 @@ export const createController = (
       }
       await updateSetting("syntax.owner", owner);
     }
-    await applyMetadata(match, { owner });
+    await assignOwner(matches, owner);
+  });
+  register("todoforge.assignOwner", async (arg: unknown, selection: unknown) => {
+    const matches = matchesFromArgs(arg, selection, true);
+    if (matches.length === 0) {
+      return;
+    }
+    const typed = await vscode.window.showInputBox({
+      prompt:
+        matches.length === 1
+          ? vscode.l10n.t("Owner for this TODO")
+          : vscode.l10n.t("Owner for {0} TODOs", matches.length),
+      value: matches[0]?.meta?.owner ?? gitOwner() ?? "",
+      validateInput: (value) =>
+        /^@?[\w.-]+$/u.test(value.trim()) ? undefined : vscode.l10n.t("Use one word, for example onur or @onur."),
+    });
+    const owner = typed?.trim().replace(/^@/, "");
+    if (owner) {
+      await assignOwner(matches, owner);
+    }
+  });
+  register("todoforge.resolveRelativeDates", async () => {
+    const editor = vscode.window.activeTextEditor;
+    if (!editor) {
+      void vscode.window.showInformationMessage(vscode.l10n.t("Open a file to convert its relative due dates."));
+      return;
+    }
+    const edits = relativeDateEdits(editor.document, matchesFor(editor.document.uri.toString()), todayIso());
+    if (edits.length === 0) {
+      void vscode.window.showInformationMessage(vscode.l10n.t("No relative due dates in this file."));
+      return;
+    }
+    const edit = new vscode.WorkspaceEdit();
+    edit.set(editor.document.uri, edits);
+    await vscode.workspace.applyEdit(edit);
   });
   register("todoforge.removeTodo", async (arg: unknown) => {
     const match = requireMatch(arg);
@@ -918,7 +1022,7 @@ export const createController = (
       if (request.kind === "match") {
         const match = engine.findMatch(request.draggedId);
         if (match) {
-          await pin(match);
+          await pinAll([match]);
         }
         return;
       }
@@ -1062,6 +1166,11 @@ export const createController = (
       return visible.length;
     },
     scanned: () => scanned,
+    muted: () => state.muted.size,
+    unmuteAll: () => state.unmute([...state.muted]),
+    cache: () => ({ file: engine.cacheFile, restored: engine.stats.restoredFromCache, restoreMs: engine.stats.restoreMs }),
+    saveCache: () => engine.saveCache(),
+    treeRefreshes: () => ({ ...provider.refreshStats }),
     refresh: async () => {
       await engine.refresh();
       await git.refreshChanges();
@@ -1071,6 +1180,7 @@ export const createController = (
 
   return {
     api,
+    flush: () => engine.saveCache(),
     dispose: (): void => {
       clearTimeout(migrationTimer);
       if (publishTimer) {

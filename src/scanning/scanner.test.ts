@@ -9,7 +9,7 @@ import { resolveRgPath } from "./rgPath";
 
 import { DEFAULT_EXCLUDE_GLOBS, DEFAULT_SUBTAG_REGEX, DEFAULT_TAGS } from "../config/defaults";
 import type { ParseOptions } from "./parseLine";
-import { scanRoots } from "./scanner";
+import { mapLimit, scanRoots } from "./scanner";
 
 const options = (): ParseOptions => {
   return {
@@ -134,5 +134,50 @@ describe("ripgrep scan", () => {
     });
     assert.equal(output.cancelled, true);
     assert.deepEqual(output.matches, []);
+  });
+});
+
+describe("parallel roots", () => {
+  it("mapLimit keeps input order and never exceeds the limit", async () => {
+    let running = 0;
+    let peak = 0;
+    const delays = [30, 5, 20, 1, 10, 2];
+    const results = await mapLimit(delays, 3, async (delay, index) => {
+      running += 1;
+      peak = Math.max(peak, running);
+      await new Promise((resolve) => setTimeout(resolve, delay));
+      running -= 1;
+      return index;
+    });
+    assert.deepEqual(results, [0, 1, 2, 3, 4, 5]);
+    assert.equal(peak, 3);
+    assert.deepEqual(await mapLimit([], 3, async () => 1), []);
+  });
+
+  it("scans several roots at once and returns matches in root order", async () => {
+    const base = await fs.mkdtemp(path.join(os.tmpdir(), "todoforge-roots-"));
+    const folders: string[] = [];
+    for (const name of ["a", "b", "c", "d"]) {
+      const folder = path.join(base, name);
+      await fs.mkdir(folder);
+      await fs.writeFile(path.join(folder, "x.ts"), `// TODO: from ${name}\n`);
+      folders.push(folder);
+    }
+    const output = await scanRoots({
+      rgPath,
+      roots: folders.map((folder) => ({ folder, toUri: (file: string) => `file://${file}` })),
+      options: options(),
+      useGitignore: false,
+      maxFileSizeKb: 1024,
+      excludeGlobs: [],
+      includeGlobs: [],
+      signal: new AbortController().signal,
+      concurrency: 2,
+    });
+    assert.deepEqual(
+      output.matches.map((match) => match.text),
+      ["from a", "from b", "from c", "from d"],
+    );
+    await fs.rm(base, { recursive: true, force: true });
   });
 });

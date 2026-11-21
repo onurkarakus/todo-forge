@@ -5,6 +5,8 @@ export interface IndexStore {
   replaceAll: (matches: readonly TodoMatch[]) => void;
   setFile: (uri: string, matches: readonly TodoMatch[]) => void;
   removeFile: (uri: string) => void;
+  /** Removes a file, or every file under a deleted folder URI. Returns how many files were removed. */
+  removeUnder: (uri: string) => number;
   mergeWindow: (
     uri: string,
     startLine: number,
@@ -52,6 +54,20 @@ export const createIndex = (): IndexStore => {
         return;
       }
       bump();
+    },
+    removeUnder: (uri: string): number => {
+      const folder = `${uri}/`;
+      let removed = 0;
+      for (const key of [...files.keys()]) {
+        if (key === uri || key.startsWith(folder)) {
+          files.delete(key);
+          removed += 1;
+        }
+      }
+      if (removed > 0) {
+        bump();
+      }
+      return removed;
     },
     mergeWindow: (uri, startLine, endLine, matches): void => {
       const kept = (files.get(uri) ?? []).filter(

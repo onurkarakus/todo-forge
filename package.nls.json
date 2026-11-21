@@ -27,6 +27,8 @@
   "command.setDueDate": "Set Due Date…",
   "command.setPriority": "Set Priority…",
   "command.assignToMe": "Assign to Me",
+  "command.assignOwner": "Assign Owner…",
+  "command.resolveRelativeDates": "Convert Relative Due Dates in This File",
   "command.removeTodo": "Remove TODO Comment",
   "command.addTodo": "Add TODO Here",
   "command.saveView": "Save Current View…",

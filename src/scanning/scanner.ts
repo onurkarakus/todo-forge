@@ -22,7 +22,31 @@ export interface ScanRequest {
   includeGlobs: readonly string[];
   signal: AbortSignal;
   onBatch?: (count: number) => void;
+  /** How many ripgrep processes run at once across roots. Default {@link SCAN_CONCURRENCY}. */
+  concurrency?: number;
 }
+
+/** Multi-root workspaces scan this many folders at a time. */
+export const SCAN_CONCURRENCY = 3;
+
+/** Runs `task` for every item with at most `limit` running at once; results keep the input order. */
+export const mapLimit = async <T, R>(
+  items: readonly T[],
+  limit: number,
+  task: (item: T, index: number) => Promise<R>,
+): Promise<R[]> => {
+  const results = new Array<R>(items.length);
+  let next = 0;
+  const worker = async (): Promise<void> => {
+    while (next < items.length) {
+      const index = next;
+      next += 1;
+      results[index] = await task(items[index] as T, index);
+    }
+  };
+  await Promise.all(Array.from({ length: Math.max(1, Math.min(limit, items.length)) }, () => worker()));
+  return results;
+};
 
 export interface ScanOutput {
   matches: TodoMatch[];
@@ -50,11 +74,12 @@ export const scanRoots = async (request: ScanRequest): Promise<ScanOutput> => {
   );
   let seen = 0;
 
-  for (const root of request.roots) {
+  // ripgrep runs for several roots at once; parsing stays in root order so results are stable.
+  const results = await mapLimit(request.roots, request.concurrency ?? SCAN_CONCURRENCY, (root) => {
     if (request.signal.aborted) {
-      return { matches: [], cancelled: true, errors };
+      return Promise.resolve(undefined);
     }
-    const result = await runRipgrep({
+    return runRipgrep({
       rgPath: request.rgPath,
       cwd: root.folder,
       pattern,
@@ -67,7 +92,11 @@ export const scanRoots = async (request: ScanRequest): Promise<ScanOutput> => {
       files: root.files,
       signal: request.signal,
     });
-    if (result.cancelled) {
+  });
+
+  for (const [rootIndex, root] of request.roots.entries()) {
+    const result = results[rootIndex];
+    if (request.signal.aborted || !result || result.cancelled) {
       return { matches: [], cancelled: true, errors };
     }
     if (result.error) {

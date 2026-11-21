@@ -1,7 +1,7 @@
 import * as vscode from "vscode";
 
 import { syntaxFor } from "../syntax/languages";
-import { addDays, isIsoDate, rewriteMetadata, snoozeDate, todayIso, type MetaPatch } from "../syntax/metadata";
+import { addDays, isIsoDate, resolveRelativeDate, rewriteMetadata, todayIso, type MetaPatch } from "../syntax/metadata";
 import { buildTodoLine, planRemoval } from "../syntax/removal";
 import type { Priority, TodoMatch } from "../types";
 
@@ -24,6 +24,79 @@ export const metadataEdit = (
     return undefined;
   }
   return vscode.TextEdit.replace(line.range, next);
+};
+
+/** Edits that write every relative due date (`+7d`, `friday`) in `matches` as an ISO date. One edit per line. */
+export const relativeDateEdits = (
+  document: vscode.TextDocument,
+  matches: readonly TodoMatch[],
+  today: string,
+): vscode.TextEdit[] => {
+  const edits: vscode.TextEdit[] = [];
+  const lines = new Set<number>();
+  for (const match of matches) {
+    const relative = match.meta?.relativeDue;
+    const due = relative && !match.meta?.due ? resolveRelativeDate(relative, today) : undefined;
+    if (!due || lines.has(match.line)) {
+      continue;
+    }
+    const edit = metadataEdit(document, match, { due });
+    if (edit) {
+      lines.add(match.line);
+      edits.push(edit);
+    }
+  }
+  return edits;
+};
+
+/**
+ * Applies one metadata patch to many TODOs as a single undoable edit.
+ * Two TODOs on the same line get only the first change. Returns the number changed.
+ */
+export const applyMetadataToAll = async (
+  matches: readonly TodoMatch[],
+  patchFor: (match: TodoMatch) => MetaPatch | undefined,
+): Promise<number> => {
+  const workspaceEdit = new vscode.WorkspaceEdit();
+  let changed = 0;
+  let attempted = 0;
+  const byUri = new Map<string, TodoMatch[]>();
+  for (const match of matches) {
+    const list = byUri.get(match.uri) ?? [];
+    list.push(match);
+    byUri.set(match.uri, list);
+  }
+  for (const [uri, list] of byUri) {
+    const document = await vscode.workspace.openTextDocument(vscode.Uri.parse(uri));
+    const lines = new Set<number>();
+    const edits: vscode.TextEdit[] = [];
+    for (const match of list) {
+      const patch = patchFor(match);
+      if (!patch || lines.has(match.line)) {
+        continue;
+      }
+      attempted += 1;
+      const edit = metadataEdit(document, match, patch);
+      if (edit) {
+        lines.add(match.line);
+        edits.push(edit);
+      }
+    }
+    if (edits.length > 0) {
+      workspaceEdit.set(document.uri, edits);
+      changed += edits.length;
+    }
+  }
+  if (changed === 0) {
+    if (attempted === 0) {
+      return 0;
+    }
+    void vscode.window.showWarningMessage(
+      vscode.l10n.t("TodoForge could not find that TODO where it was. Refresh and try again."),
+    );
+    return 0;
+  }
+  return (await vscode.workspace.applyEdit(workspaceEdit)) ? changed : 0;
 };
 
 export const removalEdit = (document: vscode.TextDocument, match: TodoMatch): vscode.TextEdit | undefined => {
@@ -67,10 +140,6 @@ export const applyMetadata = async (match: TodoMatch, patch: MetaPatch): Promise
 export const removeTodo = async (match: TodoMatch): Promise<boolean> => {
   const document = await documentFor(match);
   return applyEdit(document.uri, removalEdit(document, match));
-};
-
-export const snooze = (match: TodoMatch, days: number): Promise<boolean> => {
-  return applyMetadata(match, { due: snoozeDate(match.meta?.due, days, todayIso()) });
 };
 
 export const pickDueDate = async (current?: string): Promise<string | null | undefined> => {

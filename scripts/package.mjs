@@ -1,5 +1,5 @@
 // Builds one VSIX per platform, each with only its own ripgrep binary, plus a
-// universal VSIX with all of them. Nothing is published.
+// universal VSIX with all of them, into vsix/<version>/. Nothing is published.
 //
 // The binaries are copied to bin/<platform>-<arch>/ before each build, so the
 // VSIX needs no node_modules (vsce runs with --no-dependencies).
@@ -62,7 +62,7 @@ const stageRipgrep = (rgTargets) => {
   }
 };
 const allRg = [...new Set(Object.values(TARGETS))];
-const outDir = path.join(root, "vsix");
+const outDir = path.join(root, "vsix", pkg.version);
 fs.mkdirSync(outDir, { recursive: true });
 
 for (const target of targets) {

@@ -169,5 +169,15 @@
   "Current file, filter: {0} — {1} of {2}": "Bu dosya, filtre: {0} — {1}/{2}",
   "Current file — {0} TODOs": "Bu dosya — {0} TODO",
   "Copied {0} TODOs as a Markdown checklist.": "{0} TODO Markdown liste olarak kopyalandı.",
-  "This TODO has no ticket link. Set todoforge.general.ticketUrl, for example https://github.com/org/repo/issues/${token} or https://jira.example.com/browse/${token}.": "Bu TODO'nun bilet bağlantısı yok. todoforge.general.ticketUrl ayarını yapın, örneğin https://github.com/org/repo/issues/${token} veya https://jira.example.com/browse/${token}."
+  "This TODO has no ticket link. Set todoforge.general.ticketUrl, for example https://github.com/org/repo/issues/${token} or https://jira.example.com/browse/${token}.": "Bu TODO'nun bilet bağlantısı yok. todoforge.general.ticketUrl ayarını yapın, örneğin https://github.com/org/repo/issues/${token} veya https://jira.example.com/browse/${token}.",
+  "Muted {0} TODOs in this workspace.": "Bu çalışma alanında {0} TODO susturuldu.",
+  "Snooze {0} TODOs by": "{0} TODO'yu ertele",
+  "Owner for this TODO": "Bu TODO'nun sahibi",
+  "Owner for {0} TODOs": "{0} TODO'nun sahibi",
+  "Use one word, for example onur or @onur.": "Tek kelime kullanın, örneğin onur veya @onur.",
+  "Open a file to convert its relative due dates.": "Göreli son tarihleri dönüştürmek için bir dosya açın.",
+  "No relative due dates in this file.": "Bu dosyada göreli son tarih yok.",
+  "TodoForge: due date {0}": "TodoForge: son tarih {0}",
+  "Convert all relative due dates in this file": "Bu dosyadaki tüm göreli son tarihleri dönüştür",
+  "Convert {0} to {1}": "{0} değerini {1} olarak yaz"
 }

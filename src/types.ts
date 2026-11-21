@@ -55,6 +55,8 @@ export interface TagGroup {
 export interface TodoMeta {
   owner?: string;
   due?: string;
+  /** A relative due date as written (`+7d`, `tomorrow`, `friday`); resolve it with a quick fix. */
+  relativeDue?: string;
   priority?: Priority;
   labels: string[];
 }

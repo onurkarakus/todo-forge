@@ -6,9 +6,10 @@ import { styleForTag } from "../highlighting/palette";
 import { themeColorId } from "../highlighting/decorationFactory";
 import { todoCard, type CardContext } from "../features/todoCard";
 import type { PinnedTodo, TodoForgeSettings, TodoMatch } from "../types";
-import { elementId, type TreeElement } from "./elements";
+import { elementId, type PinElement, type PinsRootElement, type TreeElement, type ViewElement } from "./elements";
 import { indexNodes, type ViewNode } from "./grouping";
 import { ageInDays, formatAge } from "./query";
+import { changedNodeIds, signTree, type NodeSignature } from "./treeDiff";
 
 export const MIME_PIN = "application/vnd.todoforge.pin";
 export const MIME_MATCH = "application/vnd.todoforge.match";
@@ -70,6 +71,34 @@ export const matchDescription = (
   return parts.join(" · ");
 };
 
+/** Everything about a TODO that its tree item shows: label parts, icon, description and tooltip. */
+const matchSignature = (match: TodoMatch, decorators: TreeDecorators): string => {
+  const card = decorators.card(match);
+  return JSON.stringify([
+    match.tag,
+    match.text,
+    match.raw,
+    match.line,
+    match.column,
+    match.relativePath,
+    match.kind,
+    match.markdownChecked,
+    match.meta,
+    card.today,
+    card.isNew,
+    card.isUncommitted,
+    card.pinned,
+    card.blame?.sha,
+    card.blame?.author,
+    card.blame?.time,
+    ageInDays(card.blame, card.nowSeconds),
+    decorators.ticketUrl?.(match),
+  ]);
+};
+
+/** Expanded/collapsed defaults depend on the total; a change of bucket repaints everything. */
+const sizeBucket = (total: number): number => (total <= 40 ? 0 : total <= 200 ? 1 : 2);
+
 export class TodoTreeProvider
   implements vscode.TreeDataProvider<TreeElement>, vscode.TreeDragAndDropController<TreeElement>
 {
@@ -83,18 +112,115 @@ export class TodoTreeProvider
   private settings: TodoForgeSettings | undefined;
   private decorators: TreeDecorators | undefined;
   private onDropRequest: (request: DropRequest) => void = () => undefined;
+  // VS Code tracks tree elements by object identity, so each id keeps one element
+  // object whose node is swapped in place. Firing that object refreshes just that item.
+  private readonly viewElements = new Map<string, ViewElement>();
+  private readonly pinElements = new Map<string, PinElement>();
+  private readonly pinsRoot: PinsRootElement = { type: "pins-root", count: 0 };
+  private signatures: Map<string, NodeSignature> | undefined;
+  private settingsKey = "";
+  private pinsKey = "";
+  /** Number of refresh events and how many were partial; read by tests. */
+  readonly refreshStats = { full: 0, partial: 0, skipped: 0 };
 
   setDropHandler(handler: (request: DropRequest) => void): void {
     this.onDropRequest = handler;
   }
 
   setState(root: ViewNode, pins: readonly PinEntry[], settings: TodoForgeSettings, decorators: TreeDecorators): void {
+    const contentOf = (node: ViewNode): string =>
+      node.match
+        ? `${node.label}|${matchSignature(node.match, decorators)}`
+        : `${node.kind}|${node.label}|${node.count}|${node.resourcePath ?? ""}|${node.children[0]?.match?.tag ?? ""}`;
+    const signatures = signTree(root, contentOf);
+    const settingsKey = JSON.stringify(settings);
+    const pinsKey = pins
+      .map((entry) => `${entry.pin.id}|${entry.match ? matchSignature(entry.match, decorators) : "-"}`)
+      .join("\n");
+    const full =
+      settingsKey !== this.settingsKey ||
+      sizeBucket(root.count) !== sizeBucket(this.root?.count ?? 0) ||
+      (pins.length > 0) !== (this.pins.length > 0);
+    const plan = full ? "all" : changedNodeIds(this.signatures, signatures, root);
+    const pinsChanged = pinsKey !== this.pinsKey;
+
     this.root = root;
     this.nodes = indexNodes(root);
     this.pins = [...pins];
     this.settings = settings;
     this.decorators = decorators;
-    this.change.fire(undefined);
+    this.signatures = signatures;
+    this.settingsKey = settingsKey;
+    this.pinsKey = pinsKey;
+    this.syncElements();
+
+    if (plan === "all") {
+      this.refreshStats.full += 1;
+      this.change.fire(undefined);
+      return;
+    }
+    const elements: TreeElement[] = plan
+      .map((id) => this.viewElements.get(id))
+      .filter((element): element is ViewElement => element !== undefined);
+    if (pinsChanged) {
+      elements.push(this.pinsRoot);
+    }
+    if (elements.length === 0) {
+      this.refreshStats.skipped += 1;
+      return;
+    }
+    this.refreshStats.partial += 1;
+    // The typings accept one element; VS Code also takes an array.
+    (this.change as vscode.EventEmitter<TreeElement | TreeElement[] | undefined>).fire(elements);
+  }
+
+  private syncElements(): void {
+    for (const [id, element] of this.viewElements) {
+      const node = this.nodes.get(id);
+      if (node) {
+        element.node = node;
+      } else {
+        this.viewElements.delete(id);
+      }
+    }
+    this.pinsRoot.count = this.pins.length;
+    const pinIds = new Set<string>();
+    for (const entry of this.pins) {
+      pinIds.add(entry.pin.id);
+      const element = this.pinElements.get(entry.pin.id);
+      if (element) {
+        element.pin = entry.pin;
+        element.match = entry.match;
+      }
+    }
+    for (const id of this.pinElements.keys()) {
+      if (!pinIds.has(id)) {
+        this.pinElements.delete(id);
+      }
+    }
+  }
+
+  private viewElement(node: ViewNode): ViewElement {
+    const existing = this.viewElements.get(node.id);
+    if (existing) {
+      existing.node = node;
+      return existing;
+    }
+    const element: ViewElement = { type: "view", node };
+    this.viewElements.set(node.id, element);
+    return element;
+  }
+
+  private pinElement(entry: PinEntry): PinElement {
+    const existing = this.pinElements.get(entry.pin.id);
+    if (existing) {
+      existing.pin = entry.pin;
+      existing.match = entry.match;
+      return existing;
+    }
+    const element: PinElement = { type: "pin", pin: entry.pin, match: entry.match };
+    this.pinElements.set(entry.pin.id, element);
+    return element;
   }
 
   get rootNode(): ViewNode | undefined {
@@ -108,10 +234,10 @@ export class TodoTreeProvider
         return undefined;
       }
       const parent = this.nodes.get(parentId);
-      return parent ? { type: "view", node: parent } : undefined;
+      return parent ? this.viewElement(parent) : undefined;
     }
     if (element.type === "pin") {
-      return { type: "pins-root", count: this.pins.length };
+      return this.pinsRoot;
     }
     return undefined;
   }
@@ -121,18 +247,18 @@ export class TodoTreeProvider
       const roots: TreeElement[] = [];
       const hasMatches = (this.root?.children.length ?? 0) > 0;
       if (this.pins.length > 0) {
-        roots.push({ type: "pins-root", count: this.pins.length });
+        roots.push(this.pinsRoot);
       }
       if (hasMatches && this.root) {
-        roots.push(...this.root.children.map((node): TreeElement => ({ type: "view", node })));
+        roots.push(...this.root.children.map((node) => this.viewElement(node)));
       }
       return roots;
     }
     if (element.type === "view") {
-      return element.node.children.map((node) => ({ type: "view", node }));
+      return element.node.children.map((node) => this.viewElement(node));
     }
     if (element.type === "pins-root") {
-      return this.pins.map((entry) => ({ type: "pin", pin: entry.pin, match: entry.match }));
+      return this.pins.map((entry) => this.pinElement(entry));
     }
     return [];
   }
@@ -224,13 +350,13 @@ export class TodoTreeProvider
 
   findElement(id: string): TreeElement | undefined {
     const node = this.nodes.get(id);
-    return node ? { type: "view", node } : undefined;
+    return node ? this.viewElement(node) : undefined;
   }
 
   findMatchElement(matchId: string): TreeElement | undefined {
     for (const node of this.nodes.values()) {
       if (node.match?.id === matchId) {
-        return { type: "view", node };
+        return this.viewElement(node);
       }
     }
     return undefined;

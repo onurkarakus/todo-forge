@@ -2,7 +2,7 @@
   "name": "todoforge",
   "displayName": "%ext.displayName%",
   "description": "%ext.description%",
-  "version": "1.1.2",
+  "version": "1.2.0",
   "publisher": "onurkarakus",
   "author": {
     "name": "Onur Karakuş"
@@ -29,6 +29,11 @@
       "url": "https://img.shields.io/open-vsx/v/onurkarakus/todoforge?label=Open%20VSX",
       "href": "https://open-vsx.org/extension/onurkarakus/todoforge",
       "description": "Open VSX version"
+    },
+    {
+      "url": "https://img.shields.io/open-vsx/dt/onurkarakus/todoforge?label=Open%20VSX%20downloads",
+      "href": "https://open-vsx.org/extension/onurkarakus/todoforge",
+      "description": "Open VSX downloads"
     }
   ],
   "homepage": "https://github.com/onurkarakus/todo-forge#readme",
@@ -355,6 +360,18 @@
         "icon": "$(person-add)"
       },
       {
+        "command": "todoforge.assignOwner",
+        "title": "%command.assignOwner%",
+        "category": "TodoForge",
+        "icon": "$(person)"
+      },
+      {
+        "command": "todoforge.resolveRelativeDates",
+        "title": "%command.resolveRelativeDates%",
+        "category": "TodoForge",
+        "icon": "$(calendar)"
+      },
+      {
         "command": "todoforge.removeTodo",
         "title": "%command.removeTodo%",
         "category": "TodoForge",
@@ -601,6 +618,11 @@
           "group": "1_edit@4"
         },
         {
+          "command": "todoforge.assignOwner",
+          "when": "viewItem =~ /^match(-pinned)?$/",
+          "group": "1_edit@4.5"
+        },
+        {
           "command": "todoforge.toggleMarkdown",
           "when": "viewItem =~ /^markdown/",
           "group": "1_edit@5"
@@ -674,6 +696,14 @@
         {
           "command": "todoforge.assignToMe",
           "group": "1_edit@4"
+        },
+        {
+          "command": "todoforge.assignOwner",
+          "group": "1_edit@4.5"
+        },
+        {
+          "command": "todoforge.resolveRelativeDates",
+          "group": "1_edit@6"
         },
         {
           "command": "todoforge.pin",
@@ -1986,7 +2016,7 @@
     "watch:tsc": "tsc --noEmit --watch --project tsconfig.json",
     "package": "npm run check-types && npm run lint && node esbuild.js --production",
     "package:vsix": "node ./scripts/package.mjs universal",
-    "publish:openvsx": "npx ovsx publish ./vsix/todoforge-universal-$npm_package_version.vsix",
+    "publish:openvsx": "npx ovsx publish ./vsix/$npm_package_version/todoforge-universal-$npm_package_version.vsix",
     "check-types": "tsc --noEmit",
     "lint": "eslint src",
     "test": "mocha --require tsx --timeout 20000 \"src/**/*.test.ts\"",

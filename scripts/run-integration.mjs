@@ -2,9 +2,10 @@
 // workspace from test/fixtures/sample with one committed branch TODO and one
 // uncommitted TODO. Set VSCODE_EXECUTABLE to reuse an installed VS Code.
 //
-// Two runs: the main suite (workspace trust off, like runTests always does)
-// and a Restricted Mode suite. runTests always passes
-// --disable-workspace-trust, so the second run starts VS Code directly.
+// Three runs: the main suite (workspace trust off, like runTests always does),
+// a reload of the same workspace (saved index) and a Restricted Mode suite.
+// runTests always passes --disable-workspace-trust, so the Restricted Mode run
+// starts VS Code directly.
 import { execFileSync, spawn } from "node:child_process";
 import fs from "node:fs";
 import os from "node:os";
@@ -14,6 +15,8 @@ import { fileURLToPath } from "node:url";
 import { downloadAndUnzipVSCode, runTests } from "@vscode/test-electron";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
+// Set TODOFORGE_IT_EXTENSION to an unpacked VSIX (its extension/ folder) to test a built package.
+const extensionPath = process.env.TODOFORGE_IT_EXTENSION ? path.resolve(process.env.TODOFORGE_IT_EXTENSION) : root;
 const workspace = fs.realpathSync(fs.mkdtempSync(path.join(os.tmpdir(), "todoforge-it-")));
 fs.cpSync(path.join(root, "test", "fixtures", "sample"), workspace, { recursive: true });
 
@@ -64,7 +67,7 @@ const runUntrusted = (executable) =>
         "--skip-welcome",
         "--skip-release-notes",
         `--user-data-dir=${untrustedData}`,
-        `--extensionDevelopmentPath=${root}`,
+        `--extensionDevelopmentPath=${extensionPath}`,
         `--extensionTestsPath=${testsPath}`,
       ],
       { env, stdio: "inherit" },
@@ -77,7 +80,7 @@ try {
   const executable = process.env.VSCODE_EXECUTABLE || (await downloadAndUnzipVSCode());
   await runTests({
     vscodeExecutablePath: executable,
-    extensionDevelopmentPath: root,
+    extensionDevelopmentPath: extensionPath,
     extensionTestsPath: testsPath,
     launchArgs: [
       workspace,
@@ -88,6 +91,21 @@ try {
       `--user-data-dir=${userData}`,
     ],
     extensionTestsEnv: { TODOFORGE_IT_WORKSPACE: workspace },
+  });
+  // Same workspace and user data again: the saved index must show before the scan.
+  await runTests({
+    vscodeExecutablePath: executable,
+    extensionDevelopmentPath: extensionPath,
+    extensionTestsPath: testsPath,
+    launchArgs: [
+      workspace,
+      "--disable-extensions",
+      "--disable-workspace-trust",
+      "--skip-welcome",
+      "--skip-release-notes",
+      `--user-data-dir=${userData}`,
+    ],
+    extensionTestsEnv: { TODOFORGE_IT_WORKSPACE: workspace, TODOFORGE_IT_SUITE: "reload" },
   });
   await runUntrusted(executable);
 } catch (error) {

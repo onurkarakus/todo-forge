@@ -28,7 +28,8 @@ export interface StateStore {
   readonly query: string;
   readonly mine: boolean;
   setPins: (pins: readonly PinnedTodo[]) => Promise<void>;
-  mute: (match: TodoMatch) => Promise<void>;
+  /** Mutes one or more TODOs with a single state change. */
+  mute: (matches: TodoMatch | readonly TodoMatch[]) => Promise<void>;
   unmute: (keys: readonly string[]) => Promise<void>;
   isMuted: (match: TodoMatch) => boolean;
   setSavedViews: (views: readonly SavedView[]) => Promise<void>;
@@ -67,8 +68,12 @@ export const createStateStore = (context: vscode.ExtensionContext): StateStore =
       emitter.fire();
       await context.workspaceState.update(PINS_KEY, pins);
     },
-    mute: async (match) => {
-      muted = new Set(muted).add(fingerprint(match));
+    mute: async (matches) => {
+      const next = new Set(muted);
+      for (const match of Array.isArray(matches) ? matches : [matches as TodoMatch]) {
+        next.add(fingerprint(match));
+      }
+      muted = next;
       emitter.fire();
       await context.workspaceState.update(MUTED_KEY, [...muted]);
     },
