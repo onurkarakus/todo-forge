@@ -1,0 +1,59 @@
+name: Bug report
+description: Something in TodoForge does not work as expected
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time. Please do not paste secrets or private code; a small example is enough.
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened?
+      description: What did you do, what did you expect, and what happened instead?
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      description: A short TODO line or file that shows the problem helps the most.
+      placeholder: |
+        1. Open a C# file
+        2. Type `// TODO(me, +7d): example`
+        3. ...
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: TodoForge version
+      description: Extensions view → TodoForge, or `code --list-extensions --show-versions`.
+      placeholder: "1.2.0"
+    validations:
+      required: true
+  - type: input
+    id: vscode
+    attributes:
+      label: VS Code version and OS
+      placeholder: "VS Code 1.147, Windows 11 x64"
+    validations:
+      required: true
+  - type: dropdown
+    id: source
+    attributes:
+      label: Installed from
+      options:
+        - Visual Studio Marketplace
+        - Open VSX
+        - VSIX file
+    validations:
+      required: false
+  - type: textarea
+    id: log
+    attributes:
+      label: TodoForge output
+      description: Output panel → **TodoForge** channel. Remove anything private.
+      render: text
+    validations:
+      required: false

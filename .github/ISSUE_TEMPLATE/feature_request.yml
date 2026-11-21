@@ -1,0 +1,29 @@
+name: Feature request
+description: Suggest an idea for TodoForge
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        TodoForge is an editor extension for individual developers: it works offline, has no account and sends no telemetry. Ideas that fit inside the editor are the most likely to land.
+  - type: textarea
+    id: problem
+    attributes:
+      label: What are you trying to do?
+      description: The problem or the workflow, not only the solution.
+    validations:
+      required: true
+  - type: textarea
+    id: idea
+    attributes:
+      label: What would help?
+      description: How it could look or behave. An example TODO line is welcome.
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: What do you do today?
+      description: Workarounds you use now, if any.
+    validations:
+      required: false
