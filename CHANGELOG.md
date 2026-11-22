@@ -2,7 +2,7 @@
 
 All notable changes to TodoForge. Dates are in the Europe/Istanbul time zone.
 
-## [Unreleased]
+## [1.2.1] - 2026-11-22
 
 ### Fixed
 

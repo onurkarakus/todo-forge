@@ -29,6 +29,10 @@
 - **Act from the line.** Hover a TODO for who wrote it and when, then Snooze, set a date, set a priority, pin or remove it with one click or **Ctrl+.**
 - **Private by design.** Nothing leaves your machine. No sign-in, no telemetry, no network calls. AI help and the Copilot chat tools are off unless you turn them on.
 
+## New in 1.2.1
+
+- **Changes view.** Renamed or moved files no longer list TODOs that only changed path. Only newly added lines appear.
+
 ## New in 1.2
 
 - **Relative due dates.** Write `TODO(me, +7d)`, `+2w`, `+1m`, `tomorrow` or `friday` and pick the completion, or use the **Convert +7d to 2026-11-28** quick fix. The comment always gets a fixed ISO date, so it means the same thing next week.
