@@ -148,7 +148,8 @@ export const changeSets = async (
   if (!info) {
     return undefined;
   }
-  const diffArgs = ["diff", "--no-color", "--no-ext-diff", "--no-textconv", "--unified=0", "--no-renames"];
+  // --find-renames / --find-copies so a moved file is not treated as add+delete.
+  const diffArgs = ["diff", "--no-color", "--no-ext-diff", "--no-textconv", "--unified=0", "--find-renames", "--find-copies"];
   const uncommitted = new Map<string, Set<number> | "all">();
   if (info.head) {
     const diff = await tryRun(runner, info.root, [...diffArgs, "HEAD", "--"]);

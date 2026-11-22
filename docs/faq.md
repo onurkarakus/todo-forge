@@ -34,6 +34,8 @@
 
 **Why is the Changes view empty?** It needs a git repository and a trusted workspace. "This branch" compares with `todoforge.git.baseBranch` or the detected default branch; if you are on that branch, only uncommitted TODOs show.
 
+**I moved a file and its old TODOs vanished from Changes.** That is expected. The view lists TODOs you added, not ones that only changed path. A new TODO written in the same change still appears.
+
 **Does TodoForge fetch from my remote?** No. It only reads local git data.
 
 ## Privacy and security

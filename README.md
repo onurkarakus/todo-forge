@@ -90,7 +90,7 @@ TodoForge can also color `// !` (alert), `// ?` (question), `// *` (highlight) a
 
 ![The Changes view: one uncommitted FIXME and two TODOs added on feature/checkout since main](https://raw.githubusercontent.com/onurkarakus/todo-forge/main/media/screenshots/04-changes-dark.png)
 
-TodoForge runs read-only local git commands (`git diff`, `git ls-files`, `git merge-base`, `git blame`) to split TODOs into **Uncommitted** and **This branch**. The base branch is detected (`origin/HEAD`, `main`, `master`, `develop`) or set with `todoforge.git.baseBranch`. Nothing is fetched.
+TodoForge runs read-only local git commands (`git diff`, `git ls-files`, `git merge-base`, `git blame`) to split TODOs into **Uncommitted** and **This branch**. Renamed or moved files do not list TODOs that only changed path; only newly added lines appear. The base branch is detected (`origin/HEAD`, `main`, `master`, `develop`) or set with `todoforge.git.baseBranch`. Nothing is fetched.
 
 ### Filter as you type
 

@@ -56,12 +56,12 @@ A custom regex (`todoforge.regex.custom`) replaces steps 2–4; it is ignored in
 
 `gitService` runs `git -c core.quotepath=off -c color.ui=false …` with `execFile` (no shell). Used commands:
 
-- `diff HEAD --unified=0` and `ls-files --others --exclude-standard` for uncommitted TODOs
-- `merge-base` + `diff <base> --unified=0` for TODOs on this branch
+- `diff HEAD --unified=0 --find-renames --find-copies` and `ls-files --others --exclude-standard` for uncommitted TODOs
+- `merge-base` + `diff <base> --unified=0 --find-renames --find-copies` for TODOs on this branch
 - `blame --line-porcelain -L n,n --contents -` for author and age (dirty buffers included)
 - `check-ignore --stdin` to filter watcher events
 
-Diff line numbers describe the saved file. While a buffer has unsaved edits, `gitContext` keeps an edit log per file (`git/lineMap`) and maps the diff's line sets onto the live buffer: lines after an edit shift, edited lines count as changed. The log is cleared on save or revert and settled when a fresh diff arrives.
+Rename and copy detection is on, so a moved file only contributes lines that were actually added, not TODOs that merely changed path. Diff line numbers describe the saved file. While a buffer has unsaved edits, `gitContext` keeps an edit log per file (`git/lineMap`) and maps the diff's line sets onto the live buffer: lines after an edit shift, edited lines count as changed. The log is cleared on save or revert and settled when a fresh diff arrives.
 
 The base branch is `todoforge.git.baseBranch` or the first of `origin/HEAD`, `main`, `master`, `develop` that exists. Git is off in untrusted workspaces.
 

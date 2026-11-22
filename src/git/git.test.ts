@@ -34,6 +34,56 @@ describe("git parsers", () => {
     assert.deepEqual([...(added.get("sp ace.cs") ?? [])], [1]);
   });
 
+  it("ignores a 100% rename or copy with no hunks", () => {
+    const diff = [
+      "diff --git a/src/Old.cs b/src/Moved.cs",
+      "similarity index 100%",
+      "rename from src/Old.cs",
+      "rename to src/Moved.cs",
+      "diff --git a/src/Old.cs b/src/Copy.cs",
+      "similarity index 100%",
+      "copy from src/Old.cs",
+      "copy to src/Copy.cs",
+    ].join("\n");
+    const added = parseAddedLines(diff);
+    assert.equal(added.size, 0);
+  });
+
+  it("counts only added lines on a rename or copy with edits", () => {
+    const diff = [
+      "diff --git a/src/Old.cs b/src/Moved.cs",
+      "similarity index 73%",
+      "rename from src/Old.cs",
+      "rename to src/Moved.cs",
+      "index 823a2a2..dcc7f23 100644",
+      "--- a/src/Old.cs",
+      "+++ b/src/Moved.cs",
+      "@@ -3,0 +4 @@ class A {",
+      "+  // TODO: added",
+      "diff --git a/src/Old.cs b/src/Copy.cs",
+      "similarity index 67%",
+      "copy from src/Old.cs",
+      "copy to src/Copy.cs",
+      "--- a/src/Old.cs",
+      "+++ b/src/Copy.cs",
+      "@@ -3,0 +4 @@ class A {",
+      "+  // TODO: copy extra",
+      'diff --git "a/src/my dir/Old File.cs" "b/src/my dir/New File.cs"',
+      "similarity index 65%",
+      'rename from "src/my dir/Old File.cs"',
+      'rename to "src/my dir/New File.cs"',
+      '--- "a/src/my dir/Old File.cs"',
+      '+++ "b/src/my dir/New File.cs"\t',
+      "@@ -2,0 +3 @@ class A {",
+      "+  // TODO: added",
+    ].join("\n");
+    const added = parseAddedLines(diff);
+    assert.deepEqual([...(added.get("src/Moved.cs") ?? [])], [4]);
+    assert.deepEqual([...(added.get("src/Copy.cs") ?? [])], [4]);
+    assert.deepEqual([...(added.get("src/my dir/New File.cs") ?? [])], [3]);
+    assert.equal(added.has("src/Old.cs"), false);
+  });
+
   it("reads line-porcelain blame", () => {
     const sha = "1".repeat(40);
     const output = [
@@ -143,5 +193,127 @@ describe("gitService on a temporary repository", () => {
   it("reports gitignored paths", async () => {
     const ignored = await ignoredPaths(runner, repo, ["bin/Debug/A.cs", "A.cs"]);
     assert.deepEqual([...ignored], ["bin/Debug/A.cs"]);
+  });
+});
+
+const initRepo = (): { repo: string; git: (...args: string[]) => string } => {
+  const repo = fs.realpathSync(fs.mkdtempSync(path.join(os.tmpdir(), "todoforge-git-")));
+  const git = (...args: string[]): string =>
+    execFileSync("git", args, {
+      cwd: repo,
+      encoding: "utf8",
+      env: { ...process.env, GIT_AUTHOR_DATE: "2025-01-01T00:00:00Z", GIT_COMMITTER_DATE: "2025-01-01T00:00:00Z" },
+    });
+  git("init", "-q", "-b", "main");
+  git("config", "user.name", "Test User");
+  git("config", "user.email", "test@example.com");
+  git("config", "commit.gpgsign", "false");
+  return { repo, git };
+};
+
+describe("changeSets rename and copy detection", () => {
+  const runner = createGitRunner();
+
+  it("does not list TODOs that only moved in a plain rename", async () => {
+    const { repo, git } = initRepo();
+    try {
+      fs.mkdirSync(path.join(repo, "src"));
+      fs.writeFileSync(path.join(repo, "src/Old.cs"), "class A {\n  // TODO: existing\n  void M() {}\n}\n");
+      git("add", ".");
+      git("commit", "-q", "-m", "base");
+      git("checkout", "-q", "-b", "feature");
+      git("mv", "src/Old.cs", "src/Moved.cs");
+      git("commit", "-q", "-m", "plain rename");
+      const sets = await changeSets(runner, repo, "");
+      assert.ok(sets);
+      const moved = path.join(repo, "src/Moved.cs");
+      const old = path.join(repo, "src/Old.cs");
+      assert.equal(sets?.uncommitted.has(moved), false);
+      assert.equal(sets?.uncommitted.has(old), false);
+      assert.equal(sets?.branch.has(moved), false);
+      assert.equal(sets?.branch.has(old), false);
+      assert.ok(!lineIsIn(sets?.branch.get(moved), 2));
+    } finally {
+      fs.rmSync(repo, { recursive: true, force: true });
+    }
+  });
+
+  it("lists only the TODO added in the same commit as a rename, against the merge base and the working tree", async () => {
+    const { repo, git } = initRepo();
+    try {
+      fs.mkdirSync(path.join(repo, "src"));
+      fs.writeFileSync(path.join(repo, "src/Old.cs"), "class A {\n  // TODO: existing\n  void M() {}\n}\n");
+      git("add", ".");
+      git("commit", "-q", "-m", "base");
+      git("checkout", "-q", "-b", "feature");
+      git("mv", "src/Old.cs", "src/Moved.cs");
+      fs.writeFileSync(path.join(repo, "src/Moved.cs"), "class A {\n  // TODO: existing\n  void M() {}\n  // TODO: added\n}\n");
+      git("commit", "-q", "-am", "rename and add todo");
+      const committed = await changeSets(runner, repo, "");
+      assert.ok(committed);
+      const moved = path.join(repo, "src/Moved.cs");
+      assert.equal(committed?.uncommitted.has(moved), false);
+      assert.deepEqual([...((committed?.branch.get(moved) as Set<number>) ?? [])], [4]);
+      assert.ok(!lineIsIn(committed?.branch.get(moved), 2));
+
+      fs.writeFileSync(path.join(repo, "src/Moved.cs"), "class A {\n  // TODO: existing\n  void M() {}\n  // TODO: added\n  // TODO: local\n}\n");
+      const dirty = await changeSets(runner, repo, "");
+      assert.ok(dirty);
+      assert.deepEqual([...((dirty?.uncommitted.get(moved) as Set<number>) ?? [])], [5]);
+      assert.deepEqual([...((dirty?.branch.get(moved) as Set<number>) ?? [])], [4, 5]);
+      assert.ok(!lineIsIn(dirty?.uncommitted.get(moved), 2));
+      assert.ok(!lineIsIn(dirty?.branch.get(moved), 2));
+    } finally {
+      fs.rmSync(repo, { recursive: true, force: true });
+    }
+  });
+
+  it("lists only added lines when a file is copied and the source is also edited", async () => {
+    const { repo, git } = initRepo();
+    try {
+      fs.mkdirSync(path.join(repo, "src"));
+      fs.writeFileSync(path.join(repo, "src/Old.cs"), "class A {\n  // TODO: existing\n  void M() {}\n}\n");
+      git("add", ".");
+      git("commit", "-q", "-m", "base");
+      git("checkout", "-q", "-b", "feature");
+      fs.writeFileSync(path.join(repo, "src/Old.cs"), "class A {\n  // TODO: existing\n  void M() {}\n  // TODO: source edit\n}\n");
+      fs.writeFileSync(path.join(repo, "src/Copy.cs"), "class A {\n  // TODO: existing\n  void M() {}\n  // TODO: copy extra\n}\n");
+      git("add", ".");
+      git("commit", "-q", "-m", "copy and edit source");
+      const sets = await changeSets(runner, repo, "");
+      assert.ok(sets);
+      const copy = path.join(repo, "src/Copy.cs");
+      const source = path.join(repo, "src/Old.cs");
+      assert.deepEqual([...((sets?.branch.get(copy) as Set<number>) ?? [])], [4]);
+      assert.ok(!lineIsIn(sets?.branch.get(copy), 2));
+      assert.deepEqual([...((sets?.branch.get(source) as Set<number>) ?? [])], [4]);
+      assert.equal(sets?.uncommitted.has(copy), false);
+    } finally {
+      fs.rmSync(repo, { recursive: true, force: true });
+    }
+  });
+
+  it("treats an uncommitted rename with an extra TODO as only that new line", async () => {
+    const { repo, git } = initRepo();
+    try {
+      fs.mkdirSync(path.join(repo, "src"));
+      fs.writeFileSync(path.join(repo, "src/Work.cs"), "class B {\n  // TODO: keep\n}\n");
+      git("add", ".");
+      git("commit", "-q", "-m", "base");
+      git("mv", "src/Work.cs", "src/WorkMoved.cs");
+      fs.writeFileSync(path.join(repo, "src/WorkMoved.cs"), "class B {\n  // TODO: keep\n  // TODO: extra\n}\n");
+      const sets = await changeSets(runner, repo, "");
+      assert.ok(sets);
+      const moved = path.join(repo, "src/WorkMoved.cs");
+      const old = path.join(repo, "src/Work.cs");
+      assert.deepEqual([...((sets?.uncommitted.get(moved) as Set<number>) ?? [])], [3]);
+      assert.ok(lineIsIn(sets?.branch.get(moved), 3));
+      assert.ok(!lineIsIn(sets?.uncommitted.get(moved), 2));
+      assert.ok(!lineIsIn(sets?.branch.get(moved), 2));
+      assert.equal(sets?.uncommitted.has(old), false);
+      assert.equal(sets?.onBaseBranch, true);
+    } finally {
+      fs.rmSync(repo, { recursive: true, force: true });
+    }
   });
 });

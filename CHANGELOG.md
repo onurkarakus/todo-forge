@@ -2,6 +2,12 @@
 
 All notable changes to TodoForge. Dates are in the Europe/Istanbul time zone.
 
+## [Unreleased]
+
+### Fixed
+
+- The Changes view treated a renamed or moved file as new, so TODOs that only changed path showed up as added on the branch. Rename and copy detection now keeps those off the list; only lines that were actually added are shown.
+
 ## [1.2.0] - 2026-11-21
 
 Faster to open, quicker to triage, smaller to download.
